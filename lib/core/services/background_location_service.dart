@@ -9,6 +9,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import '../network/dio_client.dart';
 import '../secure_storage/secure_storage_manager.dart';
+import '../config/api_config.dart';
 
 class BackgroundLocationService {
   static const String channelId = 'lumina_guardian_tracking';
@@ -57,7 +58,7 @@ class BackgroundLocationService {
     // Config client
     // Set a default server address for testing; in production this reads from secure configuration
     final dioClient = DioClient(
-      baseUrl: 'https://api.luminaguardian.com', 
+      baseUrl: ApiConfig.safetyBaseUrl, 
       secureStorage: secureStorage,
     );
 

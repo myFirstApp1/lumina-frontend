@@ -47,6 +47,16 @@ class _RegisterAccountScreenState extends State<RegisterAccountScreen> {
   }
 
   @override
+  void dispose() {
+    _usernameController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: BlocListener<AuthCubit, AuthState>(
@@ -233,12 +243,12 @@ class _RegisterAccountScreenState extends State<RegisterAccountScreen> {
                           isPassword: true,
                           obscureText: _obscurePassword,
                           togglePassword: () => setState(() => _obscurePassword = !_obscurePassword),
-                          validator: (val) => val == null || val.length < 8 ? "Must be at least 8 characters." : null,
+                          validator: (val) => val == null || val.length < 6 ? "Must be at least 6 characters." : null,
                         ),
                         Padding(
                           padding: const EdgeInsets.only(top: 6.0, left: 4.0),
                           child: Text(
-                            "Must be at least 8 characters.",
+                            "Must be at least 6 characters.",
                             style: GoogleFonts.montserrat(
                               fontSize: 12,
                               color: AppTheme.textSecondary,

@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'core/routes/app_routes.dart';
@@ -5,6 +7,7 @@ import 'core/theme/app_theme.dart';
 import 'core/network/dio_client.dart';
 import 'core/secure_storage/secure_storage_manager.dart';
 import 'core/services/location_service.dart';
+import 'core/config/api_config.dart';
 import 'features/auth/data/repositories/auth_repository_impl.dart';
 import 'features/auth/presentation/cubit/auth_cubit.dart';
 import 'features/sos/data/repositories/sos_repository_impl.dart';
@@ -14,56 +17,73 @@ import 'features/tracking/presentation/cubit/tracking_cubit.dart';
 import 'features/profile/presentation/cubit/wearable_cubit.dart';
 import 'features/ai_companion1/presentation/cubit/ai_companion_cubit.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+void main() {
+  runZonedGuarded(() async {
+    WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize secure storage manager
-  final secureStorage = SecureStorageManager();
+    FlutterError.onError = (FlutterErrorDetails details) {
+      FlutterError.presentError(details);
+      debugPrint('Captured Flutter Error: ${details.exceptionAsString()}');
+      debugPrint('Stack trace: ${details.stack}');
+    };
 
-  // Initialize network client with base URL
-  final dioClient = DioClient(
-    baseUrl: 'https://api.luminaguardian.com', // Base URL for the safety services backend
-    secureStorage: secureStorage,
-  );
+    PlatformDispatcher.instance.onError = (Object error, StackTrace stack) {
+      debugPrint('Captured Platform Error: $error');
+      debugPrint('Stack trace: $stack');
+      return true;
+    };
 
-  // Initialize location service
-  final locationService = LocationService();
+    // Initialize secure storage manager
+    final secureStorage = SecureStorageManager();
 
-  // Initialize repositories
-  final authRepository = AuthRepositoryImpl(
-    client: dioClient,
-    secureStorage: secureStorage,
-  );
-  final trackingRepository = TrackingRepositoryImpl(
-    client: dioClient,
-  );
-  final sosRepository = SosRepositoryImpl(
-    client: dioClient,
-  );
+    // Initialize network client with base URL
+    final dioClient = DioClient(
+      baseUrl: ApiConfig.safetyBaseUrl, // central config base URL
+      secureStorage: secureStorage,
+    );
 
-  // Initialize cubits
-  final authCubit = AuthCubit(authRepository: authRepository);
-  final trackingCubit = TrackingCubit(
-    trackingRepository: trackingRepository,
-    locationService: locationService,
-  );
-  final sosCubit = SosCubit(
-    sosRepository: sosRepository,
-    trackingCubit: trackingCubit,
-  );
-  final wearableCubit = WearableCubit();
-  final aiCompanionCubit = AiCompanionCubit();
+    // Initialize location service
+    final locationService = LocationService();
 
-  // Check user authentication status on startup
-  await authCubit.checkAuthStatus();
+    // Initialize repositories
+    final authRepository = AuthRepositoryImpl(
+      client: dioClient,
+      secureStorage: secureStorage,
+    );
+    final trackingRepository = TrackingRepositoryImpl(
+      client: dioClient,
+    );
+    final sosRepository = SosRepositoryImpl(
+      client: dioClient,
+    );
 
-  runApp(LuminaGuardianApp(
-    authCubit: authCubit,
-    trackingCubit: trackingCubit,
-    sosCubit: sosCubit,
-    wearableCubit: wearableCubit,
-    aiCompanionCubit: aiCompanionCubit,
-  ));
+    // Initialize cubits
+    final authCubit = AuthCubit(authRepository: authRepository);
+    final trackingCubit = TrackingCubit(
+      trackingRepository: trackingRepository,
+      locationService: locationService,
+    );
+    final sosCubit = SosCubit(
+      sosRepository: sosRepository,
+      trackingCubit: trackingCubit,
+    );
+    final wearableCubit = WearableCubit();
+    final aiCompanionCubit = AiCompanionCubit();
+
+    // Check user authentication status on startup
+    await authCubit.checkAuthStatus();
+
+    runApp(LuminaGuardianApp(
+      authCubit: authCubit,
+      trackingCubit: trackingCubit,
+      sosCubit: sosCubit,
+      wearableCubit: wearableCubit,
+      aiCompanionCubit: aiCompanionCubit,
+    ));
+  }, (Object error, StackTrace stack) {
+    debugPrint('Captured Uncaught Zoned Error: $error');
+    debugPrint('Stack trace: $stack');
+  });
 }
 
 class LuminaGuardianApp extends StatelessWidget {

@@ -6,6 +6,7 @@ import 'background_location_service.dart';
 class LocationService {
   final FlutterBackgroundService _service = FlutterBackgroundService();
   StreamController<Map<String, dynamic>>? _locationStreamController;
+  StreamSubscription? _serviceSubscription;
 
   Stream<Map<String, dynamic>> get locationStream {
     _locationStreamController ??= StreamController<Map<String, dynamic>>.broadcast();
@@ -50,7 +51,8 @@ class LocationService {
     _service.invoke('startTracking', {'sessionId': sessionId});
 
     // Setup subscription to background service events
-    _service.on('onLocationReceived').listen((event) {
+    await _serviceSubscription?.cancel();
+    _serviceSubscription = _service.on('onLocationReceived').listen((event) {
       if (event != null && _locationStreamController != null && !_locationStreamController!.isClosed) {
         _locationStreamController!.add(Map<String, dynamic>.from(event));
       }
@@ -64,6 +66,8 @@ class LocationService {
   }
 
   Future<void> stopTracking() async {
+    await _serviceSubscription?.cancel();
+    _serviceSubscription = null;
     if (await _service.isRunning()) {
       _service.invoke('stopTracking');
       _service.invoke('stopService');
