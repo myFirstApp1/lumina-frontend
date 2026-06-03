@@ -4,15 +4,51 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/routes/app_routes.dart';
 import '../../../../core/theme/app_theme.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../cubit/profile_cubit.dart';
+import '../cubit/profile_state.dart';
+import '../../../auth/presentation/cubit/auth_cubit.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
 
   @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final authState = context.read<AuthCubit>().state;
+      if (authState is AuthAuthenticated) {
+        context.read<ProfileCubit>().loadProfile(authState.user.id);
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
-        children: [
+    return BlocBuilder<ProfileCubit, ProfileState>(
+      builder: (context, state) {
+        if (state is ProfileLoading || state is ProfileInitial) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator(color: AppTheme.primary)),
+          );
+        }
+
+        if (state is ProfileError) {
+          return Scaffold(
+            body: Center(child: Text("Error: ${state.message}", style: const TextStyle(color: Colors.red))),
+          );
+        }
+
+        final profile = (state as ProfileLoaded).profile;
+
+        return Scaffold(
+          body: Stack(
+            children: [
           // Background soft canvas
           Container(
             color: AppTheme.background,
@@ -112,7 +148,7 @@ class ProfileScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          "Sarah Jenkins",
+                          profile.fullName.isNotEmpty ? profile.fullName : "No Name",
                           style: GoogleFonts.montserrat(
                             fontSize: 28,
                             fontWeight: FontWeight.w600,
@@ -184,13 +220,13 @@ class ProfileScreen extends StatelessWidget {
                         const SizedBox(height: 16),
 
                         // Details Items
-                        _buildDetailItem("Full Name", "Sarah Elizabeth Jenkins"),
+                        _buildDetailItem("Full Name", profile.fullName.isNotEmpty ? profile.fullName : "N/A"),
                         const SizedBox(height: 20),
-                        _buildDetailItem("Email Address", "sarah.jenkins@luminaguard.com"),
+                        _buildDetailItem("Email Address", profile.email.isNotEmpty ? profile.email : "N/A"),
                         const SizedBox(height: 20),
-                        _buildDetailItem("Phone Number", "+1 (555) 867-5309"),
+                        _buildDetailItem("Phone Number", profile.phone.isNotEmpty ? profile.phone : "N/A"),
                         const SizedBox(height: 20),
-                        _buildDetailItem("Address", "123 Sapphire Lane, Emerald City, EC 54321"),
+                        _buildDetailItem("Address", profile.address.isNotEmpty ? profile.address : "N/A"),
                       ],
                     ),
                   ),
@@ -360,6 +396,8 @@ class ProfileScreen extends StatelessWidget {
           ),
         ],
       ),
+    );
+    },
     );
   }
 

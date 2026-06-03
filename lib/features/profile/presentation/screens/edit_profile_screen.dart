@@ -4,6 +4,11 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/routes/app_routes.dart';
 import '../../../../core/theme/app_theme.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../cubit/profile_cubit.dart';
+import '../cubit/profile_state.dart';
+import '../../../auth/presentation/cubit/auth_cubit.dart';
+import '../../data/models/user_profile_model.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({Key? key}) : super(key: key);
@@ -22,10 +27,21 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   void initState() {
     super.initState();
-    _usernameController = TextEditingController(text: "Sarah Elizabeth Jenkins");
-    _emailController = TextEditingController(text: "sarah.jenkins@luminaguard.com");
-    _phoneController = TextEditingController(text: "+1 (555) 867-5309");
-    _addressController = TextEditingController(text: "123 Sapphire Lane, Emerald City, EC 54321");
+    _usernameController = TextEditingController();
+    _emailController = TextEditingController();
+    _phoneController = TextEditingController();
+    _addressController = TextEditingController();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final profileState = context.read<ProfileCubit>().state;
+      if (profileState is ProfileLoaded) {
+        final profile = profileState.profile;
+        _usernameController.text = profile.fullName;
+        _emailController.text = profile.email;
+        _phoneController.text = profile.phone;
+        _addressController.text = profile.address;
+      }
+    });
   }
 
   @override
@@ -39,16 +55,35 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   void _handleSaveChanges() {
     if (_formKey.currentState!.validate()) {
-      context.pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            "Profile details successfully updated.",
-            style: GoogleFonts.beVietnamPro(fontWeight: FontWeight.bold),
-          ),
-          backgroundColor: AppTheme.success,
-        ),
-      );
+      final authState = context.read<AuthCubit>().state;
+      if (authState is AuthAuthenticated) {
+        final profileState = context.read<ProfileCubit>().state;
+        String profileId = '';
+        if (profileState is ProfileLoaded) profileId = profileState.profile.id;
+
+        final updatedProfile = UserProfileModel(
+          id: profileId, // Assuming ID is not updatable or uses same ID
+          fullName: _usernameController.text,
+          email: _emailController.text,
+          phone: _phoneController.text,
+          address: _addressController.text,
+        );
+
+        context.read<ProfileCubit>().updateProfile(authState.user.id, updatedProfile).then((_) {
+          if (mounted) {
+            context.pop();
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  "Profile details successfully updated.",
+                  style: GoogleFonts.beVietnamPro(fontWeight: FontWeight.bold),
+                ),
+                backgroundColor: AppTheme.success,
+              ),
+            );
+          }
+        });
+      }
     }
   }
 
@@ -140,13 +175,21 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         const SizedBox(height: 12),
                         TextButton(
                           onPressed: () => context.push(AppRoutes.updatePhoto),
-                          child: Text(
-                            "Sarah Jenkins",
-                            style: GoogleFonts.beVietnamPro(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: AppTheme.primary,
-                            ),
+                          child: BlocBuilder<ProfileCubit, ProfileState>(
+                            builder: (context, state) {
+                              String name = "Loading...";
+                              if (state is ProfileLoaded) {
+                                name = state.profile.fullName.isNotEmpty ? state.profile.fullName : "No Name";
+                              }
+                              return Text(
+                                name,
+                                style: GoogleFonts.beVietnamPro(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.primary,
+                                ),
+                              );
+                            }
                           ),
                         ),
                       ],

@@ -3,7 +3,10 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../cubit/contacts_cubit.dart';
+import '../../../auth/presentation/cubit/auth_cubit.dart';
+import '../../data/models/emergency_contact_model.dart';
 import '../../../../core/routes/app_routes.dart';
 import '../../../../core/theme/app_theme.dart';
 
@@ -140,28 +143,15 @@ class _AddContactScreenState extends State<AddContactScreen> {
   }
 
   Future<void> _saveContact() async {
-    final prefs = await SharedPreferences.getInstance();
-    final contactsJson = prefs.getString('emergency_contacts');
-    List<dynamic> contacts = [];
-    if (contactsJson != null) {
-      try {
-        contacts = jsonDecode(contactsJson);
-      } catch (_) {
-        contacts = [];
-      }
+    final authState = context.read<AuthCubit>().state;
+    if (authState is AuthAuthenticated) {
+      final req = EmergencyContactRequestModel(
+        name: _nameController.text,
+        phoneNumber: _phoneController.text,
+        relation: _relationController.text,
+      );
+      await context.read<ContactsCubit>().addContact(authState.user.id, req);
     }
-
-    final newContact = {
-      'name': _nameController.text,
-      'relationship': _relationController.text,
-      'phone': _phoneController.text,
-      'email': _emailController.text,
-      'avatarUrl': _photoUrl ?? "https://lh3.googleusercontent.com/aida-public/AB6AXuCTDylmOjPsGe4hVTugPTdT1pnyuqwH1aQ9EFmzm2Fq4Yrsif97vyw1J2pOzea8lSMDhAlleljutYISU52PTiAWZcytV_6EmT_eORS2F3r2Xvdw1cbqtrCQuuJu0cvaTLRq3TP3F7cSSAG3oKynAkFqBLIKfbtVtORDJMAS4FJGJrAfuQbLxvXqmZJJ7yffJnFPg1BVqoSzOyZCy23FfM_StMQLelin7ntCzuXFzCStsYhAYufQgh4e5hh9kq5daQJ1VLTZ0yU8bzI",
-      'isPrimary': false,
-    };
-
-    contacts.add(newContact);
-    await prefs.setString('emergency_contacts', jsonEncode(contacts));
   }
 
   void _handleContinue() async {

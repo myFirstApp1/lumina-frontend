@@ -3,7 +3,10 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../cubit/contacts_cubit.dart';
+import '../cubit/contacts_state.dart';
+import '../../../auth/presentation/cubit/auth_cubit.dart';
 import '../../../../core/routes/app_routes.dart';
 import '../../../../core/theme/app_theme.dart';
 
@@ -15,52 +18,18 @@ class ContactsCircleScreen extends StatefulWidget {
 }
 
 class _ContactsCircleScreenState extends State<ContactsCircleScreen> {
-  List<dynamic> _contacts = [];
-  bool _isLoading = true;
-
   @override
   void initState() {
     super.initState();
-    _loadContacts();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadContacts();
+    });
   }
 
-  Future<void> _loadContacts() async {
-    final prefs = await SharedPreferences.getInstance();
-    final contactsJson = prefs.getString('emergency_contacts');
-    if (contactsJson == null || jsonDecode(contactsJson).isEmpty) {
-      // Seed default contacts
-      final defaultContacts = [
-        {
-          'name': "Mom",
-          'relationship': "Primary Contact",
-          'phone': "+1 555-9876",
-          'email': "mom@guardian.com",
-          'avatarUrl': "https://lh3.googleusercontent.com/aida-public/AB6AXuDrAAMB14DZkbs0qe6Q-toj5MY8E6fBKgd1loNapUh68QCYiVmhXDUnR5d9XKzAV15M_UIpOWT3WJbXcTJVy5pBJw4kb14tKR8ZQQ7jWcue-nyc1eRxZt4VtcqhBPxD8bHQho0TpQvx2Dni5EgbuWwBJ1h1q72wH43__WvBbiG9IG3CBlq5CHXnBMI0JiN_l7k5ZYAMuIP7IYWze3xCb6jeJeQjoeyD224zpXg2nFEQ9r82urHY_P8jT846lW03idEzMm9NmzBg4bk",
-          'isPrimary': true,
-        },
-        {
-          'name': "Alex Chen",
-          'relationship': "Partner",
-          'phone': "+1 555-0123",
-          'email': "alex.chen@lumina.com",
-          'avatarUrl': "https://lh3.googleusercontent.com/aida-public/AB6AXuA1Zwf01TDFb2zq7bcVIu5vvFi4s5GDWQ3o5XxTo0djdJRn5mo8QhiAQ0NIm0UdnzkAOV4P439HAQXnbPvixBXxt9USAoIyGv801h5moMGAObchwDg1Hh0doaUcEWzxPYbVJPfm-3WEHYH0lzoOQW0du3VnXmQBAx3j5iSFCRL5FpHiAg8bvWKJFoy_Qp_I8qvJvmqpaQ5qlkwgLTgTMGe3Jt-P94sBplL6dZ6Uu05Q-Gv5GEDDP5aCYVvhpnKzpxcrkeK5o5_YsdA",
-          'isPrimary': false,
-        }
-      ];
-      await prefs.setString('emergency_contacts', jsonEncode(defaultContacts));
-      if (mounted) {
-        setState(() {
-          _contacts = defaultContacts;
-          _isLoading = false;
-        });
-      }
-    } else {
-      if (mounted) {
-        setState(() {
-          _contacts = jsonDecode(contactsJson);
-          _isLoading = false;
-        });
-      }
+  void _loadContacts() {
+    final authState = context.read<AuthCubit>().state;
+    if (authState is AuthAuthenticated) {
+      context.read<ContactsCubit>().loadContacts(authState.user.id);
     }
   }
 
@@ -207,25 +176,38 @@ class _ContactsCircleScreenState extends State<ContactsCircleScreen> {
                   const SizedBox(height: 28),
 
                   // Contacts List Grid
-                  _isLoading
-                      ? const Center(child: CircularProgressIndicator(color: AppTheme.primary))
-                      : Column(
-                          children: [
-                            ..._contacts.map((contact) {
-                              return Padding(
-                                padding: const EdgeInsets.only(bottom: 16.0),
-                                child: _buildPriorityContactCard(
-                                  context,
-                                  name: contact['name'] ?? "",
-                                  subtitle: contact['relationship'] ?? "",
-                                  avatarUrl: contact['avatarUrl'] ?? "https://lh3.googleusercontent.com/aida-public/AB6AXuCTDylmOjPsGe4hVTugPTdT1pnyuqwH1aQ9EFmzm2Fq4Yrsif97vyw1J2pOzea8lSMDhAlleljutYISU52PTiAWZcytV_6EmT_eORS2F3r2Xvdw1cbqtrCQuuJu0cvaTLRq3TP3F7cSSAG3oKynAkFqBLIKfbtVtORDJMAS4FJGJrAfuQbLxvXqmZJJ7yffJnFPg1BVqoSzOyZCy23FfM_StMQLelin7ntCzuXFzCStsYhAYufQgh4e5hh9kq5daQJ1VLTZ0yU8bzI",
-                                  hasIndicatorStrip: contact['isPrimary'] ?? false,
-                                  onTap: () {
-                                    context.push(AppRoutes.contactDetail).then((_) => _loadContacts());
-                                  },
-                                ),
-                              );
-                            }).toList(),
+                  BlocBuilder<ContactsCubit, ContactsState>(
+                    builder: (context, state) {
+                      if (state is ContactsLoading || state is ContactsInitial) {
+                        return const Center(child: CircularProgressIndicator(color: AppTheme.primary));
+                      }
+                      if (state is ContactsError) {
+                        return Center(child: Text("Error: ${state.message}", style: const TextStyle(color: Colors.red)));
+                      }
+                      
+                      final _contacts = (state as ContactsLoaded).contacts;
+                      return Column(
+                        children: [
+                          ..._contacts.map((contact) {
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 16.0),
+                              child: _buildPriorityContactCard(
+                                context,
+                                name: contact.name.isNotEmpty ? contact.name : "Unknown",
+                                subtitle: contact.relation,
+                                avatarUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuCTDylmOjPsGe4hVTugPTdT1pnyuqwH1aQ9EFmzm2Fq4Yrsif97vyw1J2pOzea8lSMDhAlleljutYISU52PTiAWZcytV_6EmT_eORS2F3r2Xvdw1cbqtrCQuuJu0cvaTLRq3TP3F7cSSAG3oKynAkFqBLIKfbtVtORDJMAS4FJGJrAfuQbLxvXqmZJJ7yffJnFPg1BVqoSzOyZCy23FfM_StMQLelin7ntCzuXFzCStsYhAYufQgh4e5hh9kq5daQJ1VLTZ0yU8bzI", // Default avatar
+                                hasIndicatorStrip: false,
+                                onTap: () {
+                                  context.push(AppRoutes.contactDetail, extra: {
+                                    'id': contact.id,
+                                    'name': contact.name,
+                                    'phone': contact.phoneNumber,
+                                    'relation': contact.relation,
+                                  }).then((_) => _loadContacts());
+                                },
+                              ),
+                            );
+                          }).toList(),
 
                             const SizedBox(height: 4),
 
@@ -281,7 +263,9 @@ class _ContactsCircleScreenState extends State<ContactsCircleScreen> {
                               ),
                             ),
                           ],
-                        ),
+                        );
+                    }
+                  ),
                 ],
               ),
             ),

@@ -137,7 +137,9 @@ class AppRoutes {
       ),
       GoRoute(
         path: contactDetail,
-        builder: (BuildContext context, GoRouterState state) => const ContactDetailScreen(),
+        builder: (BuildContext context, GoRouterState state) => ContactDetailScreen(
+          contactData: state.extra as Map<String, dynamic>?,
+        ),
       ),
       GoRoute(
         path: contactUpdatePhoto,

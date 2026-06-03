@@ -16,6 +16,10 @@ import 'features/tracking/data/repositories/tracking_repository_impl.dart';
 import 'features/tracking/presentation/cubit/tracking_cubit.dart';
 import 'features/profile/presentation/cubit/wearable_cubit.dart';
 import 'features/ai_companion1/presentation/cubit/ai_companion_cubit.dart';
+import 'features/profile/data/repositories/profile_repository_impl.dart';
+import 'features/profile/presentation/cubit/profile_cubit.dart';
+import 'features/contacts/data/repositories/contacts_repository_impl.dart';
+import 'features/contacts/presentation/cubit/contacts_cubit.dart';
 
 void main() {
   runZonedGuarded(() async {
@@ -41,6 +45,12 @@ void main() {
       baseUrl: ApiConfig.safetyBaseUrl, // central config base URL
       secureStorage: secureStorage,
     );
+    
+    // User Service Dio client sharing same secure storage (interceptors)
+    final userDioClient = DioClient(
+      baseUrl: ApiConfig.userBaseUrl,
+      secureStorage: secureStorage,
+    );
 
     // Initialize location service
     final locationService = LocationService();
@@ -56,6 +66,12 @@ void main() {
     final sosRepository = SosRepositoryImpl(
       client: dioClient,
     );
+    final profileRepository = ProfileRepositoryImpl(
+      client: userDioClient,
+    );
+    final contactsRepository = ContactsRepositoryImpl(
+      client: userDioClient,
+    );
 
     // Initialize cubits
     final authCubit = AuthCubit(authRepository: authRepository);
@@ -69,6 +85,8 @@ void main() {
     );
     final wearableCubit = WearableCubit();
     final aiCompanionCubit = AiCompanionCubit();
+    final profileCubit = ProfileCubit(repository: profileRepository);
+    final contactsCubit = ContactsCubit(repository: contactsRepository);
 
     // Check user authentication status on startup
     await authCubit.checkAuthStatus();
@@ -79,6 +97,8 @@ void main() {
       sosCubit: sosCubit,
       wearableCubit: wearableCubit,
       aiCompanionCubit: aiCompanionCubit,
+      profileCubit: profileCubit,
+      contactsCubit: contactsCubit,
     ));
   }, (Object error, StackTrace stack) {
     debugPrint('Captured Uncaught Zoned Error: $error');
@@ -92,6 +112,8 @@ class LuminaGuardianApp extends StatelessWidget {
   final SosCubit sosCubit;
   final WearableCubit wearableCubit;
   final AiCompanionCubit aiCompanionCubit;
+  final ProfileCubit profileCubit;
+  final ContactsCubit contactsCubit;
 
   const LuminaGuardianApp({
     Key? key,
@@ -100,6 +122,8 @@ class LuminaGuardianApp extends StatelessWidget {
     required this.sosCubit,
     required this.wearableCubit,
     required this.aiCompanionCubit,
+    required this.profileCubit,
+    required this.contactsCubit,
   }) : super(key: key);
 
   @override
@@ -111,6 +135,8 @@ class LuminaGuardianApp extends StatelessWidget {
         BlocProvider<SosCubit>.value(value: sosCubit),
         BlocProvider<WearableCubit>.value(value: wearableCubit),
         BlocProvider<AiCompanionCubit>.value(value: aiCompanionCubit),
+        BlocProvider<ProfileCubit>.value(value: profileCubit),
+        BlocProvider<ContactsCubit>.value(value: contactsCubit),
       ],
       child: MaterialApp.router(
         title: 'Lumina Guardian',

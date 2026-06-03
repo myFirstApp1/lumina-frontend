@@ -4,9 +4,14 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/routes/app_routes.dart';
 import '../../../../core/theme/app_theme.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../cubit/contacts_cubit.dart';
+import '../../../auth/presentation/cubit/auth_cubit.dart';
+import '../../data/models/emergency_contact_model.dart';
 
 class ContactDetailScreen extends StatefulWidget {
-  const ContactDetailScreen({Key? key}) : super(key: key);
+  final Map<String, dynamic>? contactData;
+  const ContactDetailScreen({Key? key, this.contactData}) : super(key: key);
 
   @override
   State<ContactDetailScreen> createState() => _ContactDetailScreenState();
@@ -24,9 +29,15 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: "Alex Chen");
-    _phoneController = TextEditingController(text: "+1 555-0123");
-    _emailController = TextEditingController(text: "alex.chen@lumina.com");
+    _nameController = TextEditingController(text: widget.contactData?['name'] ?? "");
+    _phoneController = TextEditingController(text: widget.contactData?['phone'] ?? "");
+    _emailController = TextEditingController(); // Our model doesn't have email currently
+    
+    String rel = widget.contactData?['relation'] ?? 'partner';
+    if (!['partner', 'family', 'friend', 'colleague'].contains(rel)) {
+      rel = 'partner'; // Fallback
+    }
+    _relationship = rel;
   }
 
   @override
@@ -39,15 +50,27 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
 
   void _handleSave() {
     if (_formKey.currentState!.validate()) {
+      final authState = context.read<AuthCubit>().state;
+      if (authState is AuthAuthenticated) {
+        final req = EmergencyContactRequestModel(
+          name: _nameController.text,
+          phoneNumber: _phoneController.text,
+          relation: _relationship,
+        );
+        
+        final contactId = widget.contactData?['id'] as String?;
+        if (contactId != null) {
+          context.read<ContactsCubit>().updateContact(authState.user.id, contactId, req);
+        }
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
             "Changes saved successfully",
-            style: GoogleFonts.beVietnamPro(fontWeight: FontWeight.w600),
+            style: GoogleFonts.beVietnamPro(fontWeight: FontWeight.bold),
           ),
           backgroundColor: AppTheme.success,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       );
       context.pop();
@@ -85,33 +108,39 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                   ),
                 ),
               ),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context); // Close dialog
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        "Alex Chen removed from shield circle",
-                        style: GoogleFonts.beVietnamPro(fontWeight: FontWeight.w600),
+                ElevatedButton(
+                  onPressed: () {
+                    final authState = context.read<AuthCubit>().state;
+                    if (authState is AuthAuthenticated) {
+                      final contactId = widget.contactData?['id'] as String?;
+                      if (contactId != null) {
+                        context.read<ContactsCubit>().deleteContact(authState.user.id, contactId);
+                      }
+                    }
+
+                    Navigator.pop(context); // Close dialog
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          "${_nameController.text} removed from shield circle",
+                          style: GoogleFonts.beVietnamPro(fontWeight: FontWeight.bold),
+                        ),
+                        backgroundColor: AppTheme.error,
                       ),
-                      backgroundColor: AppTheme.error,
-                      behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    );
+                    this.context.go(AppRoutes.contactsCircle);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.error,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: Text(
+                    "Remove",
+                    style: GoogleFonts.beVietnamPro(
+                      fontWeight: FontWeight.bold,
                     ),
-                  );
-                  this.context.go(AppRoutes.contactsCircle);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.error,
-                  foregroundColor: Colors.white,
-                ),
-                child: Text(
-                  "Remove",
-                  style: GoogleFonts.beVietnamPro(
-                    fontWeight: FontWeight.bold,
                   ),
                 ),
-              ),
             ],
           ),
         );
