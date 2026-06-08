@@ -2,14 +2,14 @@ import 'package:equatable/equatable.dart';
 
 class UserProfileModel extends Equatable {
   final String id;
-  final String fullName;
+  final String name;
   final String email;
   final String phone;
   final String address;
 
   const UserProfileModel({
     required this.id,
-    required this.fullName,
+    required this.name,
     required this.email,
     required this.phone,
     required this.address,
@@ -18,7 +18,7 @@ class UserProfileModel extends Equatable {
   factory UserProfileModel.fromJson(Map<String, dynamic> json) {
     return UserProfileModel(
       id: json['id'] as String? ?? '',
-      fullName: json['fullName'] as String? ?? '',
+      name: json['name'] as String? ?? '',
       email: json['email'] as String? ?? '',
       phone: json['phone'] as String? ?? '',
       address: json['address'] as String? ?? '',
@@ -28,7 +28,7 @@ class UserProfileModel extends Equatable {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'fullName': fullName,
+      'name': name,
       'email': email,
       'phone': phone,
       'address': address,
@@ -37,14 +37,14 @@ class UserProfileModel extends Equatable {
 
   UserProfileModel copyWith({
     String? id,
-    String? fullName,
+    String? name,
     String? email,
     String? phone,
     String? address,
   }) {
     return UserProfileModel(
       id: id ?? this.id,
-      fullName: fullName ?? this.fullName,
+      name: name ?? this.name,
       email: email ?? this.email,
       phone: phone ?? this.phone,
       address: address ?? this.address,
@@ -52,7 +52,7 @@ class UserProfileModel extends Equatable {
   }
 
   @override
-  List<Object?> get props => [id, fullName, email, phone, address];
+  List<Object?> get props => [id, name, email, phone, address];
 }
 
 class UserProfileResponseModel extends Equatable {
@@ -66,6 +66,7 @@ class UserProfileResponseModel extends Equatable {
     // If the response is flat, we parse it directly. 
     // Usually a wrapper DTO might have fields like 'userProfile'
     // I will try to parse it safely.
+
     return UserProfileResponseModel(
       profile: UserProfileModel.fromJson(json['profile'] ?? json),
     );

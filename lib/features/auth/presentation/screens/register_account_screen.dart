@@ -17,7 +17,7 @@ class _RegisterAccountScreenState extends State<RegisterAccountScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _phoneController = TextEditingController();
+
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
 
@@ -41,7 +41,6 @@ class _RegisterAccountScreenState extends State<RegisterAccountScreen> {
         _usernameController.text.trim(),
         _emailController.text.trim(),
         _passwordController.text,
-        _phoneController.text.trim(),
       );
     }
   }
@@ -50,7 +49,7 @@ class _RegisterAccountScreenState extends State<RegisterAccountScreen> {
   void dispose() {
     _usernameController.dispose();
     _emailController.dispose();
-    _phoneController.dispose();
+
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
@@ -62,7 +61,10 @@ class _RegisterAccountScreenState extends State<RegisterAccountScreen> {
       body: BlocListener<AuthCubit, AuthState>(
         listener: (context, state) {
           if (state is AuthOtpVerificationRequired) {
-            context.push(AppRoutes.signupVerify, extra: state.email);
+            context.push(AppRoutes.signupVerify, extra: {
+              'email': state.email,
+              'txnId': state.txnId,
+            });
           } else if (state is AuthError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -223,16 +225,7 @@ class _RegisterAccountScreenState extends State<RegisterAccountScreen> {
                         ),
                         const SizedBox(height: 16.0),
 
-                        // Phone Number input
-                        _buildLabel("Phone Number"),
-                        _buildInputField(
-                          controller: _phoneController,
-                          hint: "+91 1234567890",
-                          icon: Icons.phone_outlined,
-                          keyboardType: TextInputType.phone,
-                          validator: (val) => val == null || val.isEmpty ? "Phone number is required" : null,
-                        ),
-                        const SizedBox(height: 16.0),
+
 
                         // Password input
                         _buildLabel("Password"),

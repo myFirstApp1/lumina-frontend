@@ -1,38 +1,46 @@
 class UserModel {
-  final String id;
+  final String authUserId;   // From Auth Service
+  final String profileId;    // From User Service
   final String name;
   final String email;
-  final String phone;
+  final String? phone;
+
   final List<EmergencyContactModel> emergencyContacts;
 
+
   UserModel({
-    required this.id,
+    required this.authUserId,
+    required this.profileId,
     required this.name,
     required this.email,
-    required this.phone,
+    this.phone,
     required this.emergencyContacts,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      email: json['email'] as String,
-      phone: json['phone'] as String,
-      emergencyContacts: (json['emergencyContacts'] as List<dynamic>?)
-              ?.map((e) => EmergencyContactModel.fromJson(e as Map<String, dynamic>))
-              .toList() ??
+      authUserId: json['authUserId'] ?? '',
+      profileId: json['profileId'] ?? '',
+      name: json['name']?.toString() ?? '',
+      email: json['email']?.toString() ?? '',
+      phone: json['phone']?.toString(),
+      emergencyContacts:
+      (json['emergencyContacts'] as List?)
+          ?.map((e) =>
+          EmergencyContactModel.fromJson(e))
+          .toList() ??
           [],
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
+      'id': profileId,
       'name': name,
       'email': email,
       'phone': phone,
-      'emergencyContacts': emergencyContacts.map((e) => e.toJson()).toList(),
+      'emergencyContacts':
+      emergencyContacts.map((e) => e.toJson()).toList(),
     };
   }
 }
@@ -67,4 +75,5 @@ class EmergencyContactModel {
       'relation': relation,
     };
   }
+
 }

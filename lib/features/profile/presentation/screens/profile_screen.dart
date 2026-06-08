@@ -23,7 +23,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final authState = context.read<AuthCubit>().state;
       if (authState is AuthAuthenticated) {
-        context.read<ProfileCubit>().loadProfile(authState.user.id);
+        debugPrint(
+          "PROFILE SCREEN USER ID = ${authState.user.authUserId}",
+        );
+
+        context.read<ProfileCubit>().loadProfile(
+          authState.user.authUserId,
+        );
       }
     });
   }
@@ -148,7 +154,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          profile.fullName.isNotEmpty ? profile.fullName : "No Name",
+                          profile.name.isNotEmpty ? profile.name : "No Name",
                           style: GoogleFonts.montserrat(
                             fontSize: 28,
                             fontWeight: FontWeight.w600,
@@ -220,7 +226,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         const SizedBox(height: 16),
 
                         // Details Items
-                        _buildDetailItem("Full Name", profile.fullName.isNotEmpty ? profile.fullName : "N/A"),
+                        _buildDetailItem("User Name", profile.name.isNotEmpty ? profile.name : "N/A"),
                         const SizedBox(height: 20),
                         _buildDetailItem("Email Address", profile.email.isNotEmpty ? profile.email : "N/A"),
                         const SizedBox(height: 20),

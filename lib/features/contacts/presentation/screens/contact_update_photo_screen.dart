@@ -57,7 +57,7 @@ class _ContactUpdatePhotoScreenState extends State<ContactUpdatePhotoScreen> {
     // Dynamically retrieve arguments or fall back to HTML defaults (Swathi)
     final String name = widget.contactData?['name'] ?? "Swathi";
     final String photoUrl = widget.contactData?['photoUrl'] ?? 
-        "https://lh3.googleusercontent.com/aida-public/AB6AXuCLo8v46O86QsMtvRk5oRLAyXRGdSlN5ItJllAT5Zy8GJaYCVmeW7HHawnLj1CZjRKmbn2HDFPABNPw7coISCTUO6hyTh2Nn1QU5TLrSIOdEVHItNON69JwcGwxJa8SxGo9mnmA_a9S-rZFLV35bG2N2e6bF8JEDeICbaRdHMUagmhG7kocDcjGZCl8tfs4cmOzszr5b3MaIkN5Q9hHBf2_KUd57-SxvQuv7r0CMWBr7ZiWG9BoQvhtWS9beJBOYLnbD7F9X3vytqw";
+        'assets/images/defaultProfile.jpg';
 
     return Scaffold(
       body: Stack(

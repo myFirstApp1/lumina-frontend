@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/models/user_model.dart';
 import '../../domain/repositories/auth_repository.dart';
@@ -21,7 +22,8 @@ class AuthAuthenticated extends AuthState {
 
 class AuthOtpVerificationRequired extends AuthState {
   final String email;
-  const AuthOtpVerificationRequired(this.email);
+  final String txnId;
+  const AuthOtpVerificationRequired({required this.email, required this.txnId});
 }
 
 class AuthUnauthenticated extends AuthState {
@@ -50,32 +52,38 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
-  Future<void> login(String email, String password) async {
+  Future<void> login(String username, String password) async {
     emit(const AuthLoading());
+
     try {
-      final user = await _authRepository.login(email, password);
+      final user = await _authRepository.login(
+        username,
+        password,
+      );
+
+      debugPrint("+++++++++\nAUTH CUBIT USER ID\n++++++++ = ${user.authUserId}");
+
       emit(AuthAuthenticated(user));
     } catch (e) {
       emit(AuthError(e.toString()));
     }
   }
 
-  Future<void> register(String name, String email, String password, String phone) async {
+  Future<void> register(String username, String email, String password) async {
     emit(const AuthLoading());
     try {
-      await _authRepository.register(name, email, password, phone);
-      emit(AuthOtpVerificationRequired(email));
+      final txnId = await _authRepository.register(username, email, password);
+      emit(AuthOtpVerificationRequired(email: email, txnId: txnId));
     } catch (e) {
       emit(AuthError(e.toString()));
     }
   }
 
-  Future<void> verifyOtp(String email, String otp) async {
+  Future<void> verifyOtp(String txnId, String otp) async {
     emit(const AuthLoading());
     try {
-      await _authRepository.verifyOtp(email, otp);
-      final user = await _authRepository.getCurrentUser();
-      emit(AuthAuthenticated(user));
+      await _authRepository.verifyOtp(txnId, otp);
+      emit(const AuthUnauthenticated()); // Redirects to login
     } catch (e) {
       emit(AuthError(e.toString()));
     }

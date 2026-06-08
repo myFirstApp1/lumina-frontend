@@ -29,7 +29,7 @@ class _ContactsCircleScreenState extends State<ContactsCircleScreen> {
   void _loadContacts() {
     final authState = context.read<AuthCubit>().state;
     if (authState is AuthAuthenticated) {
-      context.read<ContactsCubit>().loadContacts(authState.user.id);
+      context.read<ContactsCubit>().loadContacts(authState.user.authUserId);
     }
   }
 

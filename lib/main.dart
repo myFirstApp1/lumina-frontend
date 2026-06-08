@@ -41,11 +41,15 @@ void main() {
     final secureStorage = SecureStorageManager();
 
     // Initialize network client with base URL
-    final dioClient = DioClient(
-      baseUrl: ApiConfig.safetyBaseUrl, // central config base URL
+    final authDioClient = DioClient(
+      baseUrl: ApiConfig.authBaseUrl,
       secureStorage: secureStorage,
     );
-    
+    final safetyDioClient = DioClient(
+      baseUrl: ApiConfig.safetyBaseUrl,
+      secureStorage: secureStorage,
+    );
+
     // User Service Dio client sharing same secure storage (interceptors)
     final userDioClient = DioClient(
       baseUrl: ApiConfig.userBaseUrl,
@@ -57,14 +61,14 @@ void main() {
 
     // Initialize repositories
     final authRepository = AuthRepositoryImpl(
-      client: dioClient,
+      client: authDioClient,
       secureStorage: secureStorage,
     );
     final trackingRepository = TrackingRepositoryImpl(
-      client: dioClient,
+      client: safetyDioClient,
     );
     final sosRepository = SosRepositoryImpl(
-      client: dioClient,
+      client: safetyDioClient,
     );
     final profileRepository = ProfileRepositoryImpl(
       client: userDioClient,

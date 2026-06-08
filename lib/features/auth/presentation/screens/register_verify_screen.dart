@@ -11,7 +11,8 @@ import '../cubit/auth_cubit.dart';
 
 class RegisterVerifyScreen extends StatefulWidget {
   final String? email;
-  const RegisterVerifyScreen({Key? key, this.email}) : super(key: key);
+  final String? txnId;
+  const RegisterVerifyScreen({Key? key, this.email, this.txnId}) : super(key: key);
 
   @override
   State<RegisterVerifyScreen> createState() => _RegisterVerifyScreenState();
@@ -102,21 +103,21 @@ class _RegisterVerifyScreenState extends State<RegisterVerifyScreen> {
       return;
     }
 
-    final email = widget.email ?? (context.read<AuthCubit>().state is AuthOtpVerificationRequired
-        ? (context.read<AuthCubit>().state as AuthOtpVerificationRequired).email
+    final txnId = widget.txnId ?? (context.read<AuthCubit>().state is AuthOtpVerificationRequired
+        ? (context.read<AuthCubit>().state as AuthOtpVerificationRequired).txnId
         : '');
 
-    if (email.isEmpty) {
+    if (txnId.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("Email address not found. Please register again."),
+          content: Text("Transaction ID not found. Please register again."),
           backgroundColor: AppTheme.error,
         ),
       );
       return;
     }
 
-    context.read<AuthCubit>().verifyOtp(email, otp);
+    context.read<AuthCubit>().verifyOtp(txnId, otp);
   }
 
   @override
@@ -124,8 +125,8 @@ class _RegisterVerifyScreenState extends State<RegisterVerifyScreen> {
     return Scaffold(
       body: BlocListener<AuthCubit, AuthState>(
         listener: (context, state) {
-          if (state is AuthAuthenticated) {
-            context.go(AppRoutes.home);
+          if (state is AuthUnauthenticated) {
+            context.go(AppRoutes.login);
           } else if (state is AuthError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(

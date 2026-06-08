@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/repositories/profile_repository.dart';
 import '../../data/models/user_profile_model.dart';
@@ -10,10 +11,21 @@ class ProfileCubit extends Cubit<ProfileState> {
 
   Future<void> loadProfile(String userId) async {
     emit(ProfileLoading());
+
     try {
+      debugPrint("PROFILE CUBIT START");
+      debugPrint("USER ID = $userId");
+
       final profile = await repository.getUserProfile(userId);
+
+      debugPrint("PROFILE LOADED SUCCESS");
+      debugPrint(profile.toString());
+
       emit(ProfileLoaded(profile: profile));
     } catch (e) {
+      debugPrint("PROFILE CUBIT ERROR");
+      debugPrint(e.toString());
+
       emit(ProfileError(message: e.toString()));
     }
   }

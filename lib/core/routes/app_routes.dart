@@ -97,8 +97,11 @@ class AppRoutes {
       GoRoute(
         path: signupVerify,
         builder: (BuildContext context, GoRouterState state) {
-          final email = state.extra as String?;
-          return RegisterVerifyScreen(email: email);
+          final extraData = state.extra as Map<String, dynamic>?;
+          return RegisterVerifyScreen(
+            email: extraData?['email'] as String?,
+            txnId: extraData?['txnId'] as String?,
+          );
         },
       ),
       GoRoute(

@@ -36,7 +36,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       final profileState = context.read<ProfileCubit>().state;
       if (profileState is ProfileLoaded) {
         final profile = profileState.profile;
-        _usernameController.text = profile.fullName;
+        _usernameController.text = profile.name;
         _emailController.text = profile.email;
         _phoneController.text = profile.phone;
         _addressController.text = profile.address;
@@ -63,13 +63,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
         final updatedProfile = UserProfileModel(
           id: profileId, // Assuming ID is not updatable or uses same ID
-          fullName: _usernameController.text,
+          name: _usernameController.text,
           email: _emailController.text,
           phone: _phoneController.text,
           address: _addressController.text,
         );
 
-        context.read<ProfileCubit>().updateProfile(authState.user.id, updatedProfile).then((_) {
+        context.read<ProfileCubit>().updateProfile(authState.user.authUserId, updatedProfile).then((_) {
           if (mounted) {
             context.pop();
             ScaffoldMessenger.of(context).showSnackBar(
@@ -179,7 +179,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             builder: (context, state) {
                               String name = "Loading...";
                               if (state is ProfileLoaded) {
-                                name = state.profile.fullName.isNotEmpty ? state.profile.fullName : "No Name";
+                                name = state.profile.name.isNotEmpty ? state.profile.name : "No Name";
                               }
                               return Text(
                                 name,
