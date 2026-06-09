@@ -104,10 +104,6 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> with TickerPr
                             child: Image.asset(
                               'assets/images/defaultProfile.jpg',
                               fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) => const Icon(
-                                Icons.person_outline,
-                                color: AppTheme.primary,
-                              ),
                             ),
                           ),
                         ),

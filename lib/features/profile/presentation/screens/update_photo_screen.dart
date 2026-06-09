@@ -1,7 +1,9 @@
+import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../../../core/theme/app_theme.dart';
 
 class UpdatePhotoScreen extends StatefulWidget {
@@ -13,6 +15,8 @@ class UpdatePhotoScreen extends StatefulWidget {
 
 class _UpdatePhotoScreenState extends State<UpdatePhotoScreen> {
   final TextEditingController _urlController = TextEditingController();
+  final ImagePicker _picker = ImagePicker();
+  File? selectedImage;
 
   @override
   void dispose() {
@@ -44,6 +48,35 @@ class _UpdatePhotoScreenState extends State<UpdatePhotoScreen> {
         backgroundColor: AppTheme.primary,
       ),
     );
+  }
+
+  Future<void> pickFromGallery() async {
+    final XFile? file = await _picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 80,
+    );
+
+    if (file == null) return;
+
+    setState(() {
+      selectedImage = File(file.path);
+    });
+
+    debugPrint("IMAGE PATH:");
+    debugPrint(file.path);
+  }
+
+  Future<void> takePhoto() async {
+    final XFile? file = await _picker.pickImage(
+      source: ImageSource.camera,
+      imageQuality: 80,
+    );
+
+    if (file == null) return;
+
+    setState(() {
+      selectedImage = File(file.path);
+    });
   }
 
   @override
@@ -90,7 +123,12 @@ class _UpdatePhotoScreenState extends State<UpdatePhotoScreen> {
                             child: Stack(
                               children: [
                                 Positioned.fill(
-                                  child: Image.asset(
+                                  child: selectedImage != null
+                                      ? Image.file(
+                                    selectedImage!,
+                                    fit: BoxFit.cover,
+                                  )
+                                      : Image.asset(
                                     'assets/images/defaultProfile.jpg',
                                     fit: BoxFit.cover,
                                   ),
@@ -140,7 +178,7 @@ class _UpdatePhotoScreenState extends State<UpdatePhotoScreen> {
                         icon: Icons.photo_library_outlined,
                         title: "Choose from Gallery",
                         subtitle: "Select a photo from your device",
-                        onTap: () => _handleSaveChanges(),
+                        onTap: pickFromGallery,
                       ),
                       const SizedBox(height: 12),
 
@@ -149,7 +187,7 @@ class _UpdatePhotoScreenState extends State<UpdatePhotoScreen> {
                         icon: Icons.photo_camera_outlined,
                         title: "Take Photo",
                         subtitle: "Use your camera right now",
-                        onTap: () => _handleSaveChanges(),
+                        onTap: takePhoto,
                       ),
                       const SizedBox(height: 12),
 

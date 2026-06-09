@@ -118,17 +118,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 height: 128,
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
-                                  border: Border.all(color: Colors.white, width: 4.0),
+                                  border: Border.all(
+                                    color: Colors.white,
+                                    width: 4.0,
+                                  ),
                                   boxShadow: [
                                     BoxShadow(
                                       color: AppTheme.primary.withOpacity(0.15),
                                       blurRadius: 24,
                                       offset: const Offset(0, 8),
-                                    )
+                                    ),
                                   ],
                                   image: const DecorationImage(
-                                    image: NetworkImage(
-                                      "https://lh3.googleusercontent.com/aida/ADBb0uheO2xz_B69a8socQuO_Qv_rqplousYU4BIcbgIWSHeM1imJHuX2ng-SMp84jevenTjgoqf32-BfKGp8gMntpPtPbO0Lbl2AUbiCHNjRmA9CTDC5kCsn7z6IHlPg5ou_ALvRJjnfdL40ZdyFHtReryQ0CR9wi3rk9MfdPKnXx6185mV-x1i4WPfANmVKV5Z_QChksYf6lIy2vkzDpfbecyxw52TQnzTkSlTPEVqyk_nAXUjnag5eI0orN4",
+                                    image: AssetImage(
+                                      'assets/images/defaultProfile.jpg',
                                     ),
                                     fit: BoxFit.cover,
                                   ),
