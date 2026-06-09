@@ -403,7 +403,8 @@ class _RegisterAccountScreenState extends State<RegisterAccountScreen> {
                             Expanded(
                               child: _buildSocialButton(
                                 text: "Google",
-                                iconSvg: _buildGoogleSvg(),
+                                iconSvg:
+                                _buildGoogleSvg(),
                                 onTap: () {},
                               ),
                             ),

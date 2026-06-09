@@ -1,0 +1,16 @@
+ commit 6: "completed the first foundation of Phase 2B"
+
+✅ ProtectionRepository
+✅ ProtectionRepositoryImpl
+✅ ProtectionCubit
+✅ Dependency Injection
+✅ MultiBlocProvider Registration
+
+files changed:
+new file:   assets/images/onboarding/onboardimage1.png
+        modified:   lib/features/auth/presentation/screens/register_account_screen.dart
+        new file:   lib/features/protection/data/repositories/protection_repository_impl.dart
+        new file:   lib/features/protection/domain/repositories/protection_repository.dart
+        new file:   lib/features/protection/presentation/cubit/protection_cubit.dart
+        new file:   lib/features/protection/presentation/cubit/protection_state.dart
+        modified:   lib/main.dart

@@ -20,6 +20,8 @@ import 'features/profile/data/repositories/profile_repository_impl.dart';
 import 'features/profile/presentation/cubit/profile_cubit.dart';
 import 'features/contacts/data/repositories/contacts_repository_impl.dart';
 import 'features/contacts/presentation/cubit/contacts_cubit.dart';
+import 'features/protection/data/repositories/protection_repository_impl.dart';
+import 'features/protection/presentation/cubit/protection_cubit.dart';
 
 void main() {
   runZonedGuarded(() async {
@@ -76,7 +78,9 @@ void main() {
     final contactsRepository = ContactsRepositoryImpl(
       client: userDioClient,
     );
-
+    final protectionRepository = ProtectionRepositoryImpl(
+      client: safetyDioClient,
+    );
     // Initialize cubits
     final authCubit = AuthCubit(authRepository: authRepository);
     final trackingCubit = TrackingCubit(
@@ -91,7 +95,9 @@ void main() {
     final aiCompanionCubit = AiCompanionCubit();
     final profileCubit = ProfileCubit(repository: profileRepository);
     final contactsCubit = ContactsCubit(repository: contactsRepository);
-
+    final protectionCubit = ProtectionCubit(
+      repository: protectionRepository,
+    );
     // Check user authentication status on startup
     await authCubit.checkAuthStatus();
 
@@ -103,6 +109,7 @@ void main() {
       aiCompanionCubit: aiCompanionCubit,
       profileCubit: profileCubit,
       contactsCubit: contactsCubit,
+      protectionCubit: protectionCubit,
     ));
   }, (Object error, StackTrace stack) {
     debugPrint('Captured Uncaught Zoned Error: $error');
@@ -118,6 +125,7 @@ class LuminaGuardianApp extends StatelessWidget {
   final AiCompanionCubit aiCompanionCubit;
   final ProfileCubit profileCubit;
   final ContactsCubit contactsCubit;
+  final ProtectionCubit protectionCubit;
 
   const LuminaGuardianApp({
     Key? key,
@@ -128,6 +136,7 @@ class LuminaGuardianApp extends StatelessWidget {
     required this.aiCompanionCubit,
     required this.profileCubit,
     required this.contactsCubit,
+    required this.protectionCubit,
   }) : super(key: key);
 
   @override
@@ -141,6 +150,7 @@ class LuminaGuardianApp extends StatelessWidget {
         BlocProvider<AiCompanionCubit>.value(value: aiCompanionCubit),
         BlocProvider<ProfileCubit>.value(value: profileCubit),
         BlocProvider<ContactsCubit>.value(value: contactsCubit),
+        BlocProvider<ProtectionCubit>.value(value: protectionCubit),
       ],
       child: MaterialApp.router(
         title: 'Lumina Guardian',
