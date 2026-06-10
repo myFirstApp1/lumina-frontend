@@ -49,7 +49,7 @@ class AuthRepositoryImpl implements AuthRepository {
       }
 
       // Step 2: Save JWT
-      await _secureStorage.saveAuthUserId(userId);
+      await _secureStorage.saveUserId(userId);
 
       debugPrint("TOKEN SAVED");
       debugPrint("USER ID: $userId");
@@ -70,7 +70,7 @@ class AuthRepositoryImpl implements AuthRepository {
       profileResponse.data as Map<String, dynamic>;
 
       return UserModel(
-        authUserId: userId,
+        userId: userId,
         profileId: profileResponse.data['id'],
 
         name: profileResponse.data['name'] ?? '',

@@ -60,7 +60,7 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
         
         final contactId = widget.contactData?['id'] as String?;
         if (contactId != null) {
-          context.read<ContactsCubit>().updateContact(authState.user.authUserId, contactId, req);
+          context.read<ContactsCubit>().updateContact(authState.user.userId, contactId, req);
         }
       }
 
@@ -114,7 +114,7 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                     if (authState is AuthAuthenticated) {
                       final contactId = widget.contactData?['id'] as String?;
                       if (contactId != null) {
-                        context.read<ContactsCubit>().deleteContact(authState.user.authUserId, contactId);
+                        context.read<ContactsCubit>().deleteContact(authState.user.userId, contactId);
                       }
                     }
 

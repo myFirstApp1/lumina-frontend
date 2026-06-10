@@ -69,7 +69,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           address: _addressController.text,
         );
 
-        context.read<ProfileCubit>().updateProfile(authState.user.authUserId, updatedProfile).then((_) {
+        context.read<ProfileCubit>().updateProfile(authState.user.userId, updatedProfile).then((_) {
           if (mounted) {
             context.pop();
             ScaffoldMessenger.of(context).showSnackBar(

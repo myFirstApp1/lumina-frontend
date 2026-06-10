@@ -45,14 +45,14 @@ class SecureStorageManager {
     await _storage.deleteAll();
   }
 
-  Future<void> saveAuthUserId(String id) async {
+  Future<void> saveUserId(String id) async {
     await _storage.write(
       key: 'auth_user_id',
       value: id,
     );
   }
 
-  Future<String?> getAuthUserId() async {
+  Future<String?> getUserId() async {
     return await _storage.read(
       key: 'auth_user_id',
     );

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../domain/repositories/protection_repository.dart';
@@ -39,6 +40,12 @@ class ProtectionCubit extends Cubit<ProtectionState> {
 
   Future<void> stopProtection(String userId) async {
     try {
+
+      debugPrint("===============");
+      debugPrint("START PROTECTION");
+      debugPrint("USER ID = $userId");
+      debugPrint("===============");
+
       await _repository.stopProtection(userId);
 
       _stopHeartbeatTimer();
@@ -145,6 +152,7 @@ class ProtectionCubit extends Cubit<ProtectionState> {
       const Duration(seconds: 30),
           (_) async {
         try {
+          print("++++++++\nHEARTBEAT SENT\n++++++");
           await _repository.sendHeartbeat(userId);
         } catch (_) {
           // Don't crash UI if heartbeat fails

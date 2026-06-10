@@ -1,10 +1,13 @@
 //import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/routes/app_routes.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../auth/presentation/cubit/auth_cubit.dart';
+import '../../../protection/presentation/cubit/protection_cubit.dart';
 
 class HomeDashboardScreen extends StatefulWidget {
   const HomeDashboardScreen({Key? key}) : super(key: key);
@@ -31,6 +34,21 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> with TickerPr
       vsync: this,
       duration: const Duration(seconds: 3),
     )..repeat();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+
+      final authState =
+          context.read<AuthCubit>().state;
+
+      if (authState is AuthAuthenticated) {
+
+        context
+            .read<ProtectionCubit>()
+            .startProtection(
+          authState.user.userId,
+        );
+      }
+    });
   }
 
   @override

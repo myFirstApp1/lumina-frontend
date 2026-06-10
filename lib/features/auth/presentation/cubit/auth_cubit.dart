@@ -61,7 +61,7 @@ class AuthCubit extends Cubit<AuthState> {
         password,
       );
 
-      debugPrint("+++++++++\nAUTH CUBIT USER ID\n++++++++ = ${user.authUserId}");
+      debugPrint("+++++++++\nAUTH CUBIT USER ID\n++++++++ = ${user.userId}");
 
       emit(AuthAuthenticated(user));
     } catch (e) {

@@ -24,11 +24,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final authState = context.read<AuthCubit>().state;
       if (authState is AuthAuthenticated) {
         debugPrint(
-          "PROFILE SCREEN USER ID = ${authState.user.authUserId}",
+          "PROFILE SCREEN USER ID = ${authState.user.userId}",
         );
 
         context.read<ProfileCubit>().loadProfile(
-          authState.user.authUserId,
+          authState.user.userId,
         );
       }
     });

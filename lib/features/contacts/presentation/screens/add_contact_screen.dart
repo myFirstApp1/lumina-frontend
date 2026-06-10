@@ -150,7 +150,7 @@ class _AddContactScreenState extends State<AddContactScreen> {
         phoneNumber: _phoneController.text,
         relation: _relationController.text,
       );
-      await context.read<ContactsCubit>().addContact(authState.user.authUserId, req);
+      await context.read<ContactsCubit>().addContact(authState.user.userId, req);
     }
   }
 
