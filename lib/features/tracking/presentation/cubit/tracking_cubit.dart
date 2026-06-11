@@ -1,8 +1,7 @@
 import 'dart:async';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/services/location_service.dart';
-import '../../data/models/heartbeat_response_model.dart';
-import '../../data/models/tracking_response_model.dart';
 import '../../domain/repositories/tracking_repository.dart';
 
 abstract class TrackingState {
@@ -18,9 +17,7 @@ class TrackingLoading extends TrackingState {
 }
 
 class TrackingStreaming extends TrackingState {
-  final TrackingResponseModel? lastLocation;
-  final HeartbeatResponseModel? lastHeartbeat;
-  const TrackingStreaming({this.lastLocation, this.lastHeartbeat});
+  const TrackingStreaming();
 }
 
 class TrackingError extends TrackingState {
@@ -31,7 +28,8 @@ class TrackingError extends TrackingState {
 class TrackingCubit extends Cubit<TrackingState> {
   final TrackingRepository _trackingRepository;
   final LocationService _locationService;
-  String? _activeSessionId;
+  String? _userId;
+  String? _trackingId;
   StreamSubscription? _locationSubscription;
 
   TrackingCubit({
@@ -41,35 +39,82 @@ class TrackingCubit extends Cubit<TrackingState> {
         _locationService = locationService,
         super(const TrackingIdle());
 
-  Future<void> startTrackingSession(String sessionId) async {
+  Future<void> startTrackingSession({
+    required String userId,
+    required String trackingId,
+  }) async {
+
     emit(const TrackingLoading());
-    _activeSessionId = sessionId;
-    
+
+    _userId = userId;
+    _trackingId = trackingId;
+
     try {
-      _locationSubscription?.cancel();
-      await _locationService.startTracking(sessionId);
-      
-      _locationSubscription = _locationService.locationStream.listen(
-        (data) {
-          final locationModel = TrackingResponseModel.fromJson(data);
-          final currentState = state;
-          HeartbeatResponseModel? lastHeartbeat;
-          if (currentState is TrackingStreaming) {
-            lastHeartbeat = currentState.lastHeartbeat;
-          }
-          emit(TrackingStreaming(
-            lastLocation: locationModel,
-            lastHeartbeat: lastHeartbeat,
-          ));
-        },
-        onError: (err) {
-          emit(TrackingError(err.toString()));
-        },
+
+      await _locationService.startTracking(
+        trackingId,
       );
-      
-      emit(const TrackingStreaming());
+
+      await _locationSubscription?.cancel();
+
+      _locationSubscription =
+          _locationService.locationStream.listen(
+                (data) async {
+
+              try {
+
+                await sendLocationUpdate(
+
+                  latitude: data['latitude'] as double,
+
+                  longitude: data['longitude'] as double,
+
+                  accuracy: data['accuracy'] as double,
+
+                  speed: data['speed'] as double,
+
+                );
+
+                emit(
+                  const TrackingStreaming(),
+                );
+
+              } catch (e) {
+
+                emit(
+                  TrackingError(
+                    e.toString(),
+                  ),
+                );
+
+              }
+
+            },
+
+            onError: (err) {
+
+              emit(
+                TrackingError(
+                  err.toString(),
+                ),
+              );
+
+            },
+
+          );
+
+      emit(
+        const TrackingStreaming(),
+      );
+
     } catch (e) {
-      emit(TrackingError(e.toString()));
+
+      emit(
+        TrackingError(
+          e.toString(),
+        ),
+      );
+
     }
   }
 
@@ -81,74 +126,57 @@ class TrackingCubit extends Cubit<TrackingState> {
     }
   }
 
-  Future<void> sendLocationUpdate({
-    required double latitude,
-    required double longitude,
-    required double accuracy,
-    required double speed,
-  }) async {
-    if (_activeSessionId == null) return;
-    
-    final currentState = state;
-    HeartbeatResponseModel? lastHeartbeat;
-    if (currentState is TrackingStreaming) {
-      lastHeartbeat = currentState.lastHeartbeat;
-    }
+Future<void> sendLocationUpdate({
+  required double latitude,
+  required double longitude,
+  required double accuracy,
+  required double speed,
+}) async {
 
-    try {
-      final locationModel = await _trackingRepository.sendLocation(
-        sessionId: _activeSessionId!,
-        latitude: latitude,
-        longitude: longitude,
-        accuracy: accuracy,
-        speed: speed,
-      );
-      emit(TrackingStreaming(
-        lastLocation: locationModel,
-        lastHeartbeat: lastHeartbeat,
-      ));
-    } catch (e) {
-      emit(TrackingError(e.toString()));
-    }
+  if (_userId == null || _trackingId == null) {
+    return;
   }
 
-  Future<void> sendHeartbeatPing({
-    required String deviceId,
-    required int batteryPercentage,
-    required bool offBody,
-    required bool anomalyDetected,
-  }) async {
-    final currentState = state;
-    TrackingResponseModel? lastLocation;
-    if (currentState is TrackingStreaming) {
-      lastLocation = currentState.lastLocation;
-    }
+  try {
 
-    try {
-      final heartbeatModel = await _trackingRepository.sendHeartbeat(
-        deviceId: deviceId,
-        batteryPercentage: batteryPercentage,
-        offBody: offBody,
-        anomalyDetected: anomalyDetected,
-      );
-      
-      if (currentState is TrackingStreaming) {
-        emit(TrackingStreaming(
-          lastLocation: lastLocation,
-          lastHeartbeat: heartbeatModel,
-        ));
-      }
-    } catch (e) {
-      // Fail silently in background telemetry checks
-    }
+    debugPrint("==========");
+    debugPrint("TRACKING UPDATE");
+    debugPrint("USER ID = $_userId");
+    debugPrint("TRACKING ID = $_trackingId");
+    debugPrint("LAT = $latitude");
+    debugPrint("LON = $longitude");
+    debugPrint("==========");
+
+    await _trackingRepository.sendLocation(
+      userId: _userId!,
+      trackingId: _trackingId!,
+      latitude: latitude,
+      longitude: longitude,
+      accuracyMeters: accuracy,
+      speed: speed,
+    );
+
+  } catch (e) {
+
+    emit(TrackingError(e.toString()));
+
   }
+}
 
   Future<void> stopTrackingSession() async {
-    _activeSessionId = null;
-    _locationSubscription?.cancel();
+
+    _userId = null;
+    _trackingId = null;
+
+    await _locationSubscription?.cancel();
+
     _locationSubscription = null;
+
     await _locationService.stopTracking();
-    emit(const TrackingIdle());
+
+    emit(
+      const TrackingIdle(),
+    );
   }
 
   @override

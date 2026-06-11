@@ -42,7 +42,7 @@ class ProtectionCubit extends Cubit<ProtectionState> {
     try {
 
       debugPrint("===============");
-      debugPrint("START PROTECTION");
+      debugPrint("STOP PROTECTION");
       debugPrint("USER ID = $userId");
       debugPrint("===============");
 
@@ -131,11 +131,21 @@ class ProtectionCubit extends Cubit<ProtectionState> {
       final status =
       await _repository.getProtectionStatus(userId);
 
-      emit(
-        ProtectionActive(
-          status: status,
-        ),
-      );
+      if (status == 'Protected') {
+
+        emit(
+          ProtectionActive(
+            status: status,
+          ),
+        );
+
+      } else {
+
+        emit(
+          const ProtectionStopped(),
+        );
+
+      }
     } catch (e) {
       emit(
         ProtectionError(

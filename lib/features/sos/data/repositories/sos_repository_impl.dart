@@ -9,29 +9,32 @@ class SosRepositoryImpl implements SosRepository {
   SosRepositoryImpl({required DioClient client}) : _client = client;
 
   @override
-  Future<String> triggerSos({
-    required double latitude,
-    required double longitude,
-    required String triggerType,
+  Future<void> triggerSos({
+    required String userId,
+    required String location,
   }) async {
+
     try {
-      final response = await _client.dio.post(
-        '/api/v1/sos/trigger',
-        data: {
-          'latitude': latitude,
-          'longitude': longitude,
-          'triggerType': triggerType,
-          'timestamp': DateTime.now().toIso8601String(),
+
+      await _client.dio.post(
+
+        '/api/sos/trigger/$userId',
+
+        queryParameters: {
+          'location': location,
         },
+
       );
-      final data = response.data;
-      return data['sessionId'] as String? ?? '';
+
     } on DioException catch (e) {
+
       throw ServerException(
-        e.response?.data['message'] as String? ?? 'Failed to trigger SOS emergency',
-        statusCode: e.response?.statusCode,
+        e.response?.data['message'] ??
+            'Failed to trigger SOS',
       );
+
     }
+
   }
 
   @override

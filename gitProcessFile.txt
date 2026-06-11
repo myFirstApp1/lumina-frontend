@@ -16,7 +16,7 @@ new file:   assets/images/onboarding/onboardimage1.png
         modified:   lib/main.dart
 
 
-commit 6: "completed Phase 2B.1 Protection Engine"
+commit 7: "completed Phase 2B.1 Protection Engine"
 
 ✅ ProtectionCubit created
 ✅ ProtectionRepository working
@@ -36,3 +36,20 @@ commit 6: "completed Phase 2B.1 Protection Engine"
         modified:   lib/features/profile/presentation/screens/edit_profile_screen.dart
         modified:   lib/features/profile/presentation/screens/profile_screen.dart
         modified:   lib/features/protection/presentation/cubit/protection_cubit.dart
+
+commit 8 : Completed Phase 2B.2 — Tracking Integration
+
+✅ Protection Module
+✅ Heartbeat Timer
+✅ Tracking Repository Rewrite
+✅ Tracking Cubit Rewrite
+✅ Backend endpoint alignment
+
+    modified:   gitProcessFile.txt
+        modified:   lib/features/protection/presentation/cubit/protection_cubit.dart
+        modified:   lib/features/sos/data/repositories/sos_repository_impl.dart
+        modified:   lib/features/sos/domain/repositories/sos_repository.dart
+        modified:   lib/features/sos/presentation/cubit/sos_cubit.dart
+        modified:   lib/features/tracking/data/repositories/tracking_repository_impl.dart
+        modified:   lib/features/tracking/domain/repositories/tracking_repository.dart
+        modified:   lib/features/tracking/presentation/cubit/tracking_cubit.dart
