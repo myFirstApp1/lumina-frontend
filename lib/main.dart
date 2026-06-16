@@ -22,6 +22,8 @@ import 'features/contacts/data/repositories/contacts_repository_impl.dart';
 import 'features/contacts/presentation/cubit/contacts_cubit.dart';
 import 'features/protection/data/repositories/protection_repository_impl.dart';
 import 'features/protection/presentation/cubit/protection_cubit.dart';
+import 'features/device/data/repositories/device_repository_impl.dart';
+import 'features/device/presentation/cubit/device_cubit.dart';
 
 void main() {
   runZonedGuarded(() async {
@@ -81,6 +83,10 @@ void main() {
     final protectionRepository = ProtectionRepositoryImpl(
       client: safetyDioClient,
     );
+    final deviceRepository = DeviceRepositoryImpl(
+      client: safetyDioClient,
+    );
+
     // Initialize cubits
     final authCubit = AuthCubit(authRepository: authRepository);
     final trackingCubit = TrackingCubit(
@@ -98,6 +104,10 @@ void main() {
     final protectionCubit = ProtectionCubit(
       repository: protectionRepository,
     );
+    final deviceCubit = DeviceCubit(
+      repository: deviceRepository,
+    );
+
     // Check user authentication status on startup
     await authCubit.checkAuthStatus();
 
@@ -110,6 +120,7 @@ void main() {
       profileCubit: profileCubit,
       contactsCubit: contactsCubit,
       protectionCubit: protectionCubit,
+      deviceCubit: deviceCubit,
     ));
   }, (Object error, StackTrace stack) {
     debugPrint('Captured Uncaught Zoned Error: $error');
@@ -126,6 +137,7 @@ class LuminaGuardianApp extends StatelessWidget {
   final ProfileCubit profileCubit;
   final ContactsCubit contactsCubit;
   final ProtectionCubit protectionCubit;
+  final DeviceCubit deviceCubit;
 
   const LuminaGuardianApp({
     Key? key,
@@ -137,6 +149,7 @@ class LuminaGuardianApp extends StatelessWidget {
     required this.profileCubit,
     required this.contactsCubit,
     required this.protectionCubit,
+    required this.deviceCubit,
   }) : super(key: key);
 
   @override
@@ -151,6 +164,7 @@ class LuminaGuardianApp extends StatelessWidget {
         BlocProvider<ProfileCubit>.value(value: profileCubit),
         BlocProvider<ContactsCubit>.value(value: contactsCubit),
         BlocProvider<ProtectionCubit>.value(value: protectionCubit),
+        BlocProvider<DeviceCubit>.value(value: deviceCubit),
       ],
       child: MaterialApp.router(
         title: 'Lumina Guardian',
