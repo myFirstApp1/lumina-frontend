@@ -17,7 +17,7 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
   bool _obscurePassword = true;
@@ -25,7 +25,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void _handleLogin() {
     if (_formKey.currentState!.validate()) {
       context.read<AuthCubit>().login(
-            _usernameController.text.trim(),
+            _emailController.text.trim(),
             _passwordController.text,
           );
     }
@@ -33,7 +33,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void dispose() {
-    _usernameController.dispose();
+    _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -177,14 +177,14 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           const SizedBox(height: 28.0),
 
-                          // Username input field
-                          _buildLabel("Username"),
+                          // email input field
+                          _buildLabel("Email"),
                           _buildInputField(
-                            controller: _usernameController,
-                            hint: "Enter your username",
+                            controller: _emailController,
+                            hint: "Enter your email",
                             icon: Icons.person_outline,
                             validator: (val) {
-                              if (val == null || val.isEmpty) return "Username is required";
+                              if (val == null || val.isEmpty) return "email is required";
                               return null;
                             },
                           ),

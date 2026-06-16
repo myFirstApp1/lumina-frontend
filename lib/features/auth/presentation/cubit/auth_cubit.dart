@@ -52,12 +52,12 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
-  Future<void> login(String username, String password) async {
+  Future<void> login(String email, String password) async {
     emit(const AuthLoading());
 
     try {
       final user = await _authRepository.login(
-        username,
+        email,
         password,
       );
 

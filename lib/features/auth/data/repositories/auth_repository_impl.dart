@@ -17,13 +17,13 @@ class AuthRepositoryImpl implements AuthRepository {
         _secureStorage = secureStorage;
 
   @override
-  Future<UserModel> login(String username, String password) async {
+  Future<UserModel> login(String email, String password) async {
     try {
       // Step 1: Login via Auth Service
       final response = await _client.dio.post(
         '/api/auth/login',
         data: {
-          'username': username,
+          'email': email,
           'password': password,
         },
       );
