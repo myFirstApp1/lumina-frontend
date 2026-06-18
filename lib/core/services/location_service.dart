@@ -75,4 +75,38 @@ class LocationService {
     _locationStreamController?.close();
     _locationStreamController = null;
   }
+
+  Future<String> getCurrentLocationString() async {
+
+    final hasPermission =
+    await checkAndRequestPermissions();
+
+    if (!hasPermission) {
+      throw Exception(
+        "Location permission denied",
+      );
+    }
+
+    final position =
+    await Geolocator.getCurrentPosition(
+      desiredAccuracy:
+      LocationAccuracy.high,
+    );
+
+    return
+      "${position.latitude},${position.longitude}";
+  }
+
+  Future<Position> getCurrentLocation() async {
+    final hasPermission = await checkAndRequestPermissions();
+
+    if (!hasPermission) {
+      throw Exception("Location permission denied");
+    }
+
+    return Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
+  }
+
 }

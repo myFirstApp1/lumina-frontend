@@ -5,6 +5,8 @@ import '../../../../core/routes/app_routes.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/glass_card.dart';
 import '../../../../core/widgets/pill_button.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../cubit/sos_cubit.dart';
 
 class PreAlertScreen extends StatefulWidget {
   const PreAlertScreen({Key? key}) : super(key: key);
@@ -25,21 +27,76 @@ class _PreAlertScreenState extends State<PreAlertScreen> {
   }
 
   void _startTimer() {
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (_secondsRemaining <= 1) {
-        timer.cancel();
-        setState(() {
-          _secondsRemaining = 0;
-          _isTriggeredText = true;
-        });
-        // Route to active SOS immediately when timer expires!
-        context.pushReplacement(AppRoutes.sosActive);
-      } else {
-        setState(() {
-          _secondsRemaining--;
-        });
-      }
-    });
+    _timer = Timer.periodic(
+      const Duration(seconds: 1),
+          (timer) async {
+
+        debugPrint(
+          "COUNTDOWN = $_secondsRemaining",
+        );
+
+        if (_secondsRemaining <= 1) {
+
+          debugPrint(
+            "COUNTDOWN FINISHED",
+          );
+
+          try {
+
+            timer.cancel();
+
+            setState(() {
+              _secondsRemaining = 0;
+              _isTriggeredText = true;
+            });
+
+            debugPrint(
+              "GETTING SOS CUBIT",
+            );
+
+            final sosCubit =
+            context.read<SosCubit>();
+
+            debugPrint(
+              "CALLING triggerSos()",
+            );
+
+            await sosCubit.triggerSos();
+
+            debugPrint(
+              "triggerSos() FINISHED",
+            );
+
+            if (mounted) {
+              context.pushReplacement(
+                AppRoutes.sosActive,
+              );
+            }
+
+          } catch (e, s) {
+
+            debugPrint(
+              "PRE ALERT ERROR",
+            );
+
+            debugPrint(
+              e.toString(),
+            );
+
+            debugPrint(
+              s.toString(),
+            );
+          }
+
+        } else {
+
+          setState(() {
+            _secondsRemaining--;
+          });
+
+        }
+      },
+    );
   }
 
   @override

@@ -2,9 +2,13 @@ import 'dart:async';
 import 'dart:math';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/services/location_service.dart';
 import '../../../../core/theme/app_theme.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../cubit/sos_cubit.dart';
 
 class SosActiveScreen extends StatefulWidget {
   const SosActiveScreen({Key? key}) : super(key: key);
@@ -15,11 +19,12 @@ class SosActiveScreen extends StatefulWidget {
 
 class _SosActiveScreenState extends State<SosActiveScreen> with SingleTickerProviderStateMixin {
   late AnimationController _bgPulseController;
-  Timer? _timer;
-  int _secondsRemaining = 10;
-  bool _isImmediateTriggered = false;
+
+  final LocationService _locationService =
+  LocationService();
   final TextEditingController _pinController = TextEditingController();
   String _pinError = "";
+  String _currentLocation = "Fetching location...";
 
   @override
   void initState() {
@@ -28,52 +33,54 @@ class _SosActiveScreenState extends State<SosActiveScreen> with SingleTickerProv
       vsync: this,
       duration: const Duration(seconds: 2),
     )..repeat();
-    _startTimer();
+    _loadCurrentLocation();
   }
 
-  void _startTimer() {
-    _timer?.cancel();
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (_secondsRemaining <= 1) {
-        timer.cancel();
-        setState(() {
-          _secondsRemaining = 0;
-        });
-      } else {
-        setState(() {
-          _secondsRemaining--;
-        });
-      }
-    });
+  Future<void> _loadCurrentLocation() async {
+
+    try {
+
+      final position =
+      await _locationService.getCurrentLocation();
+
+      final placemarks =
+      await placemarkFromCoordinates(
+        position.latitude,
+        position.longitude,
+      );
+
+      final place =
+          placemarks.first;
+
+      setState(() {
+
+        _currentLocation =
+        "${place.locality}, "
+            "${place.administrativeArea}";
+
+      });
+
+    } catch (e) {
+
+      setState(() {
+
+        _currentLocation =
+        "Location unavailable";
+
+      });
+
+    }
   }
 
   @override
   void dispose() {
     _bgPulseController.dispose();
-    _timer?.cancel();
     _pinController.dispose();
     super.dispose();
   }
 
-  void _triggerSosImmediately() {
-    _timer?.cancel();
-    setState(() {
-      _secondsRemaining = 0;
-      _isImmediateTriggered = true;
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Emergency SOS Broadcast successfully sent to Police and Guardians."),
-        backgroundColor: AppTheme.error,
-      ),
-    );
-  }
-
   void _handleCancelTap() {
-    if (_secondsRemaining > 0) {
-      _timer?.cancel();
-      _showDisarmDialog();
-    }
+    _showDisarmDialog();
   }
 
   void _showDisarmDialog() {
@@ -209,17 +216,11 @@ class _SosActiveScreenState extends State<SosActiveScreen> with SingleTickerProv
           },
         );
       },
-    ).whenComplete(() {
-      // Resume timer if user dismissed bottom sheet without successfully entering pin (seconds > 0)
-      if (_secondsRemaining > 0 && !_isImmediateTriggered) {
-        _startTimer();
-      }
-    });
+    ).whenComplete(() {});
   }
 
   @override
   Widget build(BuildContext context) {
-    bool isCountdownActive = _secondsRemaining > 0;
 
     return Scaffold(
       backgroundColor: const Color(0xFFFFDAD6), // bg-error-container (#ffdad6)
@@ -351,7 +352,7 @@ class _SosActiveScreenState extends State<SosActiveScreen> with SingleTickerProv
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                "Broadcasting exact location and audio...",
+                                "Broadcasting exact location",
                                 textAlign: TextAlign.center,
                                 style: GoogleFonts.beVietnamPro(
                                   fontSize: 18,
@@ -398,8 +399,8 @@ class _SosActiveScreenState extends State<SosActiveScreen> with SingleTickerProv
                                             0.2126, 0.7152, 0.0722, 0, 0,
                                             0,      0,      0,      1, 0,
                                           ]),
-                                          child: Image.network(
-                                            "https://lh3.googleusercontent.com/aida-public/AB6AXuD-1Mu3r_HH2Yc0Rzy4K6MTkc-RKk7tPBav45SleIrYnbyWmeOBkfZcKAcCT0qX6rT0S_J19mOeJnvWZ-0G1X-AyXdPq2QLqmEJ50_1i6nVaH7At56x2wuGMvO2vBwa8_6oO_Z0YcFpBf_TXeLXzMwj5c3rVKLz2g82Ysh7IxhWUt5v5R-lu-z3kLSo2alTZgwJD-LjUid_yTKG-bZyxzra6NFKx5uFX3MXteVUzqrM5A90dprcgyjuWBTmvuJzR7BsLPDREj15V4c",
+                                          child: Image.asset(
+                                            "assets/images/map_placeholder.png",
                                             fit: BoxFit.cover,
                                             opacity: const AlwaysStoppedAnimation(0.8),
                                           ),
@@ -486,13 +487,10 @@ class _SosActiveScreenState extends State<SosActiveScreen> with SingleTickerProv
                                           ),
                                           const SizedBox(height: 2),
                                           Text(
-                                            "142 W 49th St, NY",
-                                            style: GoogleFonts.beVietnamPro(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w500,
-                                              color: AppTheme.textPrimary,
-                                            ),
-                                          ),
+                                            _currentLocation,
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                          )
                                         ],
                                       ),
                                       const Icon(
@@ -513,111 +511,10 @@ class _SosActiveScreenState extends State<SosActiveScreen> with SingleTickerProv
                           Column(
                             children: [
                               // Pulsing Trigger Immediately button
-                              AnimatedBuilder(
-                                animation: _bgPulseController,
-                                builder: (context, child) {
-                                  double scale = 1.0 + (sin(_bgPulseController.value * 2 * pi) * 0.015);
-                                  return Transform.scale(
-                                    scale: scale,
-                                    child: SizedBox(
-                                      width: double.infinity,
-                                      height: 64,
-                                      child: ElevatedButton(
-                                        onPressed: _triggerSosImmediately,
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: AppTheme.error,
-                                          foregroundColor: Colors.white,
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(32.0),
-                                          ),
-                                          elevation: 8,
-                                          shadowColor: AppTheme.error.withOpacity(0.4),
-                                        ),
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
-                                            const Icon(Icons.campaign, size: 28),
-                                            const SizedBox(width: 12),
-                                            Text(
-                                              "TRIGGER SOS IMMEDIATELY",
-                                              style: GoogleFonts.beVietnamPro(
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.bold,
-                                                letterSpacing: 0.5,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
 
-                              const SizedBox(height: 16),
+                              const SizedBox(height: 60),
 
                               // Cancel Timer button
-                              SizedBox(
-                                width: double.infinity,
-                                height: 64,
-                                child: OutlinedButton(
-                                  onPressed: isCountdownActive ? _handleCancelTap : null,
-                                  style: OutlinedButton.styleFrom(
-                                    foregroundColor: AppTheme.error,
-                                    side: BorderSide(
-                                      color: AppTheme.error.withOpacity(isCountdownActive ? 1.0 : 0.3),
-                                      width: 2.0,
-                                    ),
-                                    backgroundColor: Colors.white.withOpacity(isCountdownActive ? 0.5 : 0.25),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(32.0),
-                                    ),
-                                    disabledForegroundColor: AppTheme.error.withOpacity(0.3),
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      const Icon(Icons.close, size: 24),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        "CANCEL",
-                                        style: GoogleFonts.montserrat(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      if (isCountdownActive) ...[
-                                        const SizedBox(width: 12),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                          decoration: BoxDecoration(
-                                            color: const Color(0xFFFFDAD6),
-                                            borderRadius: BorderRadius.circular(6),
-                                          ),
-                                          child: Text(
-                                            "${_secondsRemaining}s",
-                                            style: GoogleFonts.beVietnamPro(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.bold,
-                                              color: AppTheme.error,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ],
-                                  ),
-                                ),
-                              ),
-
-                              const SizedBox(height: 16),
-
-                              Text(
-                                "Pressing cancel will notify guardians that you are safe.",
-                                style: GoogleFonts.beVietnamPro(
-                                  fontSize: 12,
-                                  color: AppTheme.textSecondary,
-                                ),
-                              ),
                             ],
                           ),
                         ],

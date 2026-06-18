@@ -1,5 +1,8 @@
 import 'dart:async';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/secure_storage/secure_storage_manager.dart';
+import '../../../../core/services/location_service.dart';
 import '../../../../features/tracking/presentation/cubit/tracking_cubit.dart';
 import '../../domain/repositories/sos_repository.dart';
 
@@ -32,13 +35,19 @@ class SosError extends SosState {
 class SosCubit extends Cubit<SosState> {
   final SosRepository _sosRepository;
   final TrackingCubit _trackingCubit;
+  final SecureStorageManager _secureStorage;
+  final LocationService _locationService;
   Timer? _countdownTimer;
 
   SosCubit({
     required SosRepository sosRepository,
     required TrackingCubit trackingCubit,
+    required SecureStorageManager secureStorage,
+    required LocationService locationService,
   })  : _sosRepository = sosRepository,
         _trackingCubit = trackingCubit,
+        _secureStorage = secureStorage,
+        _locationService = locationService,
         super(const SosInitial());
 
   void startPreAlert({int durationSeconds = 30}) {
@@ -81,23 +90,60 @@ class SosCubit extends Cubit<SosState> {
       },
     );
   }
-  Future<void> triggerSos({
-    required String userId,
-    required String location,
-  }) async {
+
+  Future<void> triggerSos() async {
 
     emit(const SosLoading());
 
+    debugPrint("SOS METHOD ENTERED");
     try {
+
+      final userId =
+      await _secureStorage.getUserId();
+
+      debugPrint("========== SOS ==========");
+      debugPrint("USER ID = $userId");
+
+      final location =
+      await _locationService.getCurrentLocationString();
+
+      debugPrint("LOCATION = $location");
+
+      await _sosRepository.triggerSos(
+        userId: userId!,
+        location: location,
+      );
+
+      debugPrint("SOS API SUCCESS");
+
+      emit(const SosAlertActive());
+
+    } catch (e) {
+
+      debugPrint("SOS ERROR");
+      debugPrint(e.toString());
+
+      emit(SosError(e.toString()));
+    }
+  }
+
+  Future<void> triggerEmergency(String userId) async {
+    emit(const SosLoading());
+
+    try {
+
+      final position =
+      await _locationService.getCurrentLocation();
+
+      final location =
+          "${position.latitude},${position.longitude}";
 
       await _sosRepository.triggerSos(
         userId: userId,
         location: location,
       );
 
-      emit(
-        const SosAlertActive(),
-      );
+      emit(const SosAlertActive());
 
     } catch (e) {
 

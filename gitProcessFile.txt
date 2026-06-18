@@ -98,3 +98,32 @@ commit 11 : Want to fix bug and error in camera in profile photo upload flow, sh
 4. Device Pairing
 5. Family Incident Dashboard
 6. Profile Picture Upload (later)
+
+commit 12 : fix sos flow and pre-alert flow
+
+Home Screen
+    ↓
+Hold SOS 3 sec
+    ↓
+Pre Alert Screen (15 sec)
+    ↓
+Not Cancelled
+    ↓
+triggerSos()
+    ↓
+Backend API
+    ↓
+Kafka Notification
+    ↓
+SOS Active Screen
+
+        assets/images/map_placeholder.png
+        modified:   lib/core/services/location_service.dart
+        modified:   lib/features/home/presentation/screens/home_dashboard_screen.dart
+        modified:   lib/features/sos/data/repositories/sos_repository_impl.dart
+        modified:   lib/features/sos/presentation/cubit/sos_cubit.dart
+        modified:   lib/features/sos/presentation/screens/pre_alert_screen.dart
+        modified:   lib/features/sos/presentation/screens/sos_active_screen.dart
+        modified:   lib/main.dart
+        modified:   pubspec.lock
+        modified:   pubspec.yaml
