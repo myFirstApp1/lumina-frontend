@@ -74,3 +74,27 @@ Next:
         new file:   lib/features/device/presentation/cubit/device_cubit.dart
         modified:   lib/main.dart
 
+
+commit 10 : Completed changes username to email login flow
+        new file:   devtools_options.yaml
+                modified:   lib/features/auth/data/repositories/auth_repository_impl.dart
+                modified:   lib/features/auth/domain/repositories/auth_repository.dart
+                modified:   lib/features/auth/presentation/cubit/auth_cubit.dart
+                modified:   lib/features/auth/presentation/screens/login_screen.dart
+
+commit 11 : Want to fix bug and error in camera in profile photo upload flow, shall we do later, now move on to sos
+        modified:   android/app/src/main/AndroidManifest.xml
+        modified:   gitProcessFile.txt
+        modified:   lib/features/profile/data/repositories/profile_repository_impl.dart
+        modified:   lib/features/profile/domain/repositories/profile_repository.dart
+        modified:   lib/features/profile/presentation/cubit/profile_cubit.dart
+        modified:   lib/features/profile/presentation/screens/update_photo_screen.dart
+        modified:   lib/main.dart
+        modified:   pubspec.yaml
+
+1. SOS Button End-to-End
+2. Active Protection Screen
+3. Emergency Contacts CRUD
+4. Device Pairing
+5. Family Incident Dashboard
+6. Profile Picture Upload (later)

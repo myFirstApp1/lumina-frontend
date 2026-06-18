@@ -51,6 +51,7 @@ class _UpdatePhotoScreenState extends State<UpdatePhotoScreen> {
   }
 
   Future<void> pickFromGallery() async {
+    debugPrint("IMAGE_SELECTED");
     final XFile? file = await _picker.pickImage(
       source: ImageSource.gallery,
       imageQuality: 80,
@@ -67,6 +68,7 @@ class _UpdatePhotoScreenState extends State<UpdatePhotoScreen> {
   }
 
   Future<void> takePhoto() async {
+    debugPrint("OPENING_PICKER");
     final XFile? file = await _picker.pickImage(
       source: ImageSource.camera,
       imageQuality: 80,

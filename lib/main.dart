@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_picker/image_picker.dart';
 import 'core/routes/app_routes.dart';
 import 'core/theme/app_theme.dart';
 import 'core/network/dio_client.dart';
@@ -107,9 +108,11 @@ void main() {
     final deviceCubit = DeviceCubit(
       repository: deviceRepository,
     );
-
+    final ImagePicker picker = ImagePicker();
+    
     // Check user authentication status on startup
     await authCubit.checkAuthStatus();
+    await recoverLostData();
 
     runApp(LuminaGuardianApp(
       authCubit: authCubit,
@@ -126,6 +129,45 @@ void main() {
     debugPrint('Captured Uncaught Zoned Error: $error');
     debugPrint('Stack trace: $stack');
   });
+}
+
+
+Future<void> recoverLostData() async {
+
+  try {
+
+    final ImagePicker picker =
+    ImagePicker();
+
+    final LostDataResponse response =
+    await picker.retrieveLostData();
+
+    debugPrint(
+      "LOST DATA EMPTY = ${response.isEmpty}",
+    );
+
+    if (response.files != null &&
+        response.files!.isNotEmpty) {
+
+      debugPrint(
+        "RECOVERED FILE = ${response.files!.first.path}",
+      );
+    }
+
+  } catch (e, s) {
+
+    debugPrint(
+      "RECOVER LOST DATA ERROR",
+    );
+
+    debugPrint(
+      e.toString(),
+    );
+
+    debugPrint(
+      s.toString(),
+    );
+  }
 }
 
 class LuminaGuardianApp extends StatelessWidget {
@@ -151,7 +193,7 @@ class LuminaGuardianApp extends StatelessWidget {
     required this.protectionCubit,
     required this.deviceCubit,
   }) : super(key: key);
-
+    
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
