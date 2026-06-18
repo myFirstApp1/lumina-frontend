@@ -1,4 +1,5 @@
 //import 'dart:async';
+import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -19,6 +20,8 @@ class HomeDashboardScreen extends StatefulWidget {
 class _HomeDashboardScreenState extends State<HomeDashboardScreen> with TickerProviderStateMixin {
   late AnimationController _pulseController;
   late AnimationController _pingController;
+  Timer? _holdTimer;
+  bool _isHolding = false;
 
   @override
   void initState() {
@@ -55,6 +58,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> with TickerPr
   void dispose() {
     _pulseController.dispose();
     _pingController.dispose();
+    _holdTimer?.cancel();
     super.dispose();
   }
 
@@ -242,7 +246,40 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> with TickerPr
 
                               // Main SOS Action Button
                               GestureDetector(
-                                onTap: () => context.push(AppRoutes.sosActive),
+                                onTapDown: (_) {
+
+                                  _isHolding = true;
+
+                                  _holdTimer = Timer(
+                                    const Duration(seconds: 3),
+                                        () {
+
+                                      if (_isHolding) {
+
+                                        context.push(
+                                          AppRoutes.preAlert,
+                                        );
+
+                                      }
+
+                                    },
+                                  );
+
+                                },
+
+                                onTapUp: (_) {
+
+                                  _isHolding = false;
+                                  _holdTimer?.cancel();
+
+                                },
+
+                                onTapCancel: () {
+
+                                  _isHolding = false;
+                                  _holdTimer?.cancel();
+
+                                },
                                 child: Container(
                                   width: 200,
                                   height: 200,

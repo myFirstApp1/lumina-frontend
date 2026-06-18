@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/cupertino.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/dio_client.dart';
 import '../../domain/repositories/sos_repository.dart';
@@ -13,16 +14,22 @@ class SosRepositoryImpl implements SosRepository {
     required String userId,
     required String location,
   }) async {
-
+    debugPrint("SOS METHOD ENTERED");
     try {
+      debugPrint("CALLING SOS API");
+      debugPrint("USER = $userId");
+      debugPrint("LOCATION = $location");
 
+      final response =
       await _client.dio.post(
-
         '/api/sos/trigger/$userId',
-
         queryParameters: {
           'location': location,
         },
+      );
+
+      debugPrint(
+        "SOS RESPONSE = ${response.statusCode}",
 
       );
 

@@ -97,6 +97,8 @@ void main() {
     final sosCubit = SosCubit(
       sosRepository: sosRepository,
       trackingCubit: trackingCubit,
+      secureStorage: secureStorage,
+      locationService: locationService,
     );
     final wearableCubit = WearableCubit();
     final aiCompanionCubit = AiCompanionCubit();
