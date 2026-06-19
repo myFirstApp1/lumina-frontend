@@ -16,6 +16,22 @@ class BackgroundLocationService {
   static const String notificationTitle = 'Lumina Guardian Active Protection';
   
   static Future<void> initializeService() async {
+    // const AndroidNotificationChannel channel =
+    // AndroidNotificationChannel(
+    //   channelId,
+    //   notificationTitle,
+    //   description: 'Live SOS Tracking',
+    //   importance: Importance.low,
+    // );
+    //
+    // final FlutterLocalNotificationsPlugin notifications =
+    // FlutterLocalNotificationsPlugin();
+    //
+    // await notifications
+    //     .resolvePlatformSpecificImplementation<
+    //     AndroidFlutterLocalNotificationsPlugin>()
+    //     ?.createNotificationChannel(channel);
+
     final service = FlutterBackgroundService();
 
     await service.configure(
@@ -115,7 +131,7 @@ class BackgroundLocationService {
         for (var item in queue) {
           try {
             await dioClient.dio.post(
-              '/api/v1/tracking/location',
+              '/api/tracking/update',
               data: item,
               options: Options(headers: {'Authorization': 'Bearer $token'}),
             );
@@ -182,7 +198,7 @@ class BackgroundLocationService {
           if (isOnline) {
             final token = await secureStorage.getAccessToken();
             await dioClient.dio.post(
-              '/api/v1/tracking/location',
+              '/api/tracking/update',
               data: payload,
               options: Options(headers: {
                 if (token != null) 'Authorization': 'Bearer $token',

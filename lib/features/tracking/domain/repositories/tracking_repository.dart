@@ -7,4 +7,8 @@ abstract class TrackingRepository {
     required double accuracyMeters,
     required double speed,
   });
+
+  Future<String> getTrackingId(
+      String userId,
+      );
 }

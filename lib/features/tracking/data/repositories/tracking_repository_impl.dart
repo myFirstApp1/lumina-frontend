@@ -48,5 +48,18 @@ class TrackingRepositoryImpl implements TrackingRepository {
       );
     }
   }
+
+  @override
+  Future<String> getTrackingId(
+      String userId,
+      ) async {
+
+    final response =
+    await _client.dio.get(
+      '/api/tracking/tracking-id/$userId',
+    );
+
+    return response.data['trackingId'];
+  }
 }
 
