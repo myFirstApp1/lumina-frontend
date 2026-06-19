@@ -44,7 +44,6 @@ class SosRepositoryImpl implements SosRepository {
 
   }
 
-  @override
   Future<void> cancelSos({
     required String sessionId,
     required String verificationCode,
@@ -65,7 +64,6 @@ class SosRepositoryImpl implements SosRepository {
     }
   }
 
-  @override
   Future<Map<String, dynamic>?> getActiveSession() async {
     try {
       final response = await _client.dio.get('/api/v1/sos/active-session');

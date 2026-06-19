@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/secure_storage/secure_storage_manager.dart';
 import '../../../../core/services/location_service.dart';
 import '../../../../features/tracking/presentation/cubit/tracking_cubit.dart';
+import '../../../tracking/domain/repositories/tracking_repository.dart';
 import '../../domain/repositories/sos_repository.dart';
 
 abstract class SosState {
@@ -37,6 +38,7 @@ class SosCubit extends Cubit<SosState> {
   final TrackingCubit _trackingCubit;
   final SecureStorageManager _secureStorage;
   final LocationService _locationService;
+  final TrackingRepository _trackingRepository;
   Timer? _countdownTimer;
 
   SosCubit({
@@ -44,10 +46,12 @@ class SosCubit extends Cubit<SosState> {
     required TrackingCubit trackingCubit,
     required SecureStorageManager secureStorage,
     required LocationService locationService,
+    required TrackingRepository trackingRepository,
   })  : _sosRepository = sosRepository,
         _trackingCubit = trackingCubit,
         _secureStorage = secureStorage,
         _locationService = locationService,
+        _trackingRepository = trackingRepository,
         super(const SosInitial());
 
   void startPreAlert({int durationSeconds = 30}) {
@@ -114,6 +118,15 @@ class SosCubit extends Cubit<SosState> {
         location: location,
       );
 
+      final trackingId =
+      await _trackingRepository.getTrackingId(
+        userId,
+      );
+
+      await _trackingCubit.startTrackingSession(
+        userId: userId,
+        trackingId: trackingId,
+      );
       debugPrint("SOS API SUCCESS");
 
       emit(const SosAlertActive());

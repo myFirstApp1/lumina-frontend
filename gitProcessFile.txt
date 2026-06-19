@@ -127,3 +127,29 @@ SOS Active Screen
         modified:   lib/main.dart
         modified:   pubspec.lock
         modified:   pubspec.yaml
+
+commit 13 : fix tracking flow and live location tracking flow and some bugs
+
+
+Current V1 Completion Status
+Feature	Status
+SOS Button	✅
+Pre Alert	✅
+SOS API	✅
+SMS	✅
+Tracking ID	✅
+GPS Tracking	✅
+Tracking DB Storage	✅
+Tracking History API	✅
+Latest Location API	✅
+
+                modified:   android/app/src/main/AndroidManifest.xml
+                modified:   lib/core/services/background_location_service.dart
+                modified:   lib/core/services/location_service.dart
+                modified:   lib/features/sos/data/repositories/sos_repository_impl.dart
+                modified:   lib/features/sos/presentation/cubit/sos_cubit.dart
+                modified:   lib/features/sos/presentation/screens/pre_alert_screen.dart
+                modified:   lib/features/tracking/data/repositories/tracking_repository_impl.dart
+                modified:   lib/features/tracking/domain/repositories/tracking_repository.dart
+                modified:   lib/main.dart
+

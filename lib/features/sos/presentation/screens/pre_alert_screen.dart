@@ -229,13 +229,13 @@ class _PreAlertScreenState extends State<PreAlertScreen> {
                 const SizedBox(height: 40),
                 
                 PillButton(
-                  text: "Disarm Timer (Safe)",
+                  text: "Cancel",
                   icon: Icons.check_circle_outline,
                   onPressed: _handleDisarm,
                   gradient: const LinearGradient(
                     colors: [
                       AppTheme.success,
-                      Color(0xFF4CAF50),
+                      Color(0xFFF10E0E),
                     ],
                   ),
                 ),

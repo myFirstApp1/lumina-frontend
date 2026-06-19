@@ -99,6 +99,7 @@ void main() {
       trackingCubit: trackingCubit,
       secureStorage: secureStorage,
       locationService: locationService,
+      trackingRepository: trackingRepository,
     );
     final wearableCubit = WearableCubit();
     final aiCompanionCubit = AiCompanionCubit();
