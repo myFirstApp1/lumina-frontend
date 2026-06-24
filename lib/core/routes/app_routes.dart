@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/location/presentation/screens/location_initialization_screen.dart';
 import '../../features/onboarding/presentation/screens/splash_screen.dart';
 import '../../features/onboarding/presentation/screens/onboarding_step1_screen.dart';
 import '../../features/onboarding/presentation/screens/onboarding_step2_screen.dart';
@@ -42,7 +43,7 @@ class AppRoutes {
   static const String signup = '/signup';
   static const String signupVerify = '/signup/verify';
   static const String forgotPassword = '/forgot-password';
-  
+  static const String locationInit = '/location-init';
   static const String home = '/home';
   static const String sosActive = '/sos-active';
   static const String preAlert = '/pre-alert';
@@ -107,6 +108,10 @@ class AppRoutes {
       GoRoute(
         path: forgotPassword,
         builder: (BuildContext context, GoRouterState state) => const ForgotPasswordScreen(),
+      ),
+      GoRoute(
+        path: locationInit,
+        builder: (context, state) => const LocationInitializationScreen(),
       ),
       GoRoute(
         path: home,

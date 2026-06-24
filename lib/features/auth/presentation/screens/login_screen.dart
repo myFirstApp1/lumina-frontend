@@ -97,7 +97,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         );
 
                         context.go(
-                          AppRoutes.home,
+                          AppRoutes.locationInit,
                         );
                       } else if (state is AuthError) {
                         ScaffoldMessenger.of(context).showSnackBar(
