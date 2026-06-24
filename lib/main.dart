@@ -11,6 +11,7 @@ import 'core/services/location_service.dart';
 import 'core/config/api_config.dart';
 import 'features/auth/data/repositories/auth_repository_impl.dart';
 import 'features/auth/presentation/cubit/auth_cubit.dart';
+import 'features/location/presentation/cubit/location_initialization_cubit.dart';
 import 'features/sos/data/repositories/sos_repository_impl.dart';
 import 'features/sos/presentation/cubit/sos_cubit.dart';
 import 'features/tracking/data/repositories/tracking_repository_impl.dart';
@@ -210,6 +211,7 @@ class LuminaGuardianApp extends StatelessWidget {
         BlocProvider<ContactsCubit>.value(value: contactsCubit),
         BlocProvider<ProtectionCubit>.value(value: protectionCubit),
         BlocProvider<DeviceCubit>.value(value: deviceCubit),
+        BlocProvider<LocationInitializationCubit>(create: (_) => LocationInitializationCubit(),),
       ],
       child: MaterialApp.router(
         title: 'Lumina Guardian',

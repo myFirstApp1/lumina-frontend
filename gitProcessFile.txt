@@ -222,3 +222,26 @@ Backend still receives GPS
         modified:   pubspec.lock
         modified:   pubspec.yaml
         modified:   windows/flutter/generated_plugins.cmake
+
+ commit 15 : fix turn on gps notify flow and created location initiate screen
+        P0.1 is essentially completed:
+
+        ✅ P0.1 – Location Initialization
+        Login successful.
+        GPS permission screen shown before entering app.
+        User can enable GPS.
+        User enters Home screen after GPS enabled.
+        SOS no longer becomes the first place where permission is requested.
+        First-install flow works properly.
+        Tracking APIs are already working.
+        Latest tracking and history endpoints verified.
+        Background service integration exists (stabilization later).
+
+        modified:   gitProcessFile.txt
+        modified:   lib/core/routes/app_routes.dart
+        modified:   lib/features/auth/presentation/screens/login_screen.dart
+        modified:   lib/features/home/presentation/screens/home_dashboard_screen.dart
+        new file:   lib/features/location/presentation/cubit/location_initialization_cubit.dart
+        new file:   lib/features/location/presentation/cubit/location_initialization_state.dart
+        new file:   lib/features/location/presentation/screens/location_initialization_screen.dart
+        modified:   lib/main.dart

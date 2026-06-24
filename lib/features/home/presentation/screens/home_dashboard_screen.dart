@@ -3,6 +3,7 @@ import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/routes/app_routes.dart';
@@ -52,6 +53,42 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> with TickerPr
         );
       }
     });
+  }
+
+  Future<bool> validateLocation() async {
+
+    bool enabled =
+    await Geolocator.isLocationServiceEnabled();
+
+    if (!enabled) {
+
+      await Geolocator.openLocationSettings();
+
+      return false;
+    }
+
+    LocationPermission permission =
+    await Geolocator.checkPermission();
+
+    if (permission == LocationPermission.denied) {
+
+      permission =
+      await Geolocator.requestPermission();
+
+      if (permission == LocationPermission.denied) {
+        return false;
+      }
+    }
+
+    if (permission ==
+        LocationPermission.deniedForever) {
+
+      await Geolocator.openAppSettings();
+
+      return false;
+    }
+
+    return true;
   }
 
   @override
@@ -252,15 +289,21 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> with TickerPr
 
                                   _holdTimer = Timer(
                                     const Duration(seconds: 3),
-                                        () {
+                                        () async {
 
-                                      if (_isHolding) {
+                                          if (_isHolding) {
 
-                                        context.push(
-                                          AppRoutes.preAlert,
-                                        );
+                                            bool canStart =
+                                            await validateLocation();
 
-                                      }
+                                            if (!canStart) {
+                                              return;
+                                            }
+
+                                            context.push(
+                                              AppRoutes.preAlert,
+                                            );
+                                          }
 
                                     },
                                   );
