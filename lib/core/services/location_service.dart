@@ -35,89 +35,66 @@ class LocationService {
     return true;
   }
 
-  // Future<void> startTracking(String trackingId) async {
-  //
-  //   final hasPermission =
-  //   await checkAndRequestPermissions();
-  //
-  //   if (!hasPermission) {
-  //     throw Exception('GPS Permissions Denied');
-  //   }
-  //   // TEMPORARILY DISABLE BACKGROUND SERVICE
-  //
-  //   // final isRunning = await _service.isRunning();
-  //   // if (!isRunning) {
-  //   //   await BackgroundLocationService.initializeService();
-  //   //   await _service.startService();
-  //   // }
-  //   //
-  //   // // Wait slightly for service startup, then start tracking
-  //   // await Future.delayed(const Duration(milliseconds: 500));
-  //   // _service.invoke('startTracking', {'trackingId': trackingId});
-  //   //
-  //   // // Setup subscription to background service events
-  //   // await _serviceSubscription?.cancel();
-  //   // _serviceSubscription = _service.on('onLocationReceived').listen((event) {
-  //   //   if (event != null && _locationStreamController != null && !_locationStreamController!.isClosed) {
-  //   //     _locationStreamController!.add(Map<String, dynamic>.from(event));
-  //   //   }
-  //   // });
-  //
-  //
-  //   final position =
-  //   await Geolocator.getCurrentPosition(
-  //     desiredAccuracy: LocationAccuracy.high,
-  //   );
-  //
-  //   _locationStreamController ??=
-  //   StreamController<Map<String, dynamic>>.broadcast();
-  //
-  //   _locationStreamController!.add({
-  //     'latitude': position.latitude,
-  //     'longitude': position.longitude,
-  //     'accuracy': position.accuracy,
-  //     'speed': position.speed,
-  //   });
-  // }
-
   Future<void> startTracking(String trackingId) async {
+
+    debugPrint("CHECKING SERVICE");
 
     final hasPermission =
     await checkAndRequestPermissions();
 
     if (!hasPermission) {
-      throw Exception('GPS Permissions Denied');
+      throw Exception("GPS Permissions Denied");
     }
 
     _locationStreamController ??=
     StreamController<Map<String, dynamic>>.broadcast();
 
+    final isRunning = await _service.isRunning();
+
+    debugPrint("SERVICE RUNNING = $isRunning");
+
+    if (!isRunning) {
+
+      await BackgroundLocationService.initializeService();
+
+      debugPrint("STARTING SERVICE");
+
+      await _service.startService();
+
+      debugPrint("SERVICE STARTED");
+
+      await Future.delayed(
+        const Duration(seconds: 1),
+      );
+    }
+
+    debugPrint("SERVICE STARTED");
+
+    _service.invoke(
+      'startTracking',
+      {
+        'sessionId': trackingId,
+      },
+    );
+
     await _serviceSubscription?.cancel();
 
     _serviceSubscription =
-        Geolocator.getPositionStream(
+        _service.on('onLocationReceived').listen(
 
-          locationSettings: const LocationSettings(
-            accuracy: LocationAccuracy.high,
-            distanceFilter: 5,
-          ),
+              (event) {
 
-        ).listen((Position position) {
+            if (event != null) {
 
-          debugPrint("LIVE LOCATION");
-          debugPrint("LAT = ${position.latitude}");
-          debugPrint("LON = ${position.longitude}");
+              _locationStreamController?.add(
+                Map<String, dynamic>.from(event),
+              );
 
-          _locationStreamController?.add({
+            }
 
-            'latitude': position.latitude,
-            'longitude': position.longitude,
-            'accuracy': position.accuracy,
-            'speed': position.speed,
+          },
 
-          });
-
-        });
+        );
   }
 
 
@@ -127,23 +104,23 @@ class LocationService {
     }
   }
 
-  // Future<void> stopTracking() async {
-  //   await _serviceSubscription?.cancel();
-  //   _serviceSubscription = null;
-  //   if (await _service.isRunning()) {
-  //     _service.invoke('stopTracking');
-  //     _service.invoke('stopService');
-  //   }
-  //   _locationStreamController?.close();
-  //   _locationStreamController = null;
-  // }
 
   Future<void> stopTracking() async {
 
     await _serviceSubscription?.cancel();
+
     _serviceSubscription = null;
 
+    if (await _service.isRunning()) {
+
+      _service.invoke('stopTracking');
+
+      _service.invoke('stopService');
+
+    }
+
     _locationStreamController?.close();
+
     _locationStreamController = null;
   }
 

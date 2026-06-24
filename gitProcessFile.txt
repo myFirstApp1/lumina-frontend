@@ -153,3 +153,72 @@ Latest Location API	✅
                 modified:   lib/features/tracking/domain/repositories/tracking_repository.dart
                 modified:   lib/main.dart
 
+New Phase :
+
+P0: Background tracking stability
+
+P1: SOS + Tracking
+Endpoints:
+25
+36
+33
+34
+35
+
+P2: Heartbeat
+Endpoints:
+14
+15
+16
+21
+22
+23
+
+P3: Family Dashboard
+Endpoints:
+11
+12
+13
+24
+32
+
+P4: Evidence
+Endpoints:
+8
+9
+10
+
+P5: Device Intelligence
+Endpoints:
+3
+4
+5
+6
+
+commit 14 : fix tracking flow and Background Tracking Stabilization
+
+P0 – Background Tracking Stabilization
+Goal
+
+This must work:
+
+SOS Triggered
+     ↓
+Tracking Starts
+     ↓
+App Minimized
+     ↓
+Screen Locked
+     ↓
+Phone in Pocket
+     ↓
+Backend still receives GPS
+
+ modified:   android/app/build.gradle.kts
+        modified:   gitProcessFile.txt
+        modified:   lib/core/services/background_location_service.dart
+        modified:   lib/core/services/location_service.dart
+        modified:   macos/Flutter/GeneratedPluginRegistrant.swift
+        modified:   pubspec.lock
+        modified:   pubspec.yaml
+        modified:   windows/flutter/generated_plugins.cmake
