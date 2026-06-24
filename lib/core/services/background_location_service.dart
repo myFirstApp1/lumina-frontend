@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -11,26 +12,33 @@ import '../network/dio_client.dart';
 import '../secure_storage/secure_storage_manager.dart';
 import '../config/api_config.dart';
 
+@pragma('vm:entry-point')
 class BackgroundLocationService {
   static const String channelId = 'lumina_guardian_tracking';
   static const String notificationTitle = 'Lumina Guardian Active Protection';
-  
+
+
   static Future<void> initializeService() async {
-    // const AndroidNotificationChannel channel =
-    // AndroidNotificationChannel(
-    //   channelId,
-    //   notificationTitle,
-    //   description: 'Live SOS Tracking',
-    //   importance: Importance.low,
-    // );
-    //
-    // final FlutterLocalNotificationsPlugin notifications =
-    // FlutterLocalNotificationsPlugin();
-    //
-    // await notifications
-    //     .resolvePlatformSpecificImplementation<
-    //     AndroidFlutterLocalNotificationsPlugin>()
-    //     ?.createNotificationChannel(channel);
+
+    debugPrint("==========");
+    debugPrint("INITIALIZING BACKGROUND SERVICE");
+    debugPrint("==========");
+
+    const AndroidNotificationChannel channel =
+    AndroidNotificationChannel(
+      channelId,
+      notificationTitle,
+      description: "Live SOS Tracking",
+      importance: Importance.low,
+    );
+
+    final FlutterLocalNotificationsPlugin notifications =
+    FlutterLocalNotificationsPlugin();
+
+    await notifications
+        .resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>()
+        ?.createNotificationChannel(channel);
 
     final service = FlutterBackgroundService();
 
@@ -41,15 +49,20 @@ class BackgroundLocationService {
         isForegroundMode: true,
         notificationChannelId: channelId,
         initialNotificationTitle: notificationTitle,
-        initialNotificationContent: 'Monitoring device vitals and environment...',
+        initialNotificationContent:
+        "Monitoring device vitals and environment...",
         foregroundServiceNotificationId: 888,
       ),
+
       iosConfiguration: IosConfiguration(
         autoStart: false,
         onForeground: onForeground,
         onBackground: onBackground,
       ),
     );
+
+    debugPrint("BACKGROUND SERVICE CONFIGURED");
+
   }
 
   @pragma('vm:entry-point')
@@ -67,7 +80,11 @@ class BackgroundLocationService {
   static void onStart(ServiceInstance service) async {
     // Background Isolate Inits
     WidgetsFlutterBinding.ensureInitialized();
-    
+
+    debugPrint("==========");
+    debugPrint("BACKGROUND SERVICE STARTED");
+    debugPrint("==========");
+
     final secureStorage = SecureStorageManager();
     final connectivity = Connectivity();
     
@@ -151,16 +168,24 @@ class BackgroundLocationService {
     }
 
     // Define subscription params based on state
-    void subscribeToLocation(String sessionId, String mode) {
+    void subscribeToLocation(String trackingId, String mode) {
+
+      debugPrint("==========");
+      debugPrint("SUBSCRIBE LOCATION");
+      debugPrint("TRACKING ID = $trackingId");
+      debugPrint("MODE = $mode");
+      debugPrint("==========");
+
       positionSubscription?.cancel();
       
-      int distanceFilter = 10; // meters
-      Duration interval = const Duration(seconds: 60);
+      int distanceFilter = 0; // meters
+      Duration interval = const Duration(seconds: 5);
 
       if (mode == 'PRE_ALERT') {
         distanceFilter = 2;
         interval = const Duration(seconds: 15);
       } else if (mode == 'SOS') {
+        debugPrint("SOS MODE ENABLED");
         distanceFilter = 0;
         interval = const Duration(seconds: 5);
       }
@@ -169,6 +194,7 @@ class BackgroundLocationService {
         accuracy: LocationAccuracy.high,
         distanceFilter: distanceFilter,
         intervalDuration: interval,
+        forceLocationManager: true,
         foregroundNotificationConfig: const ForegroundNotificationConfig(
           notificationText: "Lumina Guardian actively tracking location.",
           notificationTitle: notificationTitle,
@@ -179,8 +205,16 @@ class BackgroundLocationService {
       positionSubscription = Geolocator.getPositionStream(
         locationSettings: locationSettings,
       ).listen((Position position) async {
+
+        debugPrint("==================");
+        debugPrint("BACKGROUND LOCATION RECEIVED");
+        debugPrint("TIME = ${DateTime.now()}");
+        debugPrint("LAT=${position.latitude}");
+        debugPrint("LON=${position.longitude}");
+        debugPrint("==================");
+
         final payload = {
-          'sessionId': sessionId,
+          'trackingId ': trackingId,
           'latitude': position.latitude,
           'longitude': position.longitude,
           'accuracy': position.accuracy,
@@ -212,15 +246,35 @@ class BackgroundLocationService {
           await queueLocationOffline(payload);
         }
       }, onError: (err) {
+
+        debugPrint("LOCATION STREAM ERROR");
+        debugPrint(err.toString());
+
         service.invoke('onError', {'message': err.toString()});
       });
     }
 
     // Start background sync timer
-    syncTimer = Timer.periodic(const Duration(seconds: 30), (_) => syncOfflineQueue());
+    syncTimer = Timer.periodic(
+      const Duration(seconds: 10),
+          (_) {
+
+        debugPrint("BACKGROUND SERVICE ALIVE");
+        debugPrint(DateTime.now().toString());
+
+      },
+    );
 
     // Listen for control commands
     service.on('startTracking').listen((event) {
+
+      debugPrint("START TRACKING EVENT RECEIVED");
+      debugPrint("EVENT = $event");
+
+      final trackingId = event?['trackingId'];
+
+      debugPrint("TRACKING ID = $trackingId");
+
       final sessionId = event?['sessionId'] as String?;
       if (sessionId != null) {
         currentSessionId = sessionId;
