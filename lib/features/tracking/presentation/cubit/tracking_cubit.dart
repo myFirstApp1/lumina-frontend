@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/secure_storage/secure_storage_manager.dart';
 import '../../../../core/services/location_service.dart';
 import '../../domain/repositories/tracking_repository.dart';
 
@@ -49,37 +50,54 @@ class TrackingCubit extends Cubit<TrackingState> {
     _userId = userId;
     _trackingId = trackingId;
 
-    try {
+    final storage = SecureStorageManager();
 
-      await _locationService.startTracking(
-        trackingId,
-      );
+    final token = await storage.getAccessToken();
+
+    debugPrint("==========");
+    debugPrint("TRACKING CUBIT TOKEN");
+    debugPrint(token);
+    debugPrint("==========");
+
+    if (token == null) {
+      throw Exception("Access token missing");
+    }
+
+    try {
 
       await _locationSubscription?.cancel();
 
       _locationSubscription =
           _locationService.locationStream.listen(
+
                 (data) async {
+
+              debugPrint("======================");
+              debugPrint("TRACKING STREAM EVENT");
+              debugPrint("TRACKING CUBIT RECEIVED LOCATION");
+              debugPrint(data.toString());
+              debugPrint("======================");
 
               try {
 
                 await sendLocationUpdate(
 
-                  latitude: data['latitude'] as double,
+                  latitude: data["latitude"],
 
-                  longitude: data['longitude'] as double,
+                  longitude: data["longitude"],
 
-                  accuracy: data['accuracy'] as double,
+                  accuracy: data["accuracy"],
 
-                  speed: data['speed'] as double,
+                  speed: data["speed"],
 
                 );
 
-                emit(
-                  const TrackingStreaming(),
-                );
+                emit(const TrackingStreaming());
 
               } catch (e) {
+
+                debugPrint("TRACKING UPDATE FAILED");
+                debugPrint(e.toString());
 
                 emit(
                   TrackingError(
@@ -93,6 +111,9 @@ class TrackingCubit extends Cubit<TrackingState> {
 
             onError: (err) {
 
+              debugPrint("TRACKING STREAM ERROR");
+              debugPrint(err.toString());
+
               emit(
                 TrackingError(
                   err.toString(),
@@ -103,11 +124,17 @@ class TrackingCubit extends Cubit<TrackingState> {
 
           );
 
-      emit(
-        const TrackingStreaming(),
+      await _locationService.startTracking(
+        trackingId,
+        token,
       );
 
+      emit(const TrackingStreaming());
+
     } catch (e) {
+
+      debugPrint("START TRACKING FAILED");
+      debugPrint(e.toString());
 
       emit(
         TrackingError(
@@ -116,6 +143,7 @@ class TrackingCubit extends Cubit<TrackingState> {
       );
 
     }
+
   }
 
   Future<void> updateTrackingMode(String mode) async {
@@ -155,6 +183,8 @@ Future<void> sendLocationUpdate({
       accuracyMeters: accuracy,
       speed: speed,
     );
+
+    debugPrint("TRACKING SENT SUCCESSFULLY");
 
   } catch (e) {
 

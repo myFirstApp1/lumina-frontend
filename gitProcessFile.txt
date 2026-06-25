@@ -223,7 +223,7 @@ Backend still receives GPS
         modified:   pubspec.yaml
         modified:   windows/flutter/generated_plugins.cmake
 
- commit 15 : fix turn on gps notify flow and created location initiate screen
+ commit 15 : P0.1 fix turn on gps notify flow and created location initiate screen
         P0.1 is essentially completed:
 
         ✅ P0.1 – Location Initialization
@@ -245,3 +245,30 @@ Backend still receives GPS
         new file:   lib/features/location/presentation/cubit/location_initialization_state.dart
         new file:   lib/features/location/presentation/screens/location_initialization_screen.dart
         modified:   lib/main.dart
+
+commit 16 : P1.1 - P1.4 fix Tracking History API and Lastest API
+
+✅ SOS created a tracking session
+✅ Flutter obtained GPS
+✅ Flutter called /tracking/update
+✅ Backend saved the location
+✅ MySQL contains the record
+✅ GET /tracking/latest
+✅ GET /tracking/history
+
+✅ P1.1 : SOS starts tracking session (Completed)
+✅ P1.2 : Tracking Update API (Completed)
+✅ P1.3 : Latest Tracking API (Completed)
+✅ P1.4 : Tracking History API (Completed)
+(Pending)
+P1.5 — Background / Minimized tracking
+P1.6 — Offline queue replay
+P1.7 — Kill app behavior
+P1.8 — Family live map
+
+  modified:   gitProcessFile.txt
+        modified:   lib/core/secure_storage/secure_storage_manager.dart
+        modified:   lib/core/services/background_location_service.dart
+        modified:   lib/core/services/location_service.dart
+        modified:   lib/features/auth/data/repositories/auth_repository_impl.dart
+        modified:   lib/features/tracking/presentation/cubit/tracking_cubit.dart
