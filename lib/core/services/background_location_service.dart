@@ -96,6 +96,7 @@ class BackgroundLocationService {
     );
 
     String? currentSessionId;
+    String? accessToken;
     String trackingMode = 'NORMAL'; // NORMAL, PRE_ALERT, SOS
     StreamSubscription<Position>? positionSubscription;
     Timer? syncTimer;
@@ -110,6 +111,18 @@ class BackgroundLocationService {
     Future<void> queueLocationOffline(Map<String, dynamic> loc) async {
       try {
         final file = await getQueueFile();
+
+        debugPrint("QUEUE FILE");
+
+        debugPrint(file.path);
+
+        if (!await file.exists()) {
+
+          debugPrint("QUEUE FILE NOT FOUND");
+
+          return;
+
+        }
         List<dynamic> queue = [];
         if (await file.exists()) {
           final content = await file.readAsString();
@@ -126,41 +139,105 @@ class BackgroundLocationService {
 
     // Helper to sync queue with server
     Future<void> syncOfflineQueue() async {
+
+      debugPrint("========================");
+      debugPrint("SYNC OFFLINE QUEUE");
+      debugPrint("TIME = ${DateTime.now()}");
+      debugPrint("========================");
+
       try {
         final connectivityResult = await connectivity.checkConnectivity();
-        final isOnline = connectivityResult.isNotEmpty && !connectivityResult.contains(ConnectivityResult.none);
-        if (!isOnline) return;
 
-        final file = await getQueueFile();
+        final isOnline =
+            connectivityResult.isNotEmpty &&
+                !connectivityResult.contains(ConnectivityResult.none);
+
+        debugPrint("NETWORK AVAILABLE = $isOnline");
+
+        if (!isOnline) {
+
+          debugPrint("NETWORK NOT AVAILABLE");
+          return;
+
+        }
+
+          final file = await getQueueFile();
         if (!await file.exists()) return;
 
         final content = await file.readAsString();
-        if (content.isEmpty) return;
+
+        if (content.isEmpty) {
+
+          debugPrint("QUEUE FILE EMPTY");
+          return;
+
+        }
 
         final queue = jsonDecode(content) as List<dynamic>;
-        if (queue.isEmpty) return;
 
-        final token = await secureStorage.getAccessToken();
-        if (token == null) return;
+        debugPrint("QUEUE SIZE = ${queue.length}");
+
+        if (queue.isEmpty) {
+
+          debugPrint("NO OFFLINE RECORDS");
+          return;
+
+        }
+
+        // final token = await secureStorage.getAccessToken();
+        //
+        // debugPrint("ACCESS TOKEN");
+        // debugPrint(token);
+        //
+        // if (token == null) {
+        //
+        //   debugPrint("TOKEN IS NULL");
+        //
+        //   return;
+        //
+        // }
 
         // Try to upload records in batches
         final List<dynamic> failedRecords = [];
+        debugPrint("STARTING BACKGROUND UPLOAD LOOP");
         for (var item in queue) {
+          debugPrint("=================");
+          debugPrint("UPLOADING RECORD");
+          debugPrint(item.toString());
+          debugPrint("=================");
           try {
             await dioClient.dio.post(
               '/api/tracking/update',
               data: item,
-              options: Options(headers: {'Authorization': 'Bearer $token'}),
+              options: Options(headers: {
+                'Authorization': 'Bearer $accessToken',
+              }),
             );
+            debugPrint("BACKGROUND API UPDATE");
+            debugPrint("UPLOAD SUCCESS");
           } catch (e) {
+            debugPrint("BACKGROUND UPLOAD FAILED");
+            debugPrint(e.toString());
+
             failedRecords.add(item);
           }
         }
 
         if (failedRecords.isEmpty) {
+
+          debugPrint("QUEUE CLEARED");
+
           await file.delete();
+
         } else {
-          await file.writeAsString(jsonEncode(failedRecords));
+
+          debugPrint(
+              "FAILED RECORDS = ${failedRecords.length}");
+
+          await file.writeAsString(
+            jsonEncode(failedRecords),
+          );
+
         }
       } catch (e) {
         debugPrint('Offline sync error: $e');
@@ -214,13 +291,15 @@ class BackgroundLocationService {
         debugPrint("==================");
 
         final payload = {
-          'trackingId ': trackingId,
+          'trackingId': trackingId,
           'latitude': position.latitude,
           'longitude': position.longitude,
           'accuracy': position.accuracy,
           'speed': position.speed,
           'timestamp': DateTime.now().toIso8601String(),
         };
+
+        debugPrint("SENDING TO MAIN ISOLATE");
 
         // Emit to main isolate
         service.invoke('onLocationReceived', payload);
@@ -242,6 +321,10 @@ class BackgroundLocationService {
             await queueLocationOffline(payload);
           }
         } catch (e) {
+          debugPrint("OFFLINE");
+
+          debugPrint("QUEUE LOCATION");
+
           // Cache offline if network fails
           await queueLocationOffline(payload);
         }
@@ -257,10 +340,15 @@ class BackgroundLocationService {
     // Start background sync timer
     syncTimer = Timer.periodic(
       const Duration(seconds: 10),
-          (_) {
+          (_) async {
 
+        debugPrint("======================");
         debugPrint("BACKGROUND SERVICE ALIVE");
         debugPrint(DateTime.now().toString());
+
+        await syncOfflineQueue();
+
+        debugPrint("======================");
 
       },
     );
@@ -268,18 +356,19 @@ class BackgroundLocationService {
     // Listen for control commands
     service.on('startTracking').listen((event) {
 
-      debugPrint("START TRACKING EVENT RECEIVED");
-      debugPrint("EVENT = $event");
+      currentSessionId =
+      event?['sessionId'];
 
-      final trackingId = event?['trackingId'];
+      accessToken =
+      event?['accessToken'];
 
-      debugPrint("TRACKING ID = $trackingId");
+      debugPrint("ACCESS TOKEN RECEIVED");
+      debugPrint(accessToken);
 
-      final sessionId = event?['sessionId'] as String?;
-      if (sessionId != null) {
-        currentSessionId = sessionId;
-        subscribeToLocation(sessionId, trackingMode);
+      if (currentSessionId != null) {
+        subscribeToLocation(currentSessionId!, trackingMode,);
       }
+
     });
 
     service.on('updateTrackingMode').listen((event) {

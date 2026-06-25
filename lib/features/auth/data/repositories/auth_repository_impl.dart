@@ -49,7 +49,17 @@ class AuthRepositoryImpl implements AuthRepository {
       }
 
       // Step 2: Save JWT
+
+      await _secureStorage.saveAccessToken(token);
       await _secureStorage.saveUserId(userId);
+
+      final verifyToken = await _secureStorage.getAccessToken();
+
+      debugPrint("==========");
+      debugPrint("TOKEN AFTER SAVE");
+      debugPrint(verifyToken);
+      debugPrint("USER ID = $userId");
+      debugPrint("==========");
 
       debugPrint("TOKEN SAVED");
       debugPrint("USER ID: $userId");

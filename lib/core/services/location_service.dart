@@ -35,7 +35,8 @@ class LocationService {
     return true;
   }
 
-  Future<void> startTracking(String trackingId) async {
+  Future<void> startTracking(String trackingId, String accessToken)
+  async {
 
     debugPrint("CHECKING SERVICE");
 
@@ -68,12 +69,11 @@ class LocationService {
       );
     }
 
-    debugPrint("SERVICE STARTED");
-
     _service.invoke(
       'startTracking',
       {
         'sessionId': trackingId,
+        'accessToken': accessToken,
       },
     );
 
@@ -86,9 +86,16 @@ class LocationService {
 
             if (event != null) {
 
-              _locationStreamController?.add(
-                Map<String, dynamic>.from(event),
-              );
+              final data =
+              Map<String, dynamic>.from(event);
+
+              debugPrint("======================");
+              debugPrint("STREAM PUSH");
+              debugPrint("LAT = ${data['latitude']}");
+              debugPrint("LON = ${data['longitude']}");
+              debugPrint("======================");
+
+              _locationStreamController?.add(data);
 
             }
 
