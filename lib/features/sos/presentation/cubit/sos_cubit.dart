@@ -25,9 +25,14 @@ class SosPreAlertActive extends SosState {
 }
 
 class SosAlertActive extends SosState {
-  const SosAlertActive();
-}
 
+  final String trackingId;
+
+  const SosAlertActive({
+    required this.trackingId,
+  });
+
+}
 class SosError extends SosState {
   final String message;
   const SosError(this.message);
@@ -129,7 +134,11 @@ class SosCubit extends Cubit<SosState> {
       );
       debugPrint("SOS API SUCCESS");
 
-      emit(const SosAlertActive());
+      emit(
+        SosAlertActive(
+          trackingId: trackingId,
+        ),
+      );
 
     } catch (e) {
 
@@ -138,6 +147,52 @@ class SosCubit extends Cubit<SosState> {
 
       emit(SosError(e.toString()));
     }
+  }
+
+  Future<void> restoreActiveSos() async {
+
+    try {
+
+      final userId =
+      await _secureStorage.getUserId();
+
+      if (userId == null) {
+
+        debugPrint("RESTORE SOS -> NO USER");
+        return;
+
+      }
+
+      final trackingId =
+      await _trackingRepository.getActiveTrackingId(
+        userId,
+      );
+
+      if (trackingId == null) {
+
+        debugPrint("RESTORE SOS -> NO ACTIVE SESSION");
+        return;
+
+      }
+
+      debugPrint("==========================");
+      debugPrint("RESTORING SOS SESSION");
+      debugPrint("TRACKING ID = $trackingId");
+      debugPrint("==========================");
+
+      emit(
+        SosAlertActive(
+          trackingId: trackingId,
+        ),
+      );
+
+    } catch (e) {
+
+      debugPrint("RESTORE SOS FAILED");
+      debugPrint(e.toString());
+
+    }
+
   }
 
   Future<void> triggerEmergency(String userId) async {
@@ -156,7 +211,12 @@ class SosCubit extends Cubit<SosState> {
         location: location,
       );
 
-      emit(const SosAlertActive());
+      // TODO(P2): Replace with proper tracking restoration flow
+      emit(
+        const SosAlertActive(
+          trackingId: "",
+        ),
+      );
 
     } catch (e) {
 
