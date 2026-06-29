@@ -67,12 +67,6 @@ class _PreAlertScreenState extends State<PreAlertScreen> {
               "triggerSos() FINISHED",
             );
 
-            if (mounted) {
-              context.pushReplacement(
-                AppRoutes.sosActive,
-              );
-            }
-
           } catch (e, s) {
 
             debugPrint(
@@ -117,10 +111,26 @@ class _PreAlertScreenState extends State<PreAlertScreen> {
   }
 
   @override
+  @override
   Widget build(BuildContext context) {
+
     double progress = _secondsRemaining / 15.0;
 
-    return Scaffold(
+    return BlocListener<SosCubit, SosState>(
+
+        listener: (context, state) {
+
+          if (state is SosAlertActive) {
+
+            context.pushReplacement(
+              AppRoutes.sosActive,
+            );
+
+          }
+
+        },
+
+      child: Scaffold(
       body: Container(
         decoration: const BoxDecoration(
           gradient: AppTheme.backgroundGradient,
@@ -245,6 +255,7 @@ class _PreAlertScreenState extends State<PreAlertScreen> {
           ),
         ),
       ),
+    ),
     );
   }
 }

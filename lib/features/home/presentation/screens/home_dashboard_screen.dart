@@ -10,6 +10,8 @@ import '../../../../core/routes/app_routes.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../auth/presentation/cubit/auth_cubit.dart';
 import '../../../protection/presentation/cubit/protection_cubit.dart';
+import '../../../sos/presentation/cubit/sos_cubit.dart';
+import '../../../tracking/presentation/cubit/tracking_cubit.dart';
 
 class HomeDashboardScreen extends StatefulWidget {
   const HomeDashboardScreen({Key? key}) : super(key: key);
@@ -39,7 +41,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> with TickerPr
       duration: const Duration(seconds: 3),
     )..repeat();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
 
       final authState =
           context.read<AuthCubit>().state;
@@ -51,8 +53,18 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> with TickerPr
             .startProtection(
           authState.user.userId,
         );
+
+        await context
+            .read<TrackingCubit>()
+            .restoreTrackingIfNeeded();
+
       }
-    });
+
+        await context
+          .read<SosCubit>()
+          .restoreActiveSos();
+
+      });
   }
 
   Future<bool> validateLocation() async {
@@ -101,7 +113,27 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> with TickerPr
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+
+    return BlocListener<SosCubit, SosState>(
+
+        listener: (context, state) {
+
+          if (state is SosAlertActive) {
+
+            debugPrint("======================");
+            debugPrint("ACTIVE SOS DETECTED");
+            debugPrint("OPENING SOS SCREEN");
+            debugPrint("======================");
+
+            context.go(
+              AppRoutes.sosActive,
+            );
+
+          }
+
+        },
+
+        child: Scaffold(
       body: Stack(
         children: [
           // Background soft pink canvas
@@ -613,6 +645,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> with TickerPr
           ),
         ],
       ),
+     ),
     );
   }
 

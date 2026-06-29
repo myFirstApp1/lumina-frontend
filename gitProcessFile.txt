@@ -299,3 +299,11 @@ Recovery UI state ; resume the sos active screen after reopen ⚠️
         modified:   lib/features/tracking/presentation/cubit/tracking_cubit.dart
         modified:   lib/main.dart
 
+commit 18 :  want to fix app start flow andRecovery after restart , app kills
+
+Recovery UI state ; resume the sos active screen after reopen ✅
+
+        modified:   gitProcessFile.txt
+        modified:   lib/features/home/presentation/screens/home_dashboard_screen.dart
+        modified:   lib/features/sos/presentation/cubit/sos_cubit.dart
+        modified:   lib/features/sos/presentation/screens/pre_alert_screen.dart
