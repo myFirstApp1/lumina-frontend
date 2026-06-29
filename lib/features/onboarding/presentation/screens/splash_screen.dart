@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/routes/app_routes.dart';
+import '../../../../core/services/startup_service.dart';
+import '../../../../core/secure_storage/secure_storage_manager.dart';
 import '../../../../core/theme/app_theme.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -13,6 +15,10 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMixin {
+
+  /// app start flow
+  late final StartupService _startupService;
+
   // Animation Controllers
   late AnimationController _breatheController;
   late AnimationController _floatController;
@@ -28,6 +34,10 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   @override
   void initState() {
     super.initState();
+
+    _startupService = StartupService(
+      storage: SecureStorageManager(),
+    );
 
     // 1. Breathing ring animation (4s cycle, easeInOut, repeats forever)
     _breatheController = AnimationController(
@@ -72,11 +82,39 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     });
 
     // Automatically transition to the onboarding screens after 4 seconds
-    Future.delayed(const Duration(milliseconds: 4200), () {
-      if (mounted) {
-        context.go(AppRoutes.onboardingStep1);
-      }
-    });
+    Future.delayed(const Duration(milliseconds: 4200), () async {
+        if (!mounted) return;
+
+        final route =
+        await _startupService.getStartupRoute();
+
+        switch (route) {
+
+          case StartupRoute.onboarding:
+
+            context.go(
+              AppRoutes.onboardingStep1,
+            );
+            break;
+
+          case StartupRoute.login:
+
+            context.go(
+              AppRoutes.login,
+            );
+            break;
+
+          case StartupRoute.home:
+
+            context.go(
+              AppRoutes.home,
+            );
+            break;
+
+        }
+
+      },
+    );
   }
 
   @override

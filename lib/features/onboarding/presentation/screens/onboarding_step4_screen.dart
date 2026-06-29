@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/routes/app_routes.dart';
+import '../../../../core/secure_storage/secure_storage_manager.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/onboarding_helper.dart';
 import '../../../../core/widgets/pulsating_ring.dart';
 
 class OnboardingStep4Screen extends StatefulWidget {
@@ -76,7 +78,9 @@ class _OnboardingStep4ScreenState extends State<OnboardingStep4Screen> with Sing
                         ],
                       ),
                       TextButton(
-                        onPressed: () => context.go(AppRoutes.login),
+                        onPressed: () async {
+                          await OnboardingHelper.skip(context);
+                        },
                         child: Text(
                           "Skip",
                           style: GoogleFonts.beVietnamPro(
@@ -272,7 +276,9 @@ class _OnboardingStep4ScreenState extends State<OnboardingStep4Screen> with Sing
                                     ],
                                   ),
                                   child: ElevatedButton(
-                                    onPressed: () {
+                                    onPressed: ()  async {
+                                      final storage = SecureStorageManager();
+                                      await storage.setOnboardingCompleted();
                                       context.go(AppRoutes.login);
                                     },
                                     style: ElevatedButton.styleFrom(
