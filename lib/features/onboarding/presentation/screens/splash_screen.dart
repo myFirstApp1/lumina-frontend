@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/routes/app_routes.dart';
@@ -17,7 +18,7 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMixin {
 
   /// app start flow
-  late final StartupService _startupService;
+  late StartupService _startupService;
 
   // Animation Controllers
   late AnimationController _breatheController;
@@ -35,9 +36,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   void initState() {
     super.initState();
 
-    _startupService = StartupService(
-      storage: SecureStorageManager(),
-    );
+    _startupService = context.read<StartupService>();
 
     // 1. Breathing ring animation (4s cycle, easeInOut, repeats forever)
     _breatheController = AnimationController(
@@ -108,6 +107,11 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
 
             context.go(
               AppRoutes.home,
+            );
+            break;
+
+          case StartupRoute.activeSos:
+            context.go(AppRoutes.sosActive
             );
             break;
 
