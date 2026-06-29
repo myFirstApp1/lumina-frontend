@@ -18,6 +18,10 @@ class SecureStorageManager {
   static const String _trackingId = 'tracking_id';
   static const String _trackingToken = 'tracking_token';
 
+  // App start flow
+  static const String _onboardingCompleted =
+      'onboarding_completed';
+
   Future<void> saveAccessToken(String token) async {
     await _storage.write(key: _accessTokenKey, value: token);
   }
@@ -129,6 +133,25 @@ class SecureStorageManager {
     await _storage.delete(key: 'auth_user_id');
 
     await _storage.delete(key: 'profile_id');
+
+  }
+
+  /// app start flow
+  Future<void> setOnboardingCompleted() async {
+
+    await _storage.write(
+      key: _onboardingCompleted,
+      value: "true",
+    );
+
+  }
+
+  Future<bool> isOnboardingCompleted() async {
+
+    return await _storage.read(
+      key: _onboardingCompleted,
+    ) ==
+        "true";
 
   }
 }

@@ -307,3 +307,16 @@ Recovery UI state ; resume the sos active screen after reopen ✅
         modified:   lib/features/home/presentation/screens/home_dashboard_screen.dart
         modified:   lib/features/sos/presentation/cubit/sos_cubit.dart
         modified:   lib/features/sos/presentation/screens/pre_alert_screen.dart
+
+commit 19 : fixed app start flow ✅ want to fix Recovery after restart , app kills
+
+  modified:   gitProcessFile.txt
+        modified:   lib/core/secure_storage/secure_storage_manager.dart
+        new file:   lib/core/services/startup_service.dart
+        new file:   lib/core/utils/onboarding_helper.dart
+        modified:   lib/features/onboarding/presentation/screens/onboarding_step1_screen.dart
+        modified:   lib/features/onboarding/presentation/screens/onboarding_step2_screen.dart
+        modified:   lib/features/onboarding/presentation/screens/onboarding_step3_screen.dart
+        modified:   lib/features/onboarding/presentation/screens/onboarding_step4_screen.dart
+        modified:   lib/features/onboarding/presentation/screens/splash_screen.dart
+

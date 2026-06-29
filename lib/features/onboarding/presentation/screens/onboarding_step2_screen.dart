@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/routes/app_routes.dart';
+import '../../../../core/secure_storage/secure_storage_manager.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/onboarding_helper.dart';
 
 class OnboardingStep2Screen extends StatefulWidget {
   const OnboardingStep2Screen({Key? key}) : super(key: key);
@@ -72,13 +74,15 @@ class _OnboardingStep2ScreenState extends State<OnboardingStep2Screen> with Sing
                         ],
                       ),
                       TextButton(
-                        onPressed: () => context.go(AppRoutes.login),
+                        onPressed: () async {
+                          await OnboardingHelper.skip(context);
+                        },
                         child: Text(
                           "Skip",
                           style: GoogleFonts.beVietnamPro(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
-                            color: AppTheme.textSecondary,
+                            color: AppTheme.primary,
                           ),
                         ),
                       ),
