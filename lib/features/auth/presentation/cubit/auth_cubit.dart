@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/secure_storage/secure_storage_manager.dart';
 import '../../data/models/user_model.dart';
 import '../../domain/repositories/auth_repository.dart';
 
@@ -37,19 +38,60 @@ class AuthError extends AuthState {
 
 class AuthCubit extends Cubit<AuthState> {
   final AuthRepository _authRepository;
+  final SecureStorageManager _secureStorage;
 
-  AuthCubit({required AuthRepository authRepository})
-      : _authRepository = authRepository,
+  AuthCubit({
+    required AuthRepository authRepository,
+    required SecureStorageManager secureStorage,
+  })  : _authRepository = authRepository,
+        _secureStorage = secureStorage,
         super(const AuthInitial());
 
   Future<void> checkAuthStatus() async {
+
     emit(const AuthLoading());
+
     try {
-      final user = await _authRepository.getCurrentUser();
-      emit(AuthAuthenticated(user));
+
+      final hasSession =
+      await _authRepository.hasValidSession();
+
+      if (!hasSession) {
+
+        emit(const AuthUnauthenticated());
+        return;
+
+      }
+
+      final userId =
+      await _secureStorage.getUserId();
+
+      if (userId == null) {
+
+        emit(const AuthUnauthenticated());
+        return;
+
+      }
+
+      emit(
+        AuthAuthenticated(
+          UserModel(
+            userId: userId,
+            profileId: "",
+            name: "",
+            email: "",
+            phone: null,
+            emergencyContacts: const [],
+          ),
+        ),
+      );
+
     } catch (_) {
+
       emit(const AuthUnauthenticated());
+
     }
+
   }
 
   Future<void> login(String email, String password) async {

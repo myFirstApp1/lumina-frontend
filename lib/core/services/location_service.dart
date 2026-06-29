@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:geolocator/geolocator.dart';
+import '../secure_storage/secure_storage_manager.dart';
 import 'background_location_service.dart';
 
 class LocationService {
@@ -35,7 +36,7 @@ class LocationService {
     return true;
   }
 
-  Future<void> startTracking(String trackingId, String accessToken)
+  Future<void> startTracking( String userId, String trackingId, String accessToken)
   async {
 
     debugPrint("CHECKING SERVICE");
@@ -60,22 +61,62 @@ class LocationService {
 
       debugPrint("STARTING SERVICE");
 
+      final completer = Completer<void>();
+
+      StreamSubscription? readySubscription;
+
+      readySubscription =
+          _service.on("serviceReady").listen((_) {
+
+            debugPrint("======================");
+            debugPrint("BACKGROUND SERVICE READY");
+            debugPrint("======================");
+
+            if (!completer.isCompleted) {
+              completer.complete();
+            }
+
+            readySubscription?.cancel();
+          });
+
       await _service.startService();
 
-      debugPrint("SERVICE STARTED");
+      debugPrint("WAITING FOR SERVICE READY");
 
-      await Future.delayed(
-        const Duration(seconds: 1),
-      );
+      await completer.future;
+
+      debugPrint("SERVICE STARTED");
     }
 
+    final storage = SecureStorageManager();
+
+    await storage.saveTrackingSession(
+      userId: userId,
+      trackingId: trackingId,
+      accessToken: accessToken,
+    );
+
+    debugPrint("TRACKING SESSION SAVED");
+
+    debugPrint(await storage.getTrackingUserId());
+    debugPrint(await storage.getTrackingId());
+    debugPrint((await storage.getTrackingAccessToken() != null).toString());
+
+    debugPrint("==================");
+    debugPrint("INVOKING START TRACKING");
+    debugPrint("USER = $userId");
+    debugPrint("TRACKING = $trackingId");
+    debugPrint("==================");
     _service.invoke(
       'startTracking',
       {
-        'sessionId': trackingId,
+        'userId': userId,
+        'trackingId': trackingId,
         'accessToken': accessToken,
       },
     );
+
+    debugPrint("START TRACKING EVENT SENT");
 
     await _serviceSubscription?.cancel();
 

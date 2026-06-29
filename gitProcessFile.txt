@@ -272,3 +272,30 @@ P1.8 — Family live map
         modified:   lib/core/services/location_service.dart
         modified:   lib/features/auth/data/repositories/auth_repository_impl.dart
         modified:   lib/features/tracking/presentation/cubit/tracking_cubit.dart
+
+
+commit 17 : P1.5 - P1.7, want to fix Recovery after restart , app kills
+
+Overall status of P1
+
+You're much closer than it might feel:
+
+P1 Live SOS Tracking: ~95.5% complete ✅
+Background tracking: Working ✅
+Offline queue: Working ✅
+Backend active session: Working ✅
+App recovery after restart: This is the only remaining piece to verify and, if necessary, fix. ⚠️
+Recovery UI state ; resume the sos active screen after reopen ⚠️
+
+  modified:   gitProcessFile.txt
+        modified:   lib/core/secure_storage/secure_storage_manager.dart
+        modified:   lib/core/services/background_location_service.dart
+        modified:   lib/core/services/location_service.dart
+        modified:   lib/features/auth/data/repositories/auth_repository_impl.dart
+        modified:   lib/features/auth/domain/repositories/auth_repository.dart
+        modified:   lib/features/auth/presentation/cubit/auth_cubit.dart
+        modified:   lib/features/tracking/data/repositories/tracking_repository_impl.dart
+        modified:   lib/features/tracking/domain/repositories/tracking_repository.dart
+        modified:   lib/features/tracking/presentation/cubit/tracking_cubit.dart
+        modified:   lib/main.dart
+

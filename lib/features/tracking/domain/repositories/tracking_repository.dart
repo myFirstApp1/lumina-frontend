@@ -1,4 +1,7 @@
 abstract class TrackingRepository {
+
+  Future<String?> getActiveTrackingId(String userId);
+
   Future<void> sendLocation({
     required String userId,
     required String trackingId,
@@ -11,4 +14,5 @@ abstract class TrackingRepository {
   Future<String> getTrackingId(
       String userId,
       );
+
 }

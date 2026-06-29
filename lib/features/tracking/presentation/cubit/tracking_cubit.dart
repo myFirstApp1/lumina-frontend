@@ -29,6 +29,7 @@ class TrackingError extends TrackingState {
 class TrackingCubit extends Cubit<TrackingState> {
   final TrackingRepository _trackingRepository;
   final LocationService _locationService;
+  final SecureStorageManager _secureStorage;
   String? _userId;
   String? _trackingId;
   StreamSubscription? _locationSubscription;
@@ -36,8 +37,10 @@ class TrackingCubit extends Cubit<TrackingState> {
   TrackingCubit({
     required TrackingRepository trackingRepository,
     required LocationService locationService,
+    required SecureStorageManager secureStorage,
   })  : _trackingRepository = trackingRepository,
         _locationService = locationService,
+        _secureStorage = secureStorage,
         super(const TrackingIdle());
 
   Future<void> startTrackingSession({
@@ -50,9 +53,7 @@ class TrackingCubit extends Cubit<TrackingState> {
     _userId = userId;
     _trackingId = trackingId;
 
-    final storage = SecureStorageManager();
-
-    final token = await storage.getAccessToken();
+    final token = await _secureStorage.getAccessToken();
 
     debugPrint("==========");
     debugPrint("TRACKING CUBIT TOKEN");
@@ -70,49 +71,19 @@ class TrackingCubit extends Cubit<TrackingState> {
       _locationSubscription =
           _locationService.locationStream.listen(
 
-                (data) async {
+                (data) {
 
-              debugPrint("======================");
+              debugPrint("====================");
               debugPrint("TRACKING STREAM EVENT");
-              debugPrint("TRACKING CUBIT RECEIVED LOCATION");
+              debugPrint("UI RECEIVED LOCATION");
               debugPrint(data.toString());
-              debugPrint("======================");
+              debugPrint("====================");
 
-              try {
-
-                await sendLocationUpdate(
-
-                  latitude: data["latitude"],
-
-                  longitude: data["longitude"],
-
-                  accuracy: data["accuracy"],
-
-                  speed: data["speed"],
-
-                );
-
-                emit(const TrackingStreaming());
-
-              } catch (e) {
-
-                debugPrint("TRACKING UPDATE FAILED");
-                debugPrint(e.toString());
-
-                emit(
-                  TrackingError(
-                    e.toString(),
-                  ),
-                );
-
-              }
+              emit(const TrackingStreaming());
 
             },
 
             onError: (err) {
-
-              debugPrint("TRACKING STREAM ERROR");
-              debugPrint(err.toString());
 
               emit(
                 TrackingError(
@@ -125,6 +96,7 @@ class TrackingCubit extends Cubit<TrackingState> {
           );
 
       await _locationService.startTracking(
+        userId,
         trackingId,
         token,
       );
@@ -144,6 +116,98 @@ class TrackingCubit extends Cubit<TrackingState> {
 
     }
 
+  }
+
+  // Future<void> restoreTrackingIfNeeded() async {
+  //
+  //   try {
+  //
+  //     final userId = await _secureStorage.getUserId();
+  //
+  //     debugPrint("RESTORE USER = $userId");
+  //
+  //     if (userId == null) {
+  //
+  //       debugPrint("NO USER FOUND");
+  //       return;
+  //
+  //     }
+  //
+  //     final trackingId =
+  //     await _trackingRepository.getActiveTrackingId(userId);
+  //
+  //     debugPrint("TRACKING FROM SERVER = $trackingId");
+  //
+  //     if (trackingId == null) {
+  //
+  //       debugPrint("NO ACTIVE TRACKING");
+  //       return;
+  //
+  //     }
+  //
+  //     debugPrint("RESTORING ACTIVE TRACKING");
+  //     debugPrint("TRACKING ID = $trackingId");
+  //
+  //     await startTrackingSession(
+  //       userId: userId,
+  //       trackingId: trackingId,
+  //     );
+  //
+  //   } catch (e) {
+  //
+  //     debugPrint("RESTORE TRACKING FAILED");
+  //     debugPrint(e.toString());
+  //
+  //   }
+  // }
+
+
+  Future<void> restoreTrackingIfNeeded() async {
+    debugPrint(">>>>>>>> restoreTrackingIfNeeded ENTERED <<<<<<<<");
+    debugPrint("restoreTrackingIfNeeded ENTERED");
+    try {
+
+      final userId = await _secureStorage.getUserId();
+
+      debugPrint("====================");
+      debugPrint("RESTORE USER");
+      debugPrint(userId);
+      debugPrint("====================");
+
+      if (userId == null) {
+        debugPrint("NO USER FOUND");
+        return;
+      }
+
+      final trackingId =
+      await _trackingRepository.getActiveTrackingId(userId);
+
+      debugPrint("====================");
+      debugPrint("TRACKING FROM SERVER");
+      debugPrint(trackingId);
+      debugPrint("====================");
+
+      if (trackingId == null) {
+        debugPrint("NO ACTIVE TRACKING");
+        return;
+      }
+
+      debugPrint("RESTORING TRACKING");
+
+      await startTrackingSession(
+        userId: userId,
+        trackingId: trackingId,
+      );
+
+    } catch (e, s) {
+
+      debugPrint("====================");
+      debugPrint("RESTORE FAILED");
+      debugPrint(e.toString());
+      debugPrint(s.toString());
+      debugPrint("====================");
+
+    }
   }
 
   Future<void> updateTrackingMode(String mode) async {

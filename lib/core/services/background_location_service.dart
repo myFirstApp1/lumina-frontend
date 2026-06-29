@@ -81,12 +81,22 @@ class BackgroundLocationService {
     // Background Isolate Inits
     WidgetsFlutterBinding.ensureInitialized();
 
-    debugPrint("==========");
-    debugPrint("BACKGROUND SERVICE STARTED");
-    debugPrint("==========");
+    debugPrint("################################");
+    debugPrint("BACKGROUND onStart ENTERED");
+    debugPrint("################################");
 
     final secureStorage = SecureStorageManager();
+
+    String? currentUserId;
+    String? currentTrackingId;
+    String? accessToken;
+
     final connectivity = Connectivity();
+
+    final userId = await secureStorage.getUserId();
+
+    debugPrint("BACKGROUND USER ID");
+    debugPrint(userId);
     
     // Config client
     // Set a default server address for testing; in production this reads from secure configuration
@@ -95,8 +105,6 @@ class BackgroundLocationService {
       secureStorage: secureStorage,
     );
 
-    String? currentSessionId;
-    String? accessToken;
     String trackingMode = 'NORMAL'; // NORMAL, PRE_ALERT, SOS
     StreamSubscription<Position>? positionSubscription;
     Timer? syncTimer;
@@ -108,33 +116,51 @@ class BackgroundLocationService {
     }
 
     // Helper to write location to queue file
-    Future<void> queueLocationOffline(Map<String, dynamic> loc) async {
+    Future<void> queueLocationOffline(
+        Map<String, dynamic> loc,
+        ) async {
+
       try {
+
         final file = await getQueueFile();
 
         debugPrint("QUEUE FILE");
-
         debugPrint(file.path);
 
-        if (!await file.exists()) {
-
-          debugPrint("QUEUE FILE NOT FOUND");
-
-          return;
-
-        }
         List<dynamic> queue = [];
+
         if (await file.exists()) {
+
           final content = await file.readAsString();
+
           if (content.isNotEmpty) {
-            queue = jsonDecode(content) as List<dynamic>;
+            queue = jsonDecode(content);
           }
+
+        } else {
+
+          debugPrint("CREATING NEW QUEUE FILE");
+
         }
+
         queue.add(loc);
-        await file.writeAsString(jsonEncode(queue));
+
+        debugPrint("QUEUE SIZE = ${queue.length}");
+
+        await file.writeAsString(
+          jsonEncode(queue),
+        );
+
+        debugPrint("LOCATION SAVED OFFLINE");
+
       } catch (e) {
-        debugPrint('Failed to queue offline location: $e');
+
+        debugPrint("QUEUE SAVE FAILED");
+
+        debugPrint(e.toString());
+
       }
+
     }
 
     // Helper to sync queue with server
@@ -184,19 +210,6 @@ class BackgroundLocationService {
 
         }
 
-        // final token = await secureStorage.getAccessToken();
-        //
-        // debugPrint("ACCESS TOKEN");
-        // debugPrint(token);
-        //
-        // if (token == null) {
-        //
-        //   debugPrint("TOKEN IS NULL");
-        //
-        //   return;
-        //
-        // }
-
         // Try to upload records in batches
         final List<dynamic> failedRecords = [];
         debugPrint("STARTING BACKGROUND UPLOAD LOOP");
@@ -243,6 +256,8 @@ class BackgroundLocationService {
         debugPrint('Offline sync error: $e');
       }
     }
+
+
 
     // Define subscription params based on state
     void subscribeToLocation(String trackingId, String mode) {
@@ -291,6 +306,7 @@ class BackgroundLocationService {
         debugPrint("==================");
 
         final payload = {
+          'userId': currentUserId,
           'trackingId': trackingId,
           'latitude': position.latitude,
           'longitude': position.longitude,
@@ -308,8 +324,14 @@ class BackgroundLocationService {
         try {
           final connectivityResult = await connectivity.checkConnectivity();
           final isOnline = connectivityResult.isNotEmpty && !connectivityResult.contains(ConnectivityResult.none);
+
           if (isOnline) {
-            final token = await secureStorage.getAccessToken();
+
+            debugPrint("ONLINE");
+            debugPrint("UPLOADING TO SERVER");
+
+            final token = accessToken;
+
             await dioClient.dio.post(
               '/api/tracking/update',
               data: payload,
@@ -317,14 +339,21 @@ class BackgroundLocationService {
                 if (token != null) 'Authorization': 'Bearer $token',
               }),
             );
+            debugPrint("======================");
+            debugPrint("BACKGROUND UPLOAD SUCCESS");
+            debugPrint(payload.toString());
+            debugPrint("======================");
+
           } else {
+            debugPrint("OFFLINE");
+            debugPrint("QUEUE LOCATION");
             await queueLocationOffline(payload);
           }
         } catch (e) {
-          debugPrint("OFFLINE");
-
-          debugPrint("QUEUE LOCATION");
-
+          debugPrint("======================");
+          debugPrint("BACKGROUND UPLOAD FAILED");
+          debugPrint(e.toString());
+          debugPrint("======================");
           // Cache offline if network fails
           await queueLocationOffline(payload);
         }
@@ -335,6 +364,37 @@ class BackgroundLocationService {
 
         service.invoke('onError', {'message': err.toString()});
       });
+    }
+
+    /// restoreTrackingSession
+    Future<void> restoreTrackingSession() async {
+
+      currentUserId = await secureStorage.getTrackingUserId();
+      currentTrackingId = await secureStorage.getTrackingId();
+      accessToken = await secureStorage.getTrackingAccessToken();
+
+      debugPrint("========== RESTORE SESSION ==========");
+      debugPrint("USER = $currentUserId");
+      debugPrint("TRACKING = $currentTrackingId");
+      debugPrint("TOKEN = ${accessToken != null}");
+      debugPrint("=====================================");
+
+      if (currentTrackingId != null &&
+          currentUserId != null &&
+          accessToken != null) {
+
+        debugPrint("RESTORING LOCATION STREAM");
+
+        subscribeToLocation(
+          currentTrackingId!,
+          trackingMode,
+        );
+
+      } else {
+
+        debugPrint("NO ACTIVE TRACKING SESSION FOUND");
+
+      }
     }
 
     // Start background sync timer
@@ -353,36 +413,55 @@ class BackgroundLocationService {
       },
     );
 
+    debugPrint("REGISTERING startTracking LISTENER");
+
     // Listen for control commands
     service.on('startTracking').listen((event) {
 
-      currentSessionId =
-      event?['sessionId'];
+      debugPrint("==========");
+      debugPrint("START TRACKING EVENT");
+      debugPrint(event.toString());
+      debugPrint("==========");
 
-      accessToken =
-      event?['accessToken'];
+      currentUserId = event?['userId'] as String?;
+      currentTrackingId = event?['trackingId'] as String?;
+      accessToken = event?['accessToken'] as String?;
 
-      debugPrint("ACCESS TOKEN RECEIVED");
-      debugPrint(accessToken);
+      debugPrint("USER ID = $currentUserId");
+      debugPrint("TRACKING ID = $currentTrackingId");
+      debugPrint("TOKEN EXISTS = ${accessToken != null}");
 
-      if (currentSessionId != null) {
-        subscribeToLocation(currentSessionId!, trackingMode,);
+      if (currentTrackingId != null &&
+          currentUserId != null &&
+          accessToken != null) {
+
+        subscribeToLocation(
+          currentTrackingId!,
+          trackingMode,
+        );
+
       }
 
     });
 
     service.on('updateTrackingMode').listen((event) {
       final mode = event?['mode'] as String?;
-      if (mode != null && currentSessionId != null) {
+      if (mode != null && currentTrackingId != null) {
         trackingMode = mode;
-        subscribeToLocation(currentSessionId!, trackingMode);
+
+        subscribeToLocation(
+          currentTrackingId!,
+          trackingMode,
+        );
       }
     });
 
     service.on('stopTracking').listen((_) {
       positionSubscription?.cancel();
       positionSubscription = null;
-      currentSessionId = null;
+      currentTrackingId = null;
+      currentUserId = null;
+      accessToken = null;
     });
 
     service.on('stopService').listen((_) {
@@ -390,5 +469,15 @@ class BackgroundLocationService {
       syncTimer?.cancel();
       service.stopSelf();
     });
+
+    await restoreTrackingSession();
+
+    debugPrint("========================");
+    debugPrint("BACKGROUND SERVICE READY");
+    debugPrint("========================");
+
+    service.invoke(
+      "serviceReady",
+    );
   }
 }
