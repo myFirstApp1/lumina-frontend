@@ -207,16 +207,12 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<UserModel> getCurrentUser() async {
-    try {
-      final response = await _client.dio.get('/api/v1/user/profile');
-      return UserModel.fromJson(response.data as Map<String, dynamic>);
-    } on DioException catch (e) {
-      throw ServerException(
-        e.response?.data['message'] as String? ?? 'Failed to get user profile',
-        statusCode: e.response?.statusCode,
-      );
-    }
+  Future<bool> hasValidSession() async {
+
+    final token = await _secureStorage.getAccessToken();
+
+    return token != null && token.isNotEmpty;
+
   }
 
   @override
@@ -225,8 +221,8 @@ class AuthRepositoryImpl implements AuthRepository {
       await _client.dio.post('/api/v1/auth/logout');
     } catch (_) {
       // Best effort remote logout
-    } finally {
-      await _secureStorage.deleteTokens();
+    }finally {
+      await _secureStorage.clearUserSession();
     }
   }
 }

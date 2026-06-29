@@ -90,10 +90,14 @@ void main() {
     );
 
     // Initialize cubits
-    final authCubit = AuthCubit(authRepository: authRepository);
+    final authCubit = AuthCubit(
+      authRepository: authRepository,
+      secureStorage: secureStorage,
+    );
     final trackingCubit = TrackingCubit(
       trackingRepository: trackingRepository,
       locationService: locationService,
+      secureStorage: secureStorage,
     );
     final sosCubit = SosCubit(
       sosRepository: sosRepository,
@@ -115,7 +119,31 @@ void main() {
     final ImagePicker picker = ImagePicker();
     
     // Check user authentication status on startup
+
     await authCubit.checkAuthStatus();
+
+    debugPrint("========================");
+    debugPrint("MAIN STARTUP");
+    debugPrint(authCubit.state.toString());
+    debugPrint("========================");
+
+    if (authCubit.state is AuthAuthenticated) {
+
+      debugPrint("==========================");
+      debugPrint("USER AUTHENTICATED");
+      debugPrint("CHECKING ACTIVE TRACKING");
+      debugPrint("==========================");
+
+      debugPrint("CALLING restoreTrackingIfNeeded()");
+
+      debugPrint("################################");
+      debugPrint("APP RECOVERY FLOW STARTED");
+      debugPrint("################################");
+
+      await trackingCubit.restoreTrackingIfNeeded();
+
+    }
+
     await recoverLostData();
 
     runApp(LuminaGuardianApp(

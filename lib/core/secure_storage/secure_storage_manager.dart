@@ -13,6 +13,11 @@ class SecureStorageManager {
   static const String _refreshTokenKey = 'refresh_token';
   static const String _dbKey = 'db_encryption_key';
 
+  // permanent storage while Restart phone
+  static const String _trackingUserId = 'tracking_user_id';
+  static const String _trackingId = 'tracking_id';
+  static const String _trackingToken = 'tracking_token';
+
   Future<void> saveAccessToken(String token) async {
     await _storage.write(key: _accessTokenKey, value: token);
   }
@@ -70,5 +75,60 @@ class SecureStorageManager {
     return await _storage.read(
       key: 'profile_id',
     );
+  }
+
+  Future<void> saveTrackingSession({
+    required String userId,
+    required String trackingId,
+    required String accessToken,
+  }) async {
+
+    await _storage.write(
+      key: _trackingUserId,
+      value: userId,
+    );
+
+    await _storage.write(
+      key: _trackingId,
+      value: trackingId,
+    );
+
+    await _storage.write(
+      key: _trackingToken,
+      value: accessToken,
+    );
+  }
+
+  /// permanent storage while Restart phone
+  Future<String?> getTrackingUserId() async {
+    return await _storage.read(key: _trackingUserId);
+  }
+
+  Future<String?> getTrackingId() async {
+    return await _storage.read(key: _trackingId);
+  }
+
+  Future<String?> getTrackingAccessToken() async {
+    return await _storage.read(key: _trackingToken);
+  }
+
+  Future<void> clearTrackingSession() async {
+
+    await _storage.delete(key: _trackingUserId);
+    await _storage.delete(key: _trackingId);
+    await _storage.delete(key: _trackingToken);
+
+  }
+
+  Future<void> clearUserSession() async {
+
+    await deleteTokens();
+
+    await clearTrackingSession();
+
+    await _storage.delete(key: 'auth_user_id');
+
+    await _storage.delete(key: 'profile_id');
+
   }
 }
