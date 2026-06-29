@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'core/routes/app_routes.dart';
+import 'core/services/recovery_service.dart';
+import 'core/services/startup_service.dart';
 import 'core/theme/app_theme.dart';
 import 'core/network/dio_client.dart';
 import 'core/secure_storage/secure_storage_manager.dart';
@@ -72,6 +74,13 @@ void main() {
     );
     final trackingRepository = TrackingRepositoryImpl(
       client: safetyDioClient,
+    );
+    final recoveryService = RecoveryService(
+      trackingRepository: trackingRepository,
+    );
+    final startupService = StartupService(
+      storage: secureStorage,
+      recoveryService: recoveryService,
     );
     final sosRepository = SosRepositoryImpl(
       client: safetyDioClient,
@@ -156,6 +165,7 @@ void main() {
       contactsCubit: contactsCubit,
       protectionCubit: protectionCubit,
       deviceCubit: deviceCubit,
+      startupService: startupService,
     ));
   }, (Object error, StackTrace stack) {
     debugPrint('Captured Uncaught Zoned Error: $error');
@@ -212,6 +222,7 @@ class LuminaGuardianApp extends StatelessWidget {
   final ContactsCubit contactsCubit;
   final ProtectionCubit protectionCubit;
   final DeviceCubit deviceCubit;
+  final StartupService startupService;
 
   const LuminaGuardianApp({
     Key? key,
@@ -224,11 +235,14 @@ class LuminaGuardianApp extends StatelessWidget {
     required this.contactsCubit,
     required this.protectionCubit,
     required this.deviceCubit,
+    required this.startupService,
   }) : super(key: key);
     
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
+    return RepositoryProvider.value(
+        value: startupService,
+        child: MultiBlocProvider(
       providers: [
         BlocProvider<AuthCubit>.value(value: authCubit),
         BlocProvider<TrackingCubit>.value(value: trackingCubit),
@@ -247,6 +261,7 @@ class LuminaGuardianApp extends StatelessWidget {
         routerConfig: AppRoutes.router,
         debugShowCheckedModeBanner: false,
       ),
+     ),
     );
   }
 }

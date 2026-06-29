@@ -320,3 +320,12 @@ commit 19 : fixed app start flow ✅ want to fix Recovery after restart , app ki
         modified:   lib/features/onboarding/presentation/screens/onboarding_step4_screen.dart
         modified:   lib/features/onboarding/presentation/screens/splash_screen.dart
 
+commit 20 : fixed app start ,want to do stop sos ,Recovery after restart , app kills
+
+  modified:   gitProcessFile.txt
+        new file:   lib/core/services/recovery_service.dart
+        modified:   lib/core/services/startup_service.dart
+        modified:   lib/features/onboarding/presentation/screens/splash_screen.dart
+        modified:   lib/features/tracking/data/repositories/tracking_repository_impl.dart
+        modified:   lib/main.dart
+

@@ -64,33 +64,31 @@ class TrackingRepositoryImpl implements TrackingRepository {
 
 
   @override
-  Future<String?> getActiveTrackingId(
-      String userId,
-      ) async {
+  Future<String?> getActiveTrackingId(String userId) async {
+    try {
+      debugPrint("GET ACTIVE TRACKING API CALLED");
+      debugPrint("USER = $userId");
 
-    debugPrint("GET ACTIVE TRACKING API CALLED");
+      final response = await _client.dio.get(
+        "/api/tracking/active/$userId",
+      );
 
-    debugPrint("GET ACTIVE TRACKING FOR USER");
-    debugPrint(userId);
+      debugPrint("SERVER RESPONSE");
+      debugPrint(response.data.toString());
 
+      if (response.data["active"] == true) {
+        return response.data["trackingId"];
+      }
 
-    final response = await _client.dio.get(
-      "/api/tracking/active/$userId",
-    );
+      return null;
 
-    debugPrint("SERVER RESPONSE");
-    debugPrint(response.data.toString());
+    } on DioException catch (e) {
 
-    debugPrint("==========");
-    debugPrint("ACTIVE TRACKING RESPONSE");
-    debugPrint(response.data.toString());
-    debugPrint("==========");
+      debugPrint("ACTIVE TRACKING CHECK FAILED");
+      debugPrint(e.message);
 
-    if (response.data["active"] == true) {
-      return response.data["trackingId"];
+      return null;
     }
-
-    return null;
   }
 }
 
