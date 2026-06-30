@@ -391,8 +391,31 @@ Play Store Release
         modified:   lib/features/tracking/domain/repositories/tracking_repository.dart
         modified:   lib/features/tracking/presentation/cubit/tracking_cubit.dart
 
+What is a Git Tag?
+
+Think of a Git tag as taking a permanent snapshot of your project.
+Today you've finished Phase 1.
+Instead of just continuing to code, you say:
+
+"This version is stable. I can always come back to it."
+
+That snapshot is called a tag.
 
 
+For Lumina Guardian
+
+I'd organize it like this:
+
+main
+│
+├── v1.0.0-phase1   ← Stable P1
+│
+└── phase2-incident-architecture
+        │
+        ├── Incident Service
+        ├── Protection redesign
+        ├── Wearable AI
+        ├── AI Risk Engine
 
 
 
