@@ -90,5 +90,34 @@ class TrackingRepositoryImpl implements TrackingRepository {
       return null;
     }
   }
+
+  @override
+  Future<void> stopTracking(
+      String trackingId,
+      ) async {
+
+    try {
+
+      debugPrint("====================");
+      debugPrint("STOP TRACKING");
+      debugPrint("TRACKING ID = $trackingId");
+      debugPrint("====================");
+
+      await _client.dio.post(
+        "/api/tracking/stop/$trackingId",
+      );
+
+      debugPrint("TRACKING STOPPED");
+
+    } on DioException catch (e) {
+
+      throw ServerException(
+        e.response?.data["message"] ??
+            "Failed to stop tracking",
+      );
+
+    }
+
+  }
 }
 

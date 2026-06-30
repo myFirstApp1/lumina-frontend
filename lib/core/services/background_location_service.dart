@@ -310,7 +310,7 @@ class BackgroundLocationService {
           'trackingId': trackingId,
           'latitude': position.latitude,
           'longitude': position.longitude,
-          'accuracy': position.accuracy,
+          'accuracyMeters': position.accuracy,
           'speed': position.speed,
           'timestamp': DateTime.now().toIso8601String(),
         };
@@ -456,17 +456,30 @@ class BackgroundLocationService {
       }
     });
 
-    service.on('stopTracking').listen((_) {
+    service.on("stopTracking").listen((_) async {
+
       positionSubscription?.cancel();
+
       positionSubscription = null;
+
       currentTrackingId = null;
       currentUserId = null;
       accessToken = null;
+
+      await secureStorage.clearTrackingSession();
+
+      debugPrint("TRACKING SESSION CLEARED");
+
     });
 
     service.on('stopService').listen((_) {
       positionSubscription?.cancel();
       syncTimer?.cancel();
+
+      debugPrint("====================");
+      debugPrint("BACKGROUND SERVICE STOPPED");
+      debugPrint("====================");
+
       service.stopSelf();
     });
 
