@@ -155,21 +155,30 @@ class LocationService {
 
   Future<void> stopTracking() async {
 
-    await _serviceSubscription?.cancel();
+    debugPrint("====================");
+    debugPrint("STOPPING LOCATION SERVICE");
+    debugPrint("====================");
 
+    await _serviceSubscription?.cancel();
     _serviceSubscription = null;
 
     if (await _service.isRunning()) {
 
-      _service.invoke('stopTracking');
+      _service.invoke("stopTracking");
 
-      _service.invoke('stopService');
+      await Future.delayed(
+        const Duration(milliseconds: 300),
+      );
 
+      _service.invoke("stopService");
     }
 
-    _locationStreamController?.close();
-
+    await _locationStreamController?.close();
     _locationStreamController = null;
+
+    debugPrint("====================");
+    debugPrint("LOCATION SERVICE STOPPED");
+    debugPrint("====================");
   }
 
   Future<String> getCurrentLocationString() async {

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/routes/app_routes.dart';
 import '../../../../core/services/location_service.dart';
 import '../../../../core/theme/app_theme.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -164,25 +165,29 @@ class _SosActiveScreenState extends State<SosActiveScreen> with SingleTickerProv
                               letterSpacing: 20,
                             ),
                           ),
-                          onChanged: (val) {
-                            if (val.length == 4) {
+                            onChanged: (val) async {
+
+                              if (val.length != 4) return;
+
                               if (val == "1234") {
-                                Navigator.pop(context); // close bottom sheet
-                                context.pop(); // exit active SOS screen
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text("Emergency guard successfully disarmed. Circle alerted."),
-                                    backgroundColor: AppTheme.success,
-                                  ),
-                                );
-                              } else {
-                                setModalState(() {
-                                  _pinError = "Incorrect PIN code. Try again.";
-                                  _pinController.clear();
-                                });
+
+                                Navigator.pop(context);
+
+                                await context.read<SosCubit>().stopSos();
+
+                                return;
+
                               }
-                            }
-                          },
+
+                              setModalState(() {
+
+                                _pinError = "Incorrect PIN code. Try again.";
+
+                                _pinController.clear();
+
+                              });
+
+                            },
                         ),
                         if (_pinError.isNotEmpty) ...[
                           const SizedBox(height: 12),
@@ -222,7 +227,31 @@ class _SosActiveScreenState extends State<SosActiveScreen> with SingleTickerProv
   @override
   Widget build(BuildContext context) {
 
-    return Scaffold(
+    return BlocListener<SosCubit, SosState>(
+
+        listener: (context, state) {
+
+          if (state is SosInitial) {
+
+            context.go(AppRoutes.home);
+
+          }
+
+          if (state is SosError) {
+
+            ScaffoldMessenger.of(context).showSnackBar(
+
+              SnackBar(
+                content: Text(state.message),
+              ),
+
+            );
+
+          }
+
+        },
+
+        child: Scaffold(
       backgroundColor: const Color(0xFFFFDAD6), // bg-error-container (#ffdad6)
       body: Stack(
         children: [
@@ -510,11 +539,39 @@ class _SosActiveScreenState extends State<SosActiveScreen> with SingleTickerProv
                           // Footer Cancel / Action Area
                           Column(
                             children: [
-                              // Pulsing Trigger Immediately button
 
-                              const SizedBox(height: 60),
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton.icon(
+                                  onPressed: _showDisarmDialog,
+                                  icon: const Icon(Icons.lock_open),
+                                  label: const Text("Stop SOS"),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppTheme.error,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 18,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                  ),
+                                ),
+                              ),
 
-                              // Cancel Timer button
+                              const SizedBox(height: 16),
+
+                              Text(
+                                "Enter your safety PIN to stop emergency tracking.",
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.beVietnamPro(
+                                  fontSize: 13,
+                                  color: AppTheme.textSecondary,
+                                ),
+                              ),
+
+                              const SizedBox(height: 32),
+
                             ],
                           ),
                         ],
@@ -527,6 +584,7 @@ class _SosActiveScreenState extends State<SosActiveScreen> with SingleTickerProv
           ),
         ],
       ),
+     ),
     );
   }
 }

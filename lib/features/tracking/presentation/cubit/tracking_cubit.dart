@@ -259,18 +259,52 @@ Future<void> sendLocationUpdate({
 
   Future<void> stopTrackingSession() async {
 
-    _userId = null;
-    _trackingId = null;
+    try {
 
-    await _locationSubscription?.cancel();
+      emit(const TrackingLoading());
 
-    _locationSubscription = null;
+      if (_trackingId != null) {
 
-    await _locationService.stopTracking();
+        debugPrint("====================");
+        debugPrint("STOPPING TRACKING");
+        debugPrint("TRACKING ID = $_trackingId");
+        debugPrint("====================");
 
-    emit(
-      const TrackingIdle(),
-    );
+        await _trackingRepository.stopTracking(
+          _trackingId!,
+        );
+
+      }
+
+      await _locationSubscription?.cancel();
+      _locationSubscription = null;
+
+      await _locationService.stopTracking();
+
+      await _secureStorage.clearTrackingSession();
+
+      _userId = null;
+      _trackingId = null;
+
+      debugPrint("====================");
+      debugPrint("TRACKING SESSION STOPPED");
+      debugPrint("====================");
+
+      emit(const TrackingIdle());
+
+    } catch (e) {
+
+      debugPrint("STOP TRACKING FAILED");
+      debugPrint(e.toString());
+
+      emit(
+        TrackingError(
+          e.toString(),
+        ),
+      );
+
+    }
+
   }
 
   @override

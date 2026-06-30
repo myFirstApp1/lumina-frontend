@@ -229,6 +229,39 @@ class SosCubit extends Cubit<SosState> {
     }
   }
 
+  Future<void> stopSos() async {
+
+    emit(const SosLoading());
+
+    try {
+
+      debugPrint("====================");
+      debugPrint("STOP SOS REQUESTED");
+      debugPrint("====================");
+
+      await _trackingCubit.stopTrackingSession();
+
+      debugPrint("====================");
+      debugPrint("SOS STOPPED");
+      debugPrint("====================");
+
+      emit(const SosInitial());
+
+    } catch (e) {
+
+      debugPrint("STOP SOS FAILED");
+      debugPrint(e.toString());
+
+      emit(
+        SosError(
+          e.toString(),
+        ),
+      );
+
+    }
+
+  }
+
   @override
   Future<void> close() {
     _countdownTimer?.cancel();

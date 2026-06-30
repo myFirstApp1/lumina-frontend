@@ -15,4 +15,8 @@ abstract class TrackingRepository {
       String userId,
       );
 
+  Future<void> stopTracking(
+      String trackingId,
+      );
+
 }
