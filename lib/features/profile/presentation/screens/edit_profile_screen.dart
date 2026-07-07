@@ -9,6 +9,7 @@ import '../cubit/profile_cubit.dart';
 import '../cubit/profile_state.dart';
 import '../../../auth/presentation/cubit/auth_cubit.dart';
 import '../../data/models/user_profile_model.dart';
+import 'package:flutter/services.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({Key? key}) : super(key: key);
@@ -23,6 +24,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController _emailController;
   late TextEditingController _phoneController;
   late TextEditingController _addressController;
+
+  bool loading = false;
 
   @override
   void initState() {
@@ -53,37 +56,68 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     super.dispose();
   }
 
-  void _handleSaveChanges() {
-    if (_formKey.currentState!.validate()) {
+  Future<void> _handleSaveChanges() async {
+
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() {
+      loading = true;
+    });
+
+    try {
+
       final authState = context.read<AuthCubit>().state;
+
       if (authState is AuthAuthenticated) {
+
         final profileState = context.read<ProfileCubit>().state;
-        String profileId = '';
-        if (profileState is ProfileLoaded) profileId = profileState.profile.id;
+
+        String profileId = "";
+
+        if (profileState is ProfileLoaded) {
+          profileId = profileState.profile.id;
+        }
 
         final updatedProfile = UserProfileModel(
-          id: profileId, // Assuming ID is not updatable or uses same ID
+          id: profileId,
           name: _usernameController.text,
           email: _emailController.text,
           phone: _phoneController.text,
           address: _addressController.text,
         );
 
-        context.read<ProfileCubit>().updateProfile(authState.user.userId, updatedProfile).then((_) {
-          if (mounted) {
-            context.pop();
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  "Profile details successfully updated.",
-                  style: GoogleFonts.beVietnamPro(fontWeight: FontWeight.bold),
+        await context
+            .read<ProfileCubit>()
+            .updateProfile(
+          authState.user.userId,
+          updatedProfile,
+        );
+
+        if (mounted) {
+          context.pop();
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              backgroundColor: AppTheme.success,
+              content: Text(
+                "Profile updated successfully.",
+                style: GoogleFonts.beVietnamPro(
+                  fontWeight: FontWeight.bold,
                 ),
-                backgroundColor: AppTheme.success,
               ),
-            );
-          }
+            ),
+          );
+        }
+      }
+
+    } finally {
+
+      if (mounted) {
+        setState(() {
+          loading = false;
         });
       }
+
     }
   }
 
@@ -100,7 +134,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           // Main scrollable content
           SafeArea(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(24.0, 80.0, 24.0, 48.0),
+              padding: EdgeInsets.fromLTRB(
+                24,
+                MediaQuery.of(context).padding.top + 80,
+                24,
+                40,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -166,7 +205,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                     ],
                                   ),
                                   child: const Icon(
-                                    Icons.edit,
+                                    Icons.camera_alt,
                                     color: AppTheme.primaryContainer,
                                     size: 18,
                                   ),
@@ -187,7 +226,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               return Text(
                                 name,
                                 style: GoogleFonts.beVietnamPro(
-                                  fontSize: 16,
+                                  fontSize: 20,
                                   fontWeight: FontWeight.bold,
                                   color: AppTheme.primary,
                                 ),
@@ -206,9 +245,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     key: _formKey,
                     child: Container(
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.9),
-                        borderRadius: BorderRadius.circular(24.0),
-                        border: Border.all(color: Colors.white.withOpacity(0.4), width: 1.0),
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(36),
+                     //   border: Border.all(color: Colors.white.withOpacity(0.4), width: 1.0),
                         boxShadow: [
                           BoxShadow(
                             color: AppTheme.primary.withOpacity(0.06),
@@ -217,7 +256,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           )
                         ],
                       ),
-                      padding: const EdgeInsets.all(24.0),
+                      padding: const EdgeInsets.fromLTRB(
+                        28,
+                        30,
+                        28,
+                        30,
+                      ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
@@ -227,20 +271,27 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             controller: _usernameController,
                             icon: Icons.person_outline,
                             hintText: "Enter your full name",
-                            validator: (val) => val == null || val.isEmpty ? "Username cannot be empty" : null,
+                            readOnly: true,
+                            validator: (val) =>
+                            val == null || val.isEmpty ? "Username cannot be empty" : null,
                           ),
                           const SizedBox(height: 20),
 
-                          // Email Address Field
+                           // Email Address Field
                           _buildFieldLabel("Email Address"),
                           _buildTextFormField(
                             controller: _emailController,
                             icon: Icons.mail_outline,
                             hintText: "Enter your email address",
                             keyboardType: TextInputType.emailAddress,
+                            readOnly: true,
                             validator: (val) {
-                              if (val == null || val.isEmpty) return "Email address cannot be empty";
-                              if (!val.contains("@")) return "Invalid email address";
+                              if (val == null || val.isEmpty) {
+                                return "Email address cannot be empty";
+                              }
+                              if (!val.contains("@")) {
+                                return "Invalid email address";
+                              }
                               return null;
                             },
                           ),
@@ -253,7 +304,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             icon: Icons.smartphone_outlined,
                             hintText: "Enter your phone number",
                             keyboardType: TextInputType.phone,
-                            validator: (val) => val == null || val.isEmpty ? "Phone number cannot be empty" : null,
+                            readOnly: false,
+                            validator: (val) {
+                              if (val == null || val.trim().isEmpty) {
+                                return "Phone number cannot be empty";
+                              }
+
+                              if (!RegExp(r'^[0-9]{10}$').hasMatch(val.trim())) {
+                                return "Phone number must contain exactly 10 digits";
+                              }
+
+                              return null;
+                            },
                           ),
                           const SizedBox(height: 20),
 
@@ -263,57 +325,86 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             controller: _addressController,
                             icon: Icons.home_outlined,
                             hintText: "Enter your home address",
-                            validator: (val) => val == null || val.isEmpty ? "Address cannot be empty" : null,
+                            readOnly: false,
+                            validator: (val) =>
+                            val == null || val.isEmpty ? "Address cannot be empty" : null,
                           ),
                           const SizedBox(height: 32),
 
                           // Action Buttons Layout
                           Column(
                             children: [
-                              SizedBox(
+                            SizedBox(
+                            height: 58,
+                            child: ElevatedButton(
+                              onPressed:loading ?  null:_handleSaveChanges,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.transparent,
+                                shadowColor: Colors.transparent,
+                                shape: const StadiumBorder(),
+                                padding: EdgeInsets.zero,
+                              ),
+                              child: Ink(
                                 width: double.infinity,
-                                height: 56,
-                                child: ElevatedButton(
-                                  onPressed: _handleSaveChanges,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppTheme.primary,
-                                    foregroundColor: Colors.white,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(28.0),
-                                    ),
-                                    elevation: 4,
-                                    shadowColor: AppTheme.primary.withOpacity(0.3),
+                                height: 58,
+                                decoration: const BoxDecoration(
+                                  gradient: AppTheme.primaryGradient,
+                                  shape: BoxShape.rectangle,
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(40),
                                   ),
-                                  child: Text(
+                                ),
+                                child: Center(
+                                  child: loading
+                                      ? const SizedBox(
+                                    width: 22,
+                                    height: 22,
+                                    child:
+                                    CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                      : Text(
                                     "Save Changes",
-                                    style: GoogleFonts.beVietnamPro(
+                                    style:
+                                    GoogleFonts.montserrat(
                                       fontSize: 16,
-                                      fontWeight: FontWeight.bold,
+                                      fontWeight:
+                                      FontWeight.w700,
+                                      color: Colors.white,
                                     ),
                                   ),
                                 ),
                               ),
+                            ),
+                          ),
                               const SizedBox(height: 12),
                               SizedBox(
                                 width: double.infinity,
                                 height: 56,
+
                                 child: TextButton(
                                   onPressed: () => context.pop(),
-                                  style: TextButton.styleFrom(
-                                    backgroundColor: AppTheme.surface.withOpacity(0.6),
-                                    foregroundColor: AppTheme.textSecondary,
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: AppTheme.error,
+                                    side: BorderSide(
+                                      color: Colors.red.withOpacity(0.8),
+                                      width: 2.0,
+                                    ),
                                     shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(28.0),
+                                      borderRadius: BorderRadius.circular(40.0),
                                     ),
                                   ),
                                   child: Text(
                                     "Cancel",
                                     style: GoogleFonts.beVietnamPro(
-                                      fontSize: 16,
+                                      fontSize: 17,
                                       fontWeight: FontWeight.w600,
-                                    ),
+                                      color: Colors.red,
                                   ),
                                 ),
+                              ),
                               ),
                             ],
                           ),
@@ -330,43 +421,48 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           Positioned(
             top: 0,
             left: 0,
-            right: 0,
-            child: ClipRect(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                child: Container(
-                  height: 64,
-                  decoration: BoxDecoration(
-                    color: AppTheme.surface.withOpacity(0.3),
-                    border: Border(
-                      bottom: BorderSide(
-                        color: AppTheme.outlineVariant.withOpacity(0.3),
-                        width: 1.0,
+            right: 10,
+            child: SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(24, 16, 40, 12),
+                child: Row(
+                  children: [
+                    // Back Button
+                    Container(
+                      width: 46,
+                      height: 46,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 10,
+                          ),
+                        ],
                       ),
-                    ),
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      // Back Button
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back, color: AppTheme.primary),
+                      child: IconButton(
+                        icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
+                        color: AppTheme.primary,
                         onPressed: () => context.pop(),
                       ),
-                      // Title
-                      Text(
-                        "Edit Profile",
-                        style: GoogleFonts.montserrat(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w600,
-                          color: AppTheme.primary,
+                    ),
+
+                    // Center Title
+                    Expanded(
+                      child: Center(
+                        child: Text(
+                          " Edit Profile",
+                          style: GoogleFonts.montserrat(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w500,
+                            color: AppTheme.primary,
+                          ),
                         ),
                       ),
-                      // Balancing hidden trailing element
-                      const SizedBox(width: 48),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -382,9 +478,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       child: Text(
         label,
         style: GoogleFonts.beVietnamPro(
-          fontSize: 12,
+          fontSize: 14,
           fontWeight: FontWeight.w500,
-          color: AppTheme.textSecondary,
+          color: AppTheme.primary,
         ),
       ),
     );
@@ -396,26 +492,56 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     required String hintText,
     TextInputType keyboardType = TextInputType.text,
     required FormFieldValidator<String>? validator,
+    bool readOnly = false,
   }) {
     return TextFormField(
       controller: controller,
-      keyboardType: keyboardType,
+      // keyboardType: keyboardType,
+      // inputFormatters: keyboardType == TextInputType.phone
+      //     ? [
+      //   FilteringTextInputFormatter.digitsOnly,
+      //   LengthLimitingTextInputFormatter(10),
+      // ]
+      //     : null,
       validator: validator,
+      readOnly: readOnly,
+      enableInteractiveSelection: !readOnly,
       style: GoogleFonts.beVietnamPro(
-        fontSize: 16,
-        color: AppTheme.textPrimary,
+        fontSize: 15,
+        color: AppTheme.textSecondary,
       ),
       decoration: InputDecoration(
+        filled: true,
+        fillColor: readOnly
+            ? const Color(0xFFF8F8F8)
+            : Colors.white,
+
         prefixIcon: Container(
-          width: 48,
-          height: 48,
-          alignment: Alignment.center,
+          margin: const EdgeInsets.all(10),
+          width: 35,
+          height: 35,
+          decoration: BoxDecoration(
+            color: const Color(0xFFFFEEF4),
+            borderRadius: BorderRadius.circular(14),
+          ),
           child: Icon(
             icon,
-            color: AppTheme.primaryContainer,
-            size: 24,
+            size: 20,
+            color: AppTheme.primary,
           ),
         ),
+
+        suffixIcon: readOnly
+            ? const Padding(
+          padding: EdgeInsets.only(right: 18),
+          child: Icon(
+            Icons.lock_outline_rounded,
+            color: Colors.grey,
+            size: 20,
+          ),
+        )
+            : null,
+
         hintText: hintText,
       ),
     );

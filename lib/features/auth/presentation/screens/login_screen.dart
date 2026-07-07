@@ -404,8 +404,8 @@ class _LoginScreenState extends State<LoginScreen> {
               ? IconButton(
                   icon: Icon(
                     obscureText
-                        ? Icons.visibility
-                        : Icons.visibility_off,
+                        ? Icons.visibility_off_outlined
+                        : Icons.visibility_outlined,
                     color: AppTheme.primary,
                   ),
                   onPressed: togglePassword,

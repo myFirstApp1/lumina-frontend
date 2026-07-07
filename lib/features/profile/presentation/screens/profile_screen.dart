@@ -138,7 +138,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           style: GoogleFonts.montserrat(
                             fontSize: 30,
                             fontWeight: FontWeight.w500,
-                            color: AppTheme.textPrimary,
+                            color: AppTheme.primary,
                           ),
                         ),
 
@@ -186,7 +186,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 color: AppTheme.primary.withOpacity(0.1),
                               ),
                               child: const Icon(
-                                Icons.person,
+                                Icons.person_outlined,
                                 color: AppTheme.primary,
                                 size: 22,
                               ),
@@ -274,6 +274,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                         child: IconButton(
                           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
+                          color: AppTheme.primary,
                           onPressed: () => context.pop(),
                         ),
                       ),
@@ -286,7 +287,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             style: GoogleFonts.montserrat(
                               fontSize: 24,
                               fontWeight: FontWeight.w500,
-                              color: AppTheme.textPrimary,
+                              color: AppTheme.primary,
                             ),
                           ),
                         ),
@@ -333,11 +334,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          title.toUpperCase(),
+          title.toString(),
           style: GoogleFonts.beVietnamPro(
-            fontSize: 12,
+            fontSize: 15,
             fontWeight: FontWeight.w500,
-            color: AppTheme.primaryContainer,
+            color: AppTheme.primary,
             letterSpacing: 0.8,
           ),
         ),
@@ -347,7 +348,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           style: GoogleFonts.beVietnamPro(
             fontSize: 16,
             fontWeight: FontWeight.w400,
-            color: AppTheme.textPrimary,
+            color: AppTheme.textSecondary,
           ),
         ),
       ],
