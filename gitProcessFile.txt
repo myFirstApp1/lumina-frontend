@@ -430,3 +430,9 @@ commit 22 : ReDesigning the Login and Register and OTP screens UI and officially
 
 commit 23 : ReDesigning the Profile Screen and officially freeze Phase 1&2
            modified:   lib/features/profile/presentation/screens/profile_screen.dart
+
+
+commit 24 : ReDesigning the Edit Profile Screen and officially freeze Phase 1&2
+ modified:   lib/features/auth/presentation/screens/login_screen.dart
+        modified:   lib/features/profile/presentation/screens/edit_profile_screen.dart
+        modified:   lib/features/profile/presentation/screens/profile_screen.dart
