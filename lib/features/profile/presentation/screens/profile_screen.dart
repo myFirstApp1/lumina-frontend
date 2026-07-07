@@ -60,28 +60,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
             color: AppTheme.background,
           ),
 
-          // Glowing background accent
-          Positioned(
-            top: -100,
-            right: -100,
-            width: 400,
-            height: 400,
-            child: Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppTheme.primaryContainer.withOpacity(0.08),
+           // Glowing background accent
+              Positioned(
+                bottom: -120,
+                left: -120,
+                child: Container(
+                  width: 260,
+                  height: 260,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppTheme.primary.withOpacity(.05),
+                  ),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(
+                      sigmaX: 120,
+                      sigmaY: 120,
+                    ),
+                    child: const SizedBox(),
+                  ),
+                ),
               ),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 100.0, sigmaY: 100.0),
-                child: Container(color: Colors.transparent),
-              ),
-            ),
-          ),
 
           // Main scrollable content
           SafeArea(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(24.0, 80.0, 24.0, 110.0),
+              padding: EdgeInsets.fromLTRB(
+                24,
+                MediaQuery.of(context).padding.top + 90,
+                24,
+                40,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -121,45 +129,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   ),
                               ),
                             ),
-                            // Camera Edit Icon overlay badge
-                            Positioned(
-                              bottom: 0,
-                              right: 0,
-                              child: GestureDetector(
-                                onTap: () => context.push(AppRoutes.editProfile),
-                                child: Container(
-                                  width: 36,
-                                  height: 36,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: Colors.white,
-                                    border: Border.all(color: AppTheme.outlineVariant.withOpacity(0.5), width: 1.0),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(0.06),
-                                        blurRadius: 6,
-                                        offset: const Offset(0, 2),
-                                      )
-                                    ],
-                                  ),
-                                  child: const Icon(
-                                    Icons.camera_alt,
-                                    color: AppTheme.primary,
-                                    size: 18,
-                                  ),
-                                ),
-                              ),
-                            ),
                           ],
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 18),
+
                         Text(
                           profile.name.isNotEmpty ? profile.name : "No Name",
                           style: GoogleFonts.montserrat(
-                            fontSize: 28,
-                            fontWeight: FontWeight.w600,
+                            fontSize: 30,
+                            fontWeight: FontWeight.w500,
                             color: AppTheme.textPrimary,
-                            letterSpacing: -0.5,
+                          ),
+                        ),
+
+                        const SizedBox(height: 6),
+
+                        Text(
+                          "Protected Account",
+                          style: GoogleFonts.beVietnamPro(
+                            fontSize: 15,
+                            color: Colors.green,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ],
@@ -171,7 +161,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Container(
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.9),
-                      borderRadius: BorderRadius.circular(24.0),
+                      borderRadius: BorderRadius.circular(36),
                       border: Border.all(color: Colors.white.withOpacity(0.6), width: 1.0),
                       boxShadow: [
                         BoxShadow(
@@ -181,7 +171,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         )
                       ],
                     ),
-                    padding: const EdgeInsets.all(24.0),
+                    padding: const EdgeInsets.all(28.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
@@ -250,7 +240,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                 child: Container(
-                  height: 64,
+                  height: MediaQuery.of(context).padding.top + 70,
                   decoration: BoxDecoration(
                     color: AppTheme.surface.withOpacity(0.7),
                     border: Border(
@@ -267,140 +257,66 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       bottom: 18,
                     ),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // Top bar left profile photo placeholder
+                      // Back Button
                       Container(
-                        width: 32,
-                        height: 32,
+                        width: 46,
+                        height: 46,
                         decoration: BoxDecoration(
+                          color: Colors.white,
                           shape: BoxShape.circle,
-                          border: Border.all(color: AppTheme.outlineVariant.withOpacity(0.3), width: 1.0),
-                          image: const DecorationImage(
-                            image: AssetImage(
-                              'assets/images/defaultProfile.jpg',
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 10,
                             ),
-                            fit: BoxFit.cover,
+                          ],
+                        ),
+                        child: IconButton(
+                          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
+                          onPressed: () => context.pop(),
+                        ),
+                      ),
+
+                      // Center Title
+                      Expanded(
+                        child: Center(
+                          child: Text(
+                            "Profile",
+                            style: GoogleFonts.montserrat(
+                              fontSize: 24,
+                              fontWeight: FontWeight.w500,
+                              color: AppTheme.textPrimary,
+                            ),
                           ),
                         ),
                       ),
-                      // Centered Title
-                      Text(
-                        "Lumina Guardian",
-                        style: GoogleFonts.montserrat(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w600,
-                          color: AppTheme.primary,
-                          letterSpacing: -0.5,
+
+                      // Settings Button
+                      Container(
+                        width: 46,
+                        height: 46,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 10,
+                            ),
+                          ],
                         ),
-                      ),
-                      // Settings Icon Trigger on right
-                      GestureDetector(
-                        onTap: () => context.push(AppRoutes.settings),
-                        child: const Icon(
-                          Icons.settings_outlined,
-                          color: AppTheme.primary,
-                          size: 24,
+                        child: IconButton(
+                          icon: const Icon(
+                            Icons.settings_outlined,
+                            color: AppTheme.primary,
+                            size: 22,
+                          ),
+                          onPressed: () => context.push(AppRoutes.settings),
                         ),
                       ),
                     ],
                   ),
-                ),
-              ),
-            ),
-          ),
-
-          // Custom Center-Floating Bottom Navigation Bar (Matching Home exactly)
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              height: 85,
-              decoration: BoxDecoration(
-                color: AppTheme.surface.withOpacity(0.9),
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(16.0),
-                  topRight: Radius.circular(16.0),
-                ),
-                border: Border(
-                  top: BorderSide(color: Colors.white.withOpacity(0.4), width: 1.0),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 40.0,
-                    offset: const Offset(0, -10),
-                  )
-                ],
-              ),
-              child: SafeArea(
-                top: false,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _buildNavItem(context, Icons.health_and_safety_outlined, "Home", false, () {
-                      context.go(AppRoutes.home);
-                    }),
-                    _buildNavItem(context, Icons.map_outlined, "Map", false, () {
-                      context.push(AppRoutes.liveTracking);
-                    }),
-
-                    // Elevated Center SOS button overlapping top boundary
-                    Transform.translate(
-                      offset: const Offset(0, -18),
-                      child: GestureDetector(
-                        onTap: () => context.push(AppRoutes.sosActive),
-                        child: Container(
-                          width: 64,
-                          height: 64,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFFDC2626), Color(0xFFB91C1C)],
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                            ),
-                            border: Border.all(color: Colors.white.withOpacity(0.2), width: 1.0),
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(0xFFDC2626).withOpacity(0.6),
-                                blurRadius: 20.0,
-                                offset: const Offset(0, 8),
-                              )
-                            ],
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(
-                                Icons.emergency,
-                                color: Colors.white,
-                                size: 28,
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                "SOS",
-                                style: GoogleFonts.beVietnamPro(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                  letterSpacing: 0.5,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    _buildNavItem(context, Icons.group_outlined, "Contacts", false, () {
-                      context.push(AppRoutes.contactsCircle);
-                    }),
-                    _buildNavItem(context, Icons.auto_awesome_outlined, "AI Chat", false, () {
-                      context.push(AppRoutes.aiCompanion);
-                    }),
-                  ],
                 ),
               ),
             ),
