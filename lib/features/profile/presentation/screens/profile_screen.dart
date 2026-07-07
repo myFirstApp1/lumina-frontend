@@ -260,7 +260,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ),
                   ),
-                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  padding: EdgeInsets.only(
+                      top: MediaQuery.of(context).padding.top + 12,
+                      left: 24,
+                      right: 24,
+                      bottom: 18,
+                    ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -272,8 +277,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           shape: BoxShape.circle,
                           border: Border.all(color: AppTheme.outlineVariant.withOpacity(0.3), width: 1.0),
                           image: const DecorationImage(
-                            image: NetworkImage(
-                              "https://lh3.googleusercontent.com/aida/ADBb0uheO2xz_B69a8socQuO_Qv_rqplousYU4BIcbgIWSHeM1imJHuX2ng-SMp84jevenTjgoqf32-BfKGp8gMntpPtPbO0Lbl2AUbiCHNjRmA9CTDC5kCsn7z6IHlPg5ou_ALvRJjnfdL40ZdyFHtReryQ0CR9wi3rk9MfdPKnXx6185mV-x1i4WPfANmVKV5Z_QChksYf6lIy2vkzDpfbecyxw52TQnzTkSlTPEVqyk_nAXUjnag5eI0orN4",
+                            image: AssetImage(
+                              'assets/images/defaultProfile.jpg',
                             ),
                             fit: BoxFit.cover,
                           ),

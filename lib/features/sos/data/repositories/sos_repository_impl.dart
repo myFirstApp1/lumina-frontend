@@ -23,9 +23,11 @@ class SosRepositoryImpl implements SosRepository {
       final response =
       await _client.dio.post(
         '/api/sos/trigger/$userId',
-        queryParameters: {
-          'location': location,
-        },
+          queryParameters: {
+            'currentLocation': location,
+            'channel': 'PHONE_APP',
+            'async': false,
+          }
       );
 
       debugPrint(

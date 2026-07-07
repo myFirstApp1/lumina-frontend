@@ -217,12 +217,6 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<void> logout() async {
-    try {
-      await _client.dio.post('/api/v1/auth/logout');
-    } catch (_) {
-      // Best effort remote logout
-    }finally {
-      await _secureStorage.clearUserSession();
-    }
+    await _secureStorage.clearUserSession();
   }
 }

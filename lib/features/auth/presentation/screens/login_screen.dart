@@ -108,6 +108,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         );
                       }
                     },
+
                     child: Container(
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.8),
@@ -123,6 +124,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ],
                       ),
                       padding: const EdgeInsets.all(28.0),
+
                       child: Form(
                         key: _formKey,
                         child: Column(
@@ -131,24 +133,12 @@ class _LoginScreenState extends State<LoginScreen> {
                           children: [
                           // Top header glowing heart icon
                           Center(
-                            child: Container(
-                              width: 64,
-                              height: 64,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: AppTheme.primaryContainer.withOpacity(0.1),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: AppTheme.primaryContainer.withOpacity(0.05),
-                                    blurRadius: 4,
-                                    spreadRadius: 1,
-                                  )
-                                ],
-                              ),
-                              child: const Icon(
-                                Icons.shield_moon_outlined,
-                                color: AppTheme.primaryContainer,
-                                size: 32,
+                            child: SizedBox(
+                              width: 75,
+                              height: 75,
+                              child: Image.asset(
+                                "assets/icon/app_icon.png",
+                                fit: BoxFit.contain,
                               ),
                             ),
                           ),
@@ -230,7 +220,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 height: 52,
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(9999),
-                                  color: AppTheme.primaryContainer,
+                                  color: AppTheme.primary,
                                   boxShadow: [
                                     BoxShadow(
                                       color: AppTheme.primaryContainer.withOpacity(0.2),
@@ -244,10 +234,20 @@ class _LoginScreenState extends State<LoginScreen> {
                                   onPressed: isLoading ? null : _handleLogin,
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.transparent,
-                                    foregroundColor: AppTheme.onPrimaryContainer,
+                                  //  foregroundColor: AppTheme.onPrimaryContainer,
                                     shadowColor: Colors.transparent,
                                     shape: const StadiumBorder(),
+                                    padding: EdgeInsets.zero,
                                   ),
+                                  child: Ink(
+                                    decoration: const BoxDecoration(
+                                      gradient: AppTheme.primaryGradient,
+                                      shape: BoxShape.rectangle,
+                                      borderRadius: BorderRadius.all(
+                                        Radius.circular(40),
+                                      ),
+                                    ),
+                                  child: Center(
                                   child: isLoading
                                       ? const SizedBox(
                                           width: 24,
@@ -258,9 +258,12 @@ class _LoginScreenState extends State<LoginScreen> {
                                           "Sign In",
                                           style: GoogleFonts.montserrat(
                                             fontSize: 16,
-                                            fontWeight: FontWeight.bold,
+                                            fontWeight: FontWeight.w700,
+                                            color: Colors.white,
                                           ),
                                         ),
+                                     ),
+                                  ),
                                 ),
                               );
                             }
@@ -297,7 +300,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   onTap: () {},
                                 ),
                               ),
-                              const SizedBox(width: 12.0),
+                              const SizedBox(width: 14.0),
                               Expanded(
                                 child: _buildSocialButton(
                                   text: "Apple",
@@ -307,7 +310,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 24.0),
+                          const SizedBox(height: 30.0),
 
                           // Create Account redirection link
                           Row(
@@ -325,7 +328,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 child: Text(
                                   "Create one",
                                   style: GoogleFonts.beVietnamPro(
-                                    fontSize: 14,
+                                    fontSize: 15,
                                     fontWeight: FontWeight.bold,
                                     color: AppTheme.primary,
                                     decoration: TextDecoration.underline,
@@ -383,16 +386,61 @@ class _LoginScreenState extends State<LoginScreen> {
         decoration: InputDecoration(
           hintText: hint,
           hintStyle: GoogleFonts.beVietnamPro(color: AppTheme.textSecondary.withOpacity(0.4)),
-          prefixIcon: Icon(icon, color: AppTheme.textSecondary.withOpacity(0.5)),
+          prefixIcon: Container(
+            margin: const EdgeInsets.all(10),
+            width: 35,
+            height: 35,
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFEEF4),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(
+              icon,
+              size: 20,
+              color: AppTheme.primary,
+            ),
+          ),
           suffixIcon: isPassword
               ? IconButton(
                   icon: Icon(
-                    obscureText ? Icons.visibility : Icons.visibility_off,
-                    color: AppTheme.textSecondary.withOpacity(0.5),
+                    obscureText
+                        ? Icons.visibility
+                        : Icons.visibility_off,
+                    color: AppTheme.primary,
                   ),
                   onPressed: togglePassword,
                 )
               : null,
+
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(15),
+            borderSide: BorderSide(
+              color: AppTheme.outlineVariant.withOpacity(.6),
+            ),
+          ),
+
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(15),
+            borderSide: const BorderSide(
+              color: AppTheme.primary,
+              width: 2,
+            ),
+          ),
+
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(15),
+            borderSide: const BorderSide(
+              color: AppTheme.error,
+            ),
+          ),
+
+          focusedErrorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(15),
+            borderSide: const BorderSide(
+              color: AppTheme.error,
+              width: 2,
+            ),
+          ),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 14.0),
         ),
@@ -400,6 +448,7 @@ class _LoginScreenState extends State<LoginScreen> {
           fontSize: 15,
           color: AppTheme.textPrimary,
         ),
+
       ),
     );
   }
@@ -415,9 +464,11 @@ class _LoginScreenState extends State<LoginScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12.0),
         decoration: BoxDecoration(
-          color: const Color(0xFFF5F3F3),
-          borderRadius: BorderRadius.circular(9999),
-          border: Border.all(color: Colors.transparent),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(30),
+          border: Border.all(
+            color: AppTheme.outlineVariant.withOpacity(.6),
+          ),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -426,9 +477,9 @@ class _LoginScreenState extends State<LoginScreen> {
             const SizedBox(width: 8),
             Text(
               text,
-              style: GoogleFonts.beVietnamPro(
+              style: GoogleFonts.montserrat(
                 fontSize: 14,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
                 color: AppTheme.textPrimary,
               ),
             ),
@@ -457,58 +508,66 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 }
 
+// Custom Painter to draw Google Icon cleanly without files
 class GoogleIconPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final Paint paint = Paint()..style = PaintingStyle.fill;
+    final Paint paint = Paint()
+      ..style = PaintingStyle.fill;
     final double w = size.width;
     final double h = size.height;
 
+    // Blue segment
     paint.color = const Color(0xFF4285F4);
     final Path bluePath = Path()
       ..moveTo(w * 0.98, h * 0.51)
       ..cubicTo(w * 0.98, h * 0.47, w * 0.97, h * 0.44, w * 0.97, h * 0.40)
-      ..lineTo(w * 0.50, h * 0.40)
-      ..lineTo(w * 0.50, h * 0.59)
-      ..lineTo(w * 0.77, h * 0.59)
+      ..lineTo(w * 0.50, h * 0.40)..lineTo(w * 0.50, h * 0.59)..lineTo(
+          w * 0.77, h * 0.59)
       ..cubicTo(w * 0.76, h * 0.67, w * 0.71, h * 0.73, w * 0.65, h * 0.77)
-      ..lineTo(w * 0.65, h * 0.77)
-      ..lineTo(w * 0.80, h * 0.89)
+      ..lineTo(w * 0.65, h * 0.77)..lineTo(w * 0.80, h * 0.89)
       ..cubicTo(w * 0.89, h * 0.81, w * 0.98, h * 0.67, w * 0.98, h * 0.51)
       ..close();
     canvas.drawPath(bluePath, paint);
 
+    // Green segment
     paint.color = const Color(0xFF34A853);
     final Path greenPath = Path()
       ..moveTo(w * 0.50, h * 0.98)
       ..cubicTo(w * 0.63, h * 0.98, w * 0.75, h * 0.93, w * 0.80, h * 0.89)
       ..lineTo(w * 0.65, h * 0.77)
-      ..cubicTo(w * 0.61, h * 0.80, w * 0.56, h * 0.82, w * 0.50, h * 0.82)
-      ..cubicTo(w * 0.37, h * 0.82, w * 0.26, h * 0.74, w * 0.22, h * 0.62)
+      ..cubicTo(
+          w * 0.61, h * 0.80, w * 0.56, h * 0.82, w * 0.50, h * 0.82)..cubicTo(
+          w * 0.37, h * 0.82, w * 0.26, h * 0.74, w * 0.22, h * 0.62)
       ..lineTo(w * 0.07, h * 0.74)
       ..cubicTo(w * 0.16, h * 0.92, w * 0.31, h * 0.98, w * 0.50, h * 0.98)
       ..close();
     canvas.drawPath(greenPath, paint);
 
+    // Yellow segment
     paint.color = const Color(0xFFFBBC05);
     final Path yellowPath = Path()
       ..moveTo(w * 0.22, h * 0.62)
-      ..cubicTo(w * 0.20, h * 0.56, w * 0.19, h * 0.50, w * 0.19, h * 0.44)
-      ..cubicTo(w * 0.19, h * 0.38, w * 0.20, h * 0.32, w * 0.22, h * 0.26)
+      ..cubicTo(
+          w * 0.20, h * 0.56, w * 0.19, h * 0.50, w * 0.19, h * 0.44)..cubicTo(
+          w * 0.19, h * 0.38, w * 0.20, h * 0.32, w * 0.22, h * 0.26)
       ..lineTo(w * 0.07, h * 0.14)
-      ..cubicTo(w * 0.03, h * 0.23, w * 0.00, h * 0.33, w * 0.00, h * 0.44)
-      ..cubicTo(w * 0.00, h * 0.55, w * 0.03, h * 0.65, w * 0.07, h * 0.74)
+      ..cubicTo(
+          w * 0.03, h * 0.23, w * 0.00, h * 0.33, w * 0.00, h * 0.44)..cubicTo(
+          w * 0.00, h * 0.55, w * 0.03, h * 0.65, w * 0.07, h * 0.74)
       ..lineTo(w * 0.22, h * 0.62)
       ..close();
     canvas.drawPath(yellowPath, paint);
 
+    // Red segment
     paint.color = const Color(0xFFEA4335);
     final Path redPath = Path()
       ..moveTo(w * 0.50, h * 0.02)
       ..cubicTo(w * 0.63, h * 0.02, w * 0.75, h * 0.07, w * 0.84, h * 0.15)
       ..lineTo(w * 0.69, h * 0.30)
-      ..cubicTo(w * 0.64, h * 0.25, w * 0.57, h * 0.22, w * 0.50, h * 0.22)
-      ..cubicTo(w * 0.37, h * 0.22, w * 0.26, h * 0.30, w * 0.22, h * 0.42)
+      ..cubicTo(
+          w * 0.64, h * 0.25, w * 0.57, h * 0.22, w * 0.50, h * 0.22)..cubicTo(
+          w * 0.37, h * 0.22, w * 0.26, h * 0.30, w * 0.22, h * 0.42)
       ..lineTo(w * 0.07, h * 0.30)
       ..cubicTo(w * 0.16, h * 0.12, w * 0.31, h * 0.02, w * 0.50, h * 0.02)
       ..close();
@@ -518,3 +577,4 @@ class GoogleIconPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
+

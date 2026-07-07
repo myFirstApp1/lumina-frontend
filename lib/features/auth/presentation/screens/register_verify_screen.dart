@@ -181,71 +181,13 @@ class _RegisterVerifyScreenState extends State<RegisterVerifyScreen> {
               child: Column(
                 children: [
                   // Header Bar
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.arrow_back, color: AppTheme.textPrimary),
-                          onPressed: () => context.pop(),
-                          style: IconButton.styleFrom(
-                            backgroundColor: Colors.white.withOpacity(0.7),
-                          ),
-                        ),
-                        Text(
-                          "Lumina Guardian",
-                          style: GoogleFonts.montserrat(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: AppTheme.primary,
-                          ),
-                        ),
-                        const SizedBox(width: 48), // Spacer to balance back button
-                      ],
-                    ),
-                  ),
-
                   Expanded(
+                   child: Center(
                     child: SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
+                      padding: const EdgeInsets.all(24),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          const SizedBox(height: 20.0),
-                          // Title area
-                          Text(
-                            "Step 2 of 2",
-                            style: GoogleFonts.montserrat(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: AppTheme.primary,
-                              letterSpacing: 1.5,
-                            ),
-                          ),
-                          const SizedBox(height: 12.0),
-                          Text(
-                            "Verify your identity",
-                            style: GoogleFonts.montserrat(
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                              color: AppTheme.textPrimary,
-                              letterSpacing: -0.5,
-                            ),
-                          ),
-                          const SizedBox(height: 12.0),
-                          Text(
-                            "We've sent a 6-digit secure code to your email address.",
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.beVietnamPro(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w400,
-                              height: 1.5,
-                              color: AppTheme.textSecondary,
-                            ),
-                          ),
-                          const SizedBox(height: 36.0),
-
                           // Glassmorphic Card Container
                           Container(
                             decoration: BoxDecoration(
@@ -263,6 +205,40 @@ class _RegisterVerifyScreenState extends State<RegisterVerifyScreen> {
                             padding: const EdgeInsets.all(24.0),
                             child: Column(
                               children: [
+                                Center(
+                                  child: SizedBox(
+                                    width: 75,
+                                    height: 75,
+                                    child: Image.asset(
+                                      "assets/icon/app_icon.png",
+                                      fit: BoxFit.contain,
+                                    ),
+                                  ),
+                                ),
+
+                                const SizedBox(height: 12.0),
+                                Text(
+                                  "Verify your identity",
+                                  style: GoogleFonts.montserrat(
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppTheme.textPrimary,
+                                    letterSpacing: -0.5,
+                                  ),
+                                ),
+                                const SizedBox(height: 12.0),
+                                Text(
+                                  "We've sent a 6-digit secure code to your email address.",
+                                  textAlign: TextAlign.center,
+                                  style: GoogleFonts.beVietnamPro(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w400,
+                                    height: 1.5,
+                                    color: AppTheme.textSecondary,
+                                  ),
+                                ),
+                                const SizedBox(height: 36.0),
+
                                 // OTP Inputs Row
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -427,6 +403,7 @@ class _RegisterVerifyScreenState extends State<RegisterVerifyScreen> {
                         ],
                       ),
                     ),
+                  ),
                   ),
                 ],
               ),
