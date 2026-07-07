@@ -417,7 +417,7 @@ main
         ├── Wearable AI
         ├── AI Risk Engine
 
-commit 21 : ReDesigning the Login and Register and OTP screens UI and officially freeze Phase 1&2
+commit 22 : ReDesigning the Login and Register and OTP screens UI and officially freeze Phase 1&2
 
  modified:   lib/core/network/dio_client.dart
         modified:   lib/features/auth/data/repositories/auth_repository_impl.dart
@@ -427,3 +427,6 @@ commit 21 : ReDesigning the Login and Register and OTP screens UI and officially
         modified:   lib/features/profile/presentation/screens/profile_screen.dart
         modified:   lib/features/sos/data/repositories/sos_repository_impl.dart
         modified:   pubspec.yaml
+
+commit 23 : ReDesigning the Profile Screen and officially freeze Phase 1&2
+           modified:   lib/features/profile/presentation/screens/profile_screen.dart
