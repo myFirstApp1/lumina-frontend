@@ -20,7 +20,7 @@ import '../../features/contacts/presentation/screens/add_contact_screen.dart';
 import '../../features/contacts/presentation/screens/contact_success_screen.dart';
 import '../../features/contacts/presentation/screens/contact_detail_screen.dart';
 import '../../features/contacts/presentation/screens/contact_update_photo_screen.dart';
-import '../../features/ai_companion1/presentation/screens/ai_companion_screen.dart';
+import '../../features/ai_companion/presentation/screens/ai_companion_screen.dart';
 import '../../features/profile/presentation/screens/wearable_sync_screen.dart';
 import '../../features/profile/presentation/screens/settings_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';

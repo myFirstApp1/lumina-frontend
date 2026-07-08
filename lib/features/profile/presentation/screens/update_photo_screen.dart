@@ -1,10 +1,14 @@
 import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../auth/presentation/cubit/auth_cubit.dart';
+import '../cubit/profile_cubit.dart';
+import '../cubit/profile_state.dart';
 
 class UpdatePhotoScreen extends StatefulWidget {
   const UpdatePhotoScreen({Key? key}) : super(key: key);
@@ -14,40 +18,126 @@ class UpdatePhotoScreen extends StatefulWidget {
 }
 
 class _UpdatePhotoScreenState extends State<UpdatePhotoScreen> {
-  final TextEditingController _urlController = TextEditingController();
   final ImagePicker _picker = ImagePicker();
   File? selectedImage;
 
+  int selectedAvatar = 0;
+  String selectedAvatarId = "avatar1";
+  bool loading = false;
+  final List<String> avatars = [
+    "assets/avatars/avatar1.png",
+    "assets/avatars/avatar2.png",
+    "assets/avatars/avatar3.png",
+    "assets/avatars/avatar4.png",
+    "assets/avatars/avatar5.png",
+    "assets/avatars/avatar6.png",
+    "assets/avatars/avatar7.png",
+    "assets/avatars/avatar8.png",
+    "assets/avatars/avatar9.png",
+    "assets/avatars/avatar10.png",
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final profileState = context.read<ProfileCubit>().state;
+
+      if (profileState is ProfileLoaded) {
+        final profile = profileState.profile;
+
+        if (profile.avatar.isNotEmpty) {
+          selectedAvatarId = profile.avatar;
+
+          final index = avatars.indexWhere(
+                (path) => path.contains(profile.avatar),
+          );
+
+          if (index != -1) {
+            setState(() {
+              selectedAvatar = index;
+            });
+          }
+        }
+      }
+    });
+  }
+
   @override
   void dispose() {
-    _urlController.dispose();
     super.dispose();
   }
 
-  void _handleSaveChanges() {
-    context.pop();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          "Profile photo successfully updated.",
-          style: GoogleFonts.beVietnamPro(fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: AppTheme.success,
-      ),
-    );
-  }
+  Future<void> _handleSaveChanges() async {
+    debugPrint("========== UPDATE PROFILE ==========");
+    debugPrint("Avatar = $selectedAvatarId");
 
-  void _handleRemovePhoto() {
-    context.pop();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          "Profile photo removed. Restored standard placeholder.",
-          style: GoogleFonts.beVietnamPro(fontWeight: FontWeight.bold),
+    setState(() {
+      loading = true;
+    });
+
+    try {
+      final authState = context
+          .read<AuthCubit>()
+          .state;
+
+      if (authState is! AuthAuthenticated) {
+        return;
+      }
+
+      final profileState = context
+          .read<ProfileCubit>()
+          .state;
+
+      if (profileState is! ProfileLoaded) {
+        return;
+      }
+
+      final profile = profileState.profile;
+
+      debugPrint("=================================");
+      debugPrint("SELECTED AVATAR ID = $selectedAvatarId");
+      debugPrint("PROFILE AVATAR = ${profile.avatar}");
+
+      final updatedProfile = profile.copyWith(
+        avatar: selectedAvatarId,
+      );
+
+      debugPrint("==================================");
+      debugPrint("SELECTED AVATAR = $selectedAvatarId");
+      debugPrint("PROFILE AVATAR = ${profile.avatar}");
+      debugPrint(updatedProfile.toJson().toString());
+      debugPrint("==================================");
+
+      await context.read<ProfileCubit>().updateProfile(
+        authState.user.userId,
+        updatedProfile,
+      );
+
+      if (!mounted) return;
+
+      context.pop(true);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: AppTheme.success,
+          content: Text(
+            "Profile photo updated successfully.",
+            style: GoogleFonts.beVietnamPro(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ),
-        backgroundColor: AppTheme.primary,
-      ),
-    );
+      );
+    }
+    finally {
+      if (mounted) {
+        setState(() {
+          loading = false;
+        });
+      }
+    }
   }
 
   Future<void> pickFromGallery() async {
@@ -81,6 +171,89 @@ class _UpdatePhotoScreenState extends State<UpdatePhotoScreen> {
     });
   }
 
+  void _showAvatarPicker() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(30),
+        ),
+      ),
+      builder: (_) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+
+                  Text(
+                    "Choose an Avatar",
+                    style: GoogleFonts.montserrat(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: avatars.length,
+                    gridDelegate:
+                    const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 5,
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
+                    ),
+                    itemBuilder: (context, index) {
+                      final selected = selectedAvatar == index;
+
+                      return GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            selectedAvatar = index;
+                            selectedAvatarId = "avatar${index + 1}";
+                            selectedImage = null;
+
+                            debugPrint("SELECTED AVATAR = $selectedAvatarId");
+                          });
+
+                          Navigator.pop(context);
+                        },
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 250),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: selected
+                                  ? AppTheme.primary
+                                  : Colors.transparent,
+                              width: 3,
+                            ),
+                          ),
+                          child: CircleAvatar(
+                            backgroundImage: AssetImage(avatars[index]),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+
+                  const SizedBox(height: 20),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -102,79 +275,71 @@ class _UpdatePhotoScreenState extends State<UpdatePhotoScreen> {
                   Center(
                     child: Column(
                       children: [
-                        Container(
-                          width: 200,
-                          height: 200,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.white.withOpacity(0.7),
-                            border: Border.all(
-                              color: Colors.white.withOpacity(0.4),
-                              width: 1.0,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppTheme.primary.withOpacity(0.08),
-                                blurRadius: 24,
-                                offset: const Offset(0, 8),
-                              )
-                            ],
-                          ),
-                          padding: const EdgeInsets.all(8.0),
-                          child: ClipOval(
-                            child: Stack(
-                              children: [
-                                Positioned.fill(
-                                  child: selectedImage != null
-                                      ? Image.file(
-                                    selectedImage!,
-                                    fit: BoxFit.cover,
-                                  )
-                                      : Image.asset(
-                                    'assets/images/defaultProfile.jpg',
-                                    fit: BoxFit.cover,
-                                  ),
+                        Stack(
+                          children: [
+                            // Photo preview
+                            Container(
+                              width: 160,
+                              height: 160,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: Colors.white,
+                                  width: 4,
                                 ),
-                                Positioned.fill(
-                                  child: Material(
-                                    color: Colors.transparent,
-                                    child: InkWell(
-                                      onTap: () {},
-                                      child: Container(
-                                        color: AppTheme.primary.withOpacity(0.1),
-                                        child: const Center(
-                                          child: Icon(
-                                            Icons.edit,
-                                            color: Colors.white,
-                                            size: 32,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppTheme.primary.withOpacity(.15),
+                                    blurRadius: 24,
+                                    offset: const Offset(0, 8),
                                   ),
+                                ],
+                              ),
+                              child: ClipOval(
+                                child: selectedImage != null
+                                    ? Image.file(
+                                  selectedImage!,
+                                  fit: BoxFit.cover,
+                                )
+                                    : Image.asset(
+                                  avatars[selectedAvatar],
+                                  fit: BoxFit.cover,
                                 ),
-                              ],
+                              ),
                             ),
-                          ),
+                          ],
                         ),
-                        const SizedBox(height: 12),
+
+                        const SizedBox(height: 22),
+
                         Text(
-                          "Sarah Jenkins",
+                          "Choose your profile picture",
+                          textAlign: TextAlign.center,
                           style: GoogleFonts.beVietnamPro(
                             fontSize: 16,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.w500,
                             color: AppTheme.textSecondary,
                           ),
                         ),
+                        const SizedBox(height: 28),
                       ],
                     ),
                   ),
 
-                  const SizedBox(height: 32),
+
 
                   // Action items (bento grid / list)
                   Column(
                     children: [
+                      // Choose an Avatar
+                      _buildActionItem(
+                        icon: Icons.face_retouching_natural,
+                        title: "Avatar Collection",
+                        subtitle: "Choose from 10 premium avatars",
+                        onTap: _showAvatarPicker,
+                      ),
+                      const SizedBox(height: 12),
+
                       // Choose from gallery
                       _buildActionItem(
                         icon: Icons.photo_library_outlined,
@@ -188,119 +353,12 @@ class _UpdatePhotoScreenState extends State<UpdatePhotoScreen> {
                       _buildActionItem(
                         icon: Icons.photo_camera_outlined,
                         title: "Take Photo",
-                        subtitle: "Use your camera right now",
+                        subtitle: "Capture a new profile picture",
                         onTap: takePhoto,
-                      ),
-                      const SizedBox(height: 12),
-
-                      // Paste Image URL input panel
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.7),
-                          borderRadius: BorderRadius.circular(16.0),
-                          border: Border.all(
-                            color: Colors.white.withOpacity(0.4),
-                            width: 1.0,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppTheme.primary.withOpacity(0.08),
-                              blurRadius: 24,
-                              offset: const Offset(0, 4),
-                            )
-                          ],
-                        ),
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Row(
-                              children: [
-                                Container(
-                                  width: 40,
-                                  height: 40,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: const Color(0xFFE4E2E2),
-                                  ),
-                                  child: const Icon(
-                                    Icons.link,
-                                    color: AppTheme.textSecondary,
-                                    size: 22,
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Text(
-                                  "Paste Image URL",
-                                  style: GoogleFonts.beVietnamPro(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppTheme.textPrimary,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-                            TextField(
-                              controller: _urlController,
-                              keyboardType: TextInputType.url,
-                              style: GoogleFonts.beVietnamPro(
-                                fontSize: 16,
-                                color: AppTheme.textPrimary,
-                              ),
-                              decoration: InputDecoration(
-                                hintText: "https://example.com/image.jpg",
-                                contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 12,
-                                ),
-                                filled: true,
-                                fillColor: AppTheme.surface.withOpacity(0.5),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                  borderSide: BorderSide.none,
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                  borderSide: BorderSide(
-                                    color: AppTheme.primaryContainer.withOpacity(0.5),
-                                    width: 2.0,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
                       ),
 
                       const SizedBox(height: 24),
 
-                      // Remove photo button
-                      SizedBox(
-                        width: double.infinity,
-                        height: 56,
-                        child: OutlinedButton.icon(
-                          onPressed: _handleRemovePhoto,
-                          icon: const Icon(Icons.delete_outline, size: 20),
-                          label: Text(
-                            "Remove Current Photo",
-                            style: GoogleFonts.beVietnamPro(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: AppTheme.error,
-                            side: BorderSide(
-                              color: AppTheme.error.withOpacity(0.2),
-                              width: 1.0,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16.0),
-                            ),
-                          ),
-                        ),
-                      ),
                     ],
                   ),
                 ],
@@ -313,42 +371,50 @@ class _UpdatePhotoScreenState extends State<UpdatePhotoScreen> {
             top: 0,
             left: 0,
             right: 0,
-            child: ClipRect(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                child: Container(
-                  height: 64,
-                  decoration: BoxDecoration(
-                    color: AppTheme.surface.withOpacity(0.7),
-                    border: Border(
-                      bottom: BorderSide(
-                        color: AppTheme.outlineVariant.withOpacity(0.3),
-                        width: 1.0,
-                      ),
-                    ),
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      // Close button
-                      IconButton(
-                        icon: const Icon(Icons.close, color: AppTheme.textSecondary),
-                        onPressed: () => context.pop(),
-                      ),
-                      // Title
-                      Text(
-                        "Update Photo",
-                        style: GoogleFonts.montserrat(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w600,
-                          color: AppTheme.textPrimary,
+            child: SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Container(
+                        width: 52,
+                        height: 52,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppTheme.primary.withOpacity(.08),
+                              blurRadius: 16,
+                              offset: const Offset(0, 6),
+                            ),
+                          ],
+                        ),
+                        child: IconButton(
+                          icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                          color: AppTheme.primary,
+                          onPressed: () => context.pop(),
                         ),
                       ),
-                      // Balancing hidden trailing element
-                      const SizedBox(width: 48),
-                    ],
-                  ),
+                    ),
+
+                    Text(
+                      "Update Photo",
+                      style: GoogleFonts.montserrat(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w500,
+                        color: AppTheme.primary,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -356,45 +422,96 @@ class _UpdatePhotoScreenState extends State<UpdatePhotoScreen> {
 
           // Bottom CTA Fixed button overlapping list with linear gradient
           Positioned(
-            bottom: 0,
             left: 0,
             right: 0,
+            bottom: 0,
             child: Container(
-              height: 110,
+              padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [
-                    AppTheme.surface,
-                    AppTheme.surface.withOpacity(0.9),
-                    Colors.transparent,
-                  ],
                   begin: Alignment.bottomCenter,
                   end: Alignment.topCenter,
+                  colors: [
+                    AppTheme.surface,
+                    AppTheme.surface.withOpacity(0.96),
+                    AppTheme.surface.withOpacity(0.70),
+                    Colors.transparent,
+                  ],
                 ),
               ),
-              padding: const EdgeInsets.fromLTRB(24.0, 16.0, 24.0, 32.0),
-              alignment: Alignment.bottomCenter,
-              child: SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton.icon(
-                  onPressed: _handleSaveChanges,
-                  icon: const Icon(Icons.check, size: 20),
-                  label: Text(
-                    "Save Changes",
-                    style: GoogleFonts.beVietnamPro(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+              child: SafeArea(
+                top: false,
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 58,
+                  child: ElevatedButton(
+                    onPressed: loading ? null : _handleSaveChanges,
+                    style: ElevatedButton.styleFrom(
+                      elevation: 0,
+                      padding: EdgeInsets.zero,
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18),
+                      ),
                     ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primary,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(28.0),
+                    child: Ink(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(18),
+                        gradient: const LinearGradient(
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                          colors: [
+                            AppTheme.primary,
+                            Color(0xFFE95D96),
+                          ],
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppTheme.primary.withOpacity(0.30),
+                            blurRadius: 24,
+                            spreadRadius: 1,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      child: Center(
+                        child: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 250),
+                          child: loading
+                              ? const SizedBox(
+                            key: ValueKey("loading"),
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.5,
+                              color: Colors.white,
+                            ),
+                          )
+                              : Row(
+                            key: const ValueKey("button"),
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.check_rounded,
+                                color: Colors.white,
+                                size: 22,
+                              ),
+                              const SizedBox(width: 10),
+                              Text(
+                                "Save Changes",
+                                style: GoogleFonts.beVietnamPro(
+                                  color: Colors.white,
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 0.3,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
-                    elevation: 8,
-                    shadowColor: AppTheme.primary.withOpacity(0.3),
                   ),
                 ),
               ),
@@ -411,75 +528,84 @@ class _UpdatePhotoScreenState extends State<UpdatePhotoScreen> {
     required String subtitle,
     required VoidCallback onTap,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.7),
-        borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(
-          color: Colors.white.withOpacity(0.4),
-          width: 1.0,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.primary.withOpacity(0.08),
-            blurRadius: 24,
-            offset: const Offset(0, 4),
-          )
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(16.0),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppTheme.primaryContainer.withOpacity(0.2),
-                  ),
-                  child: Icon(
-                    icon,
-                    color: AppTheme.primary,
-                    size: 22,
-                  ),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(24),
+        onTap: onTap,
+        child: Ink(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: AppTheme.primary.withOpacity(.05),
+                blurRadius: 24,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFEEF5),
+                  borderRadius: BorderRadius.circular(18),
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: GoogleFonts.beVietnamPro(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.textPrimary,
-                        ),
+                child: Icon(
+                  icon,
+                  color: AppTheme.primary,
+                  size: 26,
+                ),
+              ),
+
+              const SizedBox(width: 18),
+
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+
+                    Text(
+                      title,
+                      style: GoogleFonts.montserrat(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.textPrimary,
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        subtitle,
-                        style: GoogleFonts.beVietnamPro(
-                          fontSize: 12,
-                          color: AppTheme.textSecondary,
-                        ),
+                    ),
+
+                    const SizedBox(height: 4),
+
+                    Text(
+                      subtitle,
+                      style: GoogleFonts.beVietnamPro(
+                        fontSize: 13,
+                        color: AppTheme.textSecondary,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-                const Icon(
-                  Icons.chevron_right,
-                  color: AppTheme.outlineVariant,
-                  size: 20,
+              ),
+
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8F8F8),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-              ],
-            ),
+                child: const Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 14,
+                  color: AppTheme.primary,
+                ),
+              ),
+            ],
           ),
         ),
       ),

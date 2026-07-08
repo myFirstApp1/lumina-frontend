@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/routes/app_routes.dart';
 import '../../../../core/theme/app_theme.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/utils/avatar_helper.dart';
 import '../cubit/profile_cubit.dart';
 import '../cubit/profile_state.dart';
 import '../../../auth/presentation/cubit/auth_cubit.dart';
@@ -37,8 +38,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final profileState = context.read<ProfileCubit>().state;
+
       if (profileState is ProfileLoaded) {
         final profile = profileState.profile;
+
         _usernameController.text = profile.name;
         _emailController.text = profile.email;
         _phoneController.text = profile.phone;
@@ -72,17 +75,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
         final profileState = context.read<ProfileCubit>().state;
 
-        String profileId = "";
-
-        if (profileState is ProfileLoaded) {
-          profileId = profileState.profile.id;
+        if (profileState is! ProfileLoaded) {
+          return;
         }
 
+        final profile = profileState.profile;
+
         final updatedProfile = UserProfileModel(
-          id: profileId,
+          id: profile.id,
           name: _usernameController.text,
           email: _emailController.text,
           phone: _phoneController.text,
+          avatar: profile.avatar, // Always use the latest avatar
           address: _addressController.text,
         );
 
@@ -148,33 +152,61 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     child: Column(
                       children: [
                         GestureDetector(
-                          onTap: () => context.push(AppRoutes.updatePhoto),
+                          onTap: () async {
+
+                            await context.push(AppRoutes.updatePhoto);
+
+                            if (!mounted) return;
+
+                            final authState = context.read<AuthCubit>().state;
+
+                            if (authState is AuthAuthenticated) {
+
+                              await context.read<ProfileCubit>().loadProfile(
+                                authState.user.userId,
+                              );
+
+                            }
+
+                          },
                           child: Stack(
                             children: [
                               // Photo preview
-                              Container(
-                                width: 128,
-                                height: 128,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: Colors.white,
-                                    width: 4.0,
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: AppTheme.primary.withOpacity(0.15),
-                                      blurRadius: 24,
-                                      offset: const Offset(0, 8),
+                              BlocBuilder<ProfileCubit, ProfileState>(
+                                builder: (context, state) {
+
+                                  String avatar = "avatar1";
+
+                                  if (state is ProfileLoaded &&
+                                      state.profile.avatar.isNotEmpty) {
+                                    avatar = state.profile.avatar;
+                                  }
+
+                                  return Container(
+                                    width: 128,
+                                    height: 128,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: Colors.white,
+                                        width: 4,
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: AppTheme.primary.withOpacity(.15),
+                                          blurRadius: 24,
+                                          offset: const Offset(0, 8),
+                                        ),
+                                      ],
+                                      image: DecorationImage(
+                                        image: AssetImage(
+                                          AvatarHelper.getAvatarPath(avatar),
+                                        ),
+                                        fit: BoxFit.cover,
+                                      ),
                                     ),
-                                  ],
-                                  image: const DecorationImage(
-                                    image: AssetImage(
-                                      'assets/images/defaultProfile.jpg',
-                                    ),
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
+                                  );
+                                },
                               ),
                               // Hover camera icon overlay
                               Positioned.fill(
@@ -216,7 +248,21 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         ),
                         const SizedBox(height: 12),
                         TextButton(
-                          onPressed: () => context.push(AppRoutes.updatePhoto),
+                          onPressed: () async {
+                            await context.push(AppRoutes.updatePhoto);
+
+                            if (!mounted) return;
+
+                            final authState = context.read<AuthCubit>().state;
+
+                            if (authState is AuthAuthenticated) {
+
+                              await context.read<ProfileCubit>().loadProfile(
+                                authState.user.userId,
+                              );
+
+                            }
+                          },
                           child: BlocBuilder<ProfileCubit, ProfileState>(
                             builder: (context, state) {
                               String name = "Loading...";
@@ -351,7 +397,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                   gradient: AppTheme.primaryGradient,
                                   shape: BoxShape.rectangle,
                                   borderRadius: BorderRadius.all(
-                                    Radius.circular(40),
+                                    Radius.circular(20),
                                   ),
                                 ),
                                 child: Center(
@@ -393,7 +439,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                       width: 2.0,
                                     ),
                                     shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(40.0),
+                                      borderRadius: BorderRadius.circular(20.0),
                                     ),
                                   ),
                                   child: Text(

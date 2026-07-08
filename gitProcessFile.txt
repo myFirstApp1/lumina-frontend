@@ -436,3 +436,17 @@ commit 24 : ReDesigning the Edit Profile Screen and officially freeze Phase 1&2
  modified:   lib/features/auth/presentation/screens/login_screen.dart
         modified:   lib/features/profile/presentation/screens/edit_profile_screen.dart
         modified:   lib/features/profile/presentation/screens/profile_screen.dart
+
+commit 25 : ReDesigning the update profile photo Screen and officially freeze Phase 1&2
+        "git restore <file>..." to discard changes in working directory)
+                modified:   lib/core/routes/app_routes.dart
+                modified:   lib/features/profile/data/models/user_profile_model.dart
+                modified:   lib/features/profile/data/repositories/profile_repository_impl.dart
+                modified:   lib/features/profile/presentation/screens/edit_profile_screen.dart
+                modified:   lib/features/profile/presentation/screens/profile_screen.dart
+                modified:   lib/features/profile/presentation/screens/update_photo_screen.dart
+                modified:   lib/main.dart
+                modified:   pubspec.yaml
+             added:   assets/avatars/
+                lib/core/utils/avatar_helper.dart
+

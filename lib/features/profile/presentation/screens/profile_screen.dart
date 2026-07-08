@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/routes/app_routes.dart';
 import '../../../../core/theme/app_theme.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/utils/avatar_helper.dart';
 import '../cubit/profile_cubit.dart';
 import '../cubit/profile_state.dart';
 import '../../../auth/presentation/cubit/auth_cubit.dart';
@@ -121,9 +122,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 border: Border.all(color: Colors.white, width: 4.0),
-                                  image: const DecorationImage(
+                                  image: DecorationImage(
                                     image: AssetImage(
-                                      'assets/images/defaultProfile.jpg',
+                                      AvatarHelper.getAvatarPath(profile.avatar),
                                     ),
                                     fit: BoxFit.cover,
                                   ),
