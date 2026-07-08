@@ -217,6 +217,21 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<void> logout() async {
-    await _secureStorage.clearUserSession();
+    try {
+      final response = await _client.dio.post('/api/auth/logout');
+
+      debugPrint("Logout Success : ${response.statusCode}");
+
+    } catch (e) {
+
+      debugPrint("Logout API failed : $e");
+
+      // Best effort remote logout
+
+    } finally {
+
+      // Always clear local session
+      await _secureStorage.clearUserSession();
+    }
   }
 }

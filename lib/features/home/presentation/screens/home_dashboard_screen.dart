@@ -2,13 +2,17 @@
 import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/routes/app_routes.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/avatar_helper.dart';
 import '../../../auth/presentation/cubit/auth_cubit.dart';
+import '../../../profile/presentation/cubit/profile_cubit.dart';
+import '../../../profile/presentation/cubit/profile_state.dart';
 import '../../../protection/presentation/cubit/protection_cubit.dart';
 import '../../../sos/presentation/cubit/sos_cubit.dart';
 import '../../../tracking/presentation/cubit/tracking_cubit.dart';
@@ -21,10 +25,21 @@ class HomeDashboardScreen extends StatefulWidget {
 }
 
 class _HomeDashboardScreenState extends State<HomeDashboardScreen> with TickerProviderStateMixin {
+  // sos button
   late AnimationController _pulseController;
   late AnimationController _pingController;
   Timer? _holdTimer;
   bool _isHolding = false;
+
+  // for greeting container
+  late AnimationController _controller;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
+  late Animation<double> _avatarScale;
+
+  // while holding sos
+  late AnimationController _rippleController;
+  late Animation<double> _rippleAnimation;
 
   @override
   void initState() {
@@ -48,16 +63,15 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> with TickerPr
 
       if (authState is AuthAuthenticated) {
 
-        context
-            .read<ProtectionCubit>()
-            .startProtection(
+        await context.read<ProfileCubit>().loadProfile(
           authState.user.userId,
         );
 
-        await context
-            .read<TrackingCubit>()
-            .restoreTrackingIfNeeded();
+        context.read<ProtectionCubit>().startProtection(
+          authState.user.userId,
+        );
 
+        await context.read<TrackingCubit>().restoreTrackingIfNeeded();
       }
 
         await context
@@ -65,6 +79,57 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> with TickerPr
           .restoreActiveSos();
 
       });
+
+    // greeting container
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(
+        milliseconds: 800,
+      ),
+    );
+
+    _fadeAnimation = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOut,
+    );
+
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, .15),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: Curves.easeOutCubic,
+      ),
+    );
+
+    _avatarScale = Tween<double>(
+      begin: .85,
+      end: 1,
+    ).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: Curves.easeOutBack,
+      ),
+    );
+
+    _controller.forward();
+
+    // while holding sos
+    _rippleController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 700),
+    );
+
+    _rippleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 1.8,
+    ).animate(
+      CurvedAnimation(
+        parent: _rippleController,
+        curve: Curves.easeOut,
+      ),
+    );
   }
 
   Future<bool> validateLocation() async {
@@ -108,6 +173,8 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> with TickerPr
     _pulseController.dispose();
     _pingController.dispose();
     _holdTimer?.cancel();
+    _controller.dispose();
+    _rippleController.dispose();
     super.dispose();
   }
 
@@ -167,97 +234,183 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> with TickerPr
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // TopAppBar Row matching HTML exactly
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      // Avatar
-                      GestureDetector(
-                        onTap: () => context.push(AppRoutes.profile),
-                        child: Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: AppTheme.primaryContainer.withOpacity(0.2),
-                            border: Border.all(
-                              color: AppTheme.primary.withOpacity(0.2),
-                              width: 1.0,
+                  BlocBuilder<ProfileCubit, ProfileState>(
+                    builder: (context, state) {
+
+                      String avatar = "";
+                      String username = "Loading...";
+
+                      if (state is ProfileLoaded) {
+                        avatar = state.profile.avatar;
+                        username = state.profile.name;
+                      }
+
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+
+                          GestureDetector(
+                            onTap: () => context.push(AppRoutes.profile),
+                           child: ScaleTransition(
+                            scale: _avatarScale,
+                            child: Container(
+                              width: 48,
+                              height: 48,
+
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: Colors.white,
+                                  width: 2,
+                                ),
+
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppTheme.primary.withOpacity(.15),
+                                    blurRadius: 16,
+                                  ),
+                                ],
+                              ),
+
+                              child: ClipOval(
+                                child: Image.asset(
+                                  AvatarHelper.getAvatarPath(avatar),
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
                             ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
-                                blurRadius: 4,
-                                offset: const Offset(0, 1),
-                              )
-                            ],
+                           ),
                           ),
-                          child: ClipOval(
-                            child: Image.asset(
-                              'assets/images/defaultProfile.jpg',
-                              fit: BoxFit.cover,
+
+                          SizedBox(
+                            width: 46,
+                            height: 46,
+                            child: IconButton(
+                              icon: const Icon(
+                                Icons.settings_outlined,
+                                color: AppTheme.primary,
+                              ),
+                              onPressed: () => context.push(AppRoutes.settings),
+                              style: IconButton.styleFrom(
+                                backgroundColor:
+                                AppTheme.primaryContainer.withOpacity(.2),
+                              ),
                             ),
                           ),
-                        ),
-                      ),
-                      // Settings button
-                      SizedBox(
-                        width: 40,
-                        height: 40,
-                        child: IconButton(
-                          icon: const Icon(Icons.settings_outlined, color: AppTheme.primary, size: 24),
-                          onPressed: () => context.push(AppRoutes.settings),
-                          style: IconButton.styleFrom(
-                            backgroundColor: AppTheme.primaryContainer.withOpacity(0.2),
-                            padding: EdgeInsets.zero,
-                          ),
-                        ),
-                      ),
-                    ],
+                        ],
+                      );
+                    },
                   ),
                   const SizedBox(height: 24.0),
 
                   // Dashboard Welcome Card
-                  Container(
-                    decoration: BoxDecoration(
-                      color: AppTheme.surface.withOpacity(0.8),
-                      borderRadius: BorderRadius.circular(16.0),
-                      border: Border.all(color: Colors.white.withOpacity(0.4), width: 1.0),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.06),
-                          blurRadius: 20.0,
-                          offset: const Offset(0, 4),
-                        )
-                      ],
-                    ),
-                    padding: const EdgeInsets.all(24.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Good morning, Sarah.",
-                          style: GoogleFonts.montserrat(
-                            fontSize: 28,
-                            fontWeight: FontWeight.w600,
-                            color: AppTheme.textPrimary,
+                  BlocBuilder<ProfileCubit, ProfileState>(
+                    builder: (context, state) {
+
+                      String username = "User";
+
+                      if (state is ProfileLoaded) {
+                        username = state.profile.name;
+                      }
+
+                      final hour = DateTime.now().hour;
+
+                      String greeting;
+
+                      if (hour < 12) {
+                        greeting = "Good Morning";
+                      } else if (hour < 17) {
+                        greeting = "Good Afternoon";
+                      } else if (hour < 21) {
+                        greeting = "Good Evening";
+                      } else {
+                        greeting = "Stay Safe Tonight";
+                      }
+
+                      return FadeTransition(
+                        opacity: _fadeAnimation,
+                        child: SlideTransition(
+                          position: _slideAnimation,
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 700),
+                            curve: Curves.easeOut,
+                            padding: const EdgeInsets.all(24),
+
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(24),
+
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  Colors.white.withOpacity(.95),
+                                  Colors.white.withOpacity(.85),
+                                ],
+                              ),
+
+                              border: Border.all(
+                                color: Colors.white.withOpacity(.7),
+                              ),
+
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppTheme.primary.withOpacity(.08),
+                                  blurRadius: 30,
+                                  offset: const Offset(0, 12),
+                                ),
+                              ],
+                            ),
+
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+
+                                Row(
+                                  children: [
+
+                                    const Text(
+                                      "👋",
+                                      style: TextStyle(fontSize: 24),
+                                    ),
+
+                                    const SizedBox(width: 8),
+
+                                    Expanded(
+                                      child: Text(
+                                        "$greeting, $username",
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: GoogleFonts.montserrat(
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.bold,
+                                          color: AppTheme.primary,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+
+                                const SizedBox(height: 10),
+
+                                Text(
+                                  "Your personal safety network is active and continuously monitoring.",
+
+                                  style: GoogleFonts.beVietnamPro(
+                                    fontSize: 16,
+                                    color: AppTheme.textSecondary,
+                                    height: 1.6,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 8.0),
-                        Text(
-                          "Your personal safety network is active and monitoring.",
-                          style: GoogleFonts.beVietnamPro(
-                            fontSize: 18,
-                            fontWeight: FontWeight.normal,
-                            color: AppTheme.textSecondary,
-                            height: 1.55,
-                          ),
-                        ),
-                      ],
-                    ),
+                      );
+                    },
                   ),
                   const SizedBox(height: 32.0),
 
-                  // Central SOS Action Area
+// Central SOS Action Area
                   Column(
                     children: [
                       Center(
@@ -267,7 +420,10 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> with TickerPr
                           child: Stack(
                             alignment: Alignment.center,
                             children: [
-                              // Ping Ring (Outer expanding ring)
+
+                              // ==========================
+                              // OUTER PING RING
+                              // ==========================
                               AnimatedBuilder(
                                 animation: _pingController,
                                 builder: (context, child) {
@@ -280,7 +436,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> with TickerPr
                                         height: 200,
                                         decoration: BoxDecoration(
                                           shape: BoxShape.circle,
-                                          color: Colors.red.withOpacity(0.2),
+                                          color: Colors.red.withOpacity(0.20),
                                         ),
                                       ),
                                     ),
@@ -288,7 +444,37 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> with TickerPr
                                 },
                               ),
 
-                              // Pulse Ring (Inner glowing ring)
+                              // ==========================
+                              // HOLD RIPPLE
+                              // Only visible while holding
+                              // ==========================
+                              if (_isHolding)
+                                AnimatedBuilder(
+                                  animation: _rippleController,
+                                  builder: (context, child) {
+                                    return Transform.scale(
+                                      scale: _rippleAnimation.value,
+                                      child: Opacity(
+                                        opacity: 1 - _rippleController.value,
+                                        child: Container(
+                                          width: 210,
+                                          height: 210,
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            border: Border.all(
+                                              color: Colors.redAccent.withOpacity(.8),
+                                              width: 4,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+
+                              // ==========================
+                              // PULSE RING
+                              // ==========================
                               AnimatedBuilder(
                                 animation: _pulseController,
                                 builder: (context, child) {
@@ -299,13 +485,15 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> with TickerPr
                                       height: 240,
                                       decoration: BoxDecoration(
                                         shape: BoxShape.circle,
-                                        color: Colors.red.withOpacity(0.3),
+                                        color: Colors.red.withOpacity(0.30),
                                         boxShadow: [
                                           BoxShadow(
-                                            color: Colors.red.withOpacity(0.3 * _pulseController.value),
+                                            color: Colors.red.withOpacity(
+                                              0.30 * _pulseController.value,
+                                            ),
                                             blurRadius: 40,
                                             spreadRadius: 5,
-                                          )
+                                          ),
                                         ],
                                       ),
                                     ),
@@ -313,76 +501,106 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> with TickerPr
                                 },
                               ),
 
-                              // Main SOS Action Button
+                              // ==========================
+                              // SOS BUTTON
+                              // ==========================
                               GestureDetector(
                                 onTapDown: (_) {
 
-                                  _isHolding = true;
+                                  setState(() {
+                                    _isHolding = true;
+                                  });
+
+                                  HapticFeedback.lightImpact();
+
+                                  _rippleController.repeat();
 
                                   _holdTimer = Timer(
                                     const Duration(seconds: 3),
                                         () async {
 
-                                          if (_isHolding) {
+                                      if (_isHolding) {
 
-                                            bool canStart =
-                                            await validateLocation();
+                                        bool canStart = await validateLocation();
 
-                                            if (!canStart) {
-                                              return;
-                                            }
+                                        if (!canStart) return;
 
-                                            context.push(
-                                              AppRoutes.preAlert,
-                                            );
-                                          }
+                                        _rippleController.stop();
+                                        _rippleController.reset();
 
+                                        await HapticFeedback.heavyImpact();
+
+                                        if (!mounted) return;
+
+
+                                        context.push(AppRoutes.preAlert);
+                                      }
                                     },
                                   );
-
                                 },
 
                                 onTapUp: (_) {
 
-                                  _isHolding = false;
+                                  setState(() {
+                                    _isHolding = false;
+                                  });
+
                                   _holdTimer?.cancel();
 
+                                  _rippleController.stop();
+                                  _rippleController.reset();
                                 },
 
                                 onTapCancel: () {
 
-                                  _isHolding = false;
+                                  setState(() {
+                                    _isHolding = false;
+                                  });
+
                                   _holdTimer?.cancel();
 
+                                  _rippleController.stop();
+                                  _rippleController.reset();
                                 },
-                                child: Container(
-                                  width: 200,
-                                  height: 200,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    gradient: const LinearGradient(
-                                      colors: [Color(0xFFDC2626), Color(0xFFB91C1C)],
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
+
+                                child: AnimatedScale(
+                                  duration: const Duration(milliseconds: 150),
+                                  scale: _isHolding ? 0.95 : 1.0,
+                                  child: Container(
+                                    width: 200,
+                                    height: 200,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      gradient: const LinearGradient(
+                                        colors: [
+                                          Color(0xFFDC2626),
+                                          Color(0xFFB91C1C),
+                                        ],
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                      ),
+                                      border: Border.all(
+                                        color: Colors.white.withOpacity(.20),
+                                        width: 4,
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: const Color(0xFFDC2626).withOpacity(.80),
+                                          blurRadius: 40,
+                                          spreadRadius: -10,
+                                          offset: const Offset(0, 10),
+                                        ),
+                                      ],
                                     ),
-                                    border: Border.all(color: Colors.white.withOpacity(0.2), width: 4.0),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: const Color(0xFFDC2626).withOpacity(0.8),
-                                        blurRadius: 40,
-                                        spreadRadius: -10,
-                                        offset: const Offset(0, 10),
-                                      )
-                                    ],
-                                  ),
-                                  child: Center(
-                                    child: Text(
-                                      "SOS",
-                                      style: GoogleFonts.montserrat(
-                                        color: Colors.white,
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.w600,
-                                        letterSpacing: 4.0,
+                                    child: Center(
+                                      child: Text(
+                                        "SOS",
+                                        style: GoogleFonts.montserrat(
+                                          color: Colors.white,
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.w700,
+                                          letterSpacing: 4,
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -392,30 +610,35 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> with TickerPr
                           ),
                         ),
                       ),
-                      const SizedBox(height: 28.0),
 
-                      // SOS Info banner
+                      const SizedBox(height: 28),
+
                       Container(
                         decoration: BoxDecoration(
-                          color: AppTheme.surface.withOpacity(0.8),
+                          color: AppTheme.surface.withOpacity(.8),
                           borderRadius: BorderRadius.circular(9999),
-                          border: Border.all(color: Colors.white.withOpacity(0.3), width: 1.0),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(.3),
+                          ),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
-                              blurRadius: 8.0,
+                              color: Colors.black.withOpacity(.05),
+                              blurRadius: 8,
                               offset: const Offset(0, 1),
-                            )
+                            ),
                           ],
                         ),
-                        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 8,
+                        ),
                         child: Text(
                           "PRESS & HOLD FOR 3 SECONDS",
                           style: GoogleFonts.beVietnamPro(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
                             color: AppTheme.textPrimary,
-                            letterSpacing: 0.7,
+                            letterSpacing: .7,
                           ),
                         ),
                       ),
@@ -579,7 +802,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> with TickerPr
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    _buildNavItem(context, Icons.health_and_safety_outlined, "Home", true, () {}),
+                    _buildNavItem(context, Icons.home, "Home", true, () {}),
                     _buildNavItem(context, Icons.map_outlined, "Map", false, () {
                       context.push(AppRoutes.liveTracking);
                     }),

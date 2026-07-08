@@ -450,3 +450,11 @@ commit 25 : ReDesigning the update profile photo Screen and officially freeze Ph
              added:   assets/avatars/
                 lib/core/utils/avatar_helper.dart
 
+commit 26 : ReDesigning the home screen (paused) and officially freeze Phase 1&2
+
+   modified:   gitProcessFile.txt
+        modified:   lib/features/auth/data/repositories/auth_repository_impl.dart
+        modified:   lib/features/home/presentation/screens/home_dashboard_screen.dart
+        modified:   lib/features/profile/presentation/screens/settings_screen.dart
+        modified:   lib/features/tracking/presentation/screens/live_tracking_screen.dart
+        android/.kotlin/

@@ -746,7 +746,7 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> with SingleTick
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    _buildNavItem(context, Icons.health_and_safety_outlined, "Home", false, () {
+                    _buildNavItem(context, Icons.home, "Home", false, () {
                       context.go(AppRoutes.home);
                     }),
                     
@@ -760,7 +760,7 @@ class _LiveTrackingScreenState extends State<LiveTrackingScreen> with SingleTick
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.explore, color: AppTheme.primary, size: 20),
+                          const Icon(Icons.map_outlined, color: AppTheme.primary, size: 20, ),
                           const SizedBox(width: 4),
                           Text(
                             "Map",
