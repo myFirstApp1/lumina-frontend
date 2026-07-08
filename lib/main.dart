@@ -19,7 +19,7 @@ import 'features/sos/presentation/cubit/sos_cubit.dart';
 import 'features/tracking/data/repositories/tracking_repository_impl.dart';
 import 'features/tracking/presentation/cubit/tracking_cubit.dart';
 import 'features/profile/presentation/cubit/wearable_cubit.dart';
-import 'features/ai_companion1/presentation/cubit/ai_companion_cubit.dart';
+import 'features/ai_companion/presentation/cubit/ai_companion_cubit.dart';
 import 'features/profile/data/repositories/profile_repository_impl.dart';
 import 'features/profile/presentation/cubit/profile_cubit.dart';
 import 'features/contacts/data/repositories/contacts_repository_impl.dart';

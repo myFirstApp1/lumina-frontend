@@ -5,6 +5,7 @@ class UserProfileModel extends Equatable {
   final String name;
   final String email;
   final String phone;
+  final String avatar;
   final String address;
 
   const UserProfileModel({
@@ -12,6 +13,7 @@ class UserProfileModel extends Equatable {
     required this.name,
     required this.email,
     required this.phone,
+    required this.avatar,
     required this.address,
   });
 
@@ -21,6 +23,7 @@ class UserProfileModel extends Equatable {
       name: json['name'] as String? ?? '',
       email: json['email'] as String? ?? '',
       phone: json['phone'] as String? ?? '',
+      avatar: json["avatar"]as String? ?? '',
       address: json['address'] as String? ?? '',
     );
   }
@@ -31,6 +34,7 @@ class UserProfileModel extends Equatable {
       'name': name,
       'email': email,
       'phone': phone,
+      "avatar": avatar,
       'address': address,
     };
   }
@@ -40,6 +44,7 @@ class UserProfileModel extends Equatable {
     String? name,
     String? email,
     String? phone,
+    String? avatar,
     String? address,
   }) {
     return UserProfileModel(
@@ -47,12 +52,13 @@ class UserProfileModel extends Equatable {
       name: name ?? this.name,
       email: email ?? this.email,
       phone: phone ?? this.phone,
+      avatar: avatar ?? this.avatar,
       address: address ?? this.address,
     );
   }
 
   @override
-  List<Object?> get props => [id, name, email, phone, address];
+  List<Object?> get props => [id, name, email, phone, avatar, address];
 }
 
 class UserProfileResponseModel extends Equatable {

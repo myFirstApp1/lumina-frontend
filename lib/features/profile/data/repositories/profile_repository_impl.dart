@@ -46,11 +46,18 @@ class ProfileRepositoryImpl implements ProfileRepository {
   }
   @override
   Future<UserProfileModel> updateProfile(String userId, UserProfileModel profile) async {
+    debugPrint("========== UPDATE REQUEST ==========");
+    debugPrint("USER ID = $userId");
+    debugPrint(profile.toJson().toString());
+
     try {
+      debugPrint(profile.toJson().toString());
       final response = await client.dio.put(
         '/api/users/$userId',
         data: profile.toJson(),
       );
+      debugPrint("========== UPDATE RESPONSE ==========");
+      debugPrint(response.data.toString());
       return UserProfileModel.fromJson(response.data);
     } catch (e) {
       if (e is DioException) {
