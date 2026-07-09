@@ -464,4 +464,12 @@ commit 27 : ReDesigning the home screen completed and officially freeze Phase 1&
           modified:   lib/features/home/presentation/screens/home_dashboard_screen.dart
           added:  lib/core/widgets/lumina_bottom_navigation.dart
 
+commit 28 : ReDesigning the live tracking screen and officially freeze Phase 1&2
+
+            modified:   gitProcessFile.txt
+                 modified:   lib/core/widgets/lumina_bottom_navigation.dart
+                 modified:   lib/features/home/presentation/screens/home_dashboard_screen.dart
+                 modified:   lib/features/tracking/presentation/screens/live_tracking_screen.dart
+
+
 

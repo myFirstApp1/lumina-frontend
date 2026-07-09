@@ -22,8 +22,8 @@ class LuminaBottomNavigation extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppTheme.surface.withOpacity(.92),
           borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(18),
-            topRight: Radius.circular(18),
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
           ),
           border: Border(
             top: BorderSide(
@@ -82,7 +82,7 @@ class LuminaBottomNavigation extends StatelessWidget {
                   context,
                   icon: Icons.family_restroom,
                   label: "Family",
-                  index: 2,
+                  index: 3,
                   route: AppRoutes.contactsCircle,
                 ),
               ),
@@ -92,7 +92,7 @@ class LuminaBottomNavigation extends StatelessWidget {
                   context,
                   icon: Icons.auto_awesome_outlined,
                   label: "AI",
-                  index: 3,
+                  index: 4,
                   route: AppRoutes.aiCompanion,
                 ),
               ),
@@ -144,7 +144,7 @@ class LuminaBottomNavigation extends StatelessWidget {
                     ? AppTheme.primary.withOpacity(.12)
                     : Colors.transparent,
 
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
               ),
 
               child: Icon(
