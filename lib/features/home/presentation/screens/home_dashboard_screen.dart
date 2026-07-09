@@ -10,6 +10,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/routes/app_routes.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/avatar_helper.dart';
+import '../../../../core/widgets/lumina_bottom_navigation.dart';
 import '../../../auth/presentation/cubit/auth_cubit.dart';
 import '../../../profile/presentation/cubit/profile_cubit.dart';
 import '../../../profile/presentation/cubit/profile_state.dart';
@@ -24,7 +25,8 @@ class HomeDashboardScreen extends StatefulWidget {
   State<HomeDashboardScreen> createState() => _HomeDashboardScreenState();
 }
 
-class _HomeDashboardScreenState extends State<HomeDashboardScreen> with TickerProviderStateMixin {
+class _HomeDashboardScreenState extends State<HomeDashboardScreen>
+    with TickerProviderStateMixin {
   // sos button
   late AnimationController _pulseController;
   late AnimationController _pingController;
@@ -40,6 +42,10 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> with TickerPr
   // while holding sos
   late AnimationController _rippleController;
   late Animation<double> _rippleAnimation;
+
+  // connection for wearable devices
+  late AnimationController _connectionController;
+  late Animation<double> _connectionAnimation;
 
   @override
   void initState() {
@@ -57,35 +63,23 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> with TickerPr
     )..repeat();
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-
-      final authState =
-          context.read<AuthCubit>().state;
+      final authState = context.read<AuthCubit>().state;
 
       if (authState is AuthAuthenticated) {
+        await context.read<ProfileCubit>().loadProfile(authState.user.userId);
 
-        await context.read<ProfileCubit>().loadProfile(
-          authState.user.userId,
-        );
-
-        context.read<ProtectionCubit>().startProtection(
-          authState.user.userId,
-        );
+        context.read<ProtectionCubit>().startProtection(authState.user.userId);
 
         await context.read<TrackingCubit>().restoreTrackingIfNeeded();
       }
 
-        await context
-          .read<SosCubit>()
-          .restoreActiveSos();
-
-      });
+      await context.read<SosCubit>().restoreActiveSos();
+    });
 
     // greeting container
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(
-        milliseconds: 800,
-      ),
+      duration: const Duration(milliseconds: 800),
     );
 
     _fadeAnimation = CurvedAnimation(
@@ -96,22 +90,12 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> with TickerPr
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, .15),
       end: Offset.zero,
-    ).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: Curves.easeOutCubic,
-      ),
-    );
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
 
     _avatarScale = Tween<double>(
       begin: .85,
       end: 1,
-    ).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: Curves.easeOutBack,
-      ),
-    );
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
 
     _controller.forward();
 
@@ -121,45 +105,43 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> with TickerPr
       duration: const Duration(milliseconds: 700),
     );
 
-    _rippleAnimation = Tween<double>(
-      begin: 1.0,
-      end: 1.8,
-    ).animate(
-      CurvedAnimation(
-        parent: _rippleController,
-        curve: Curves.easeOut,
-      ),
+    _rippleAnimation = Tween<double>(begin: 1.0, end: 1.8).animate(
+      CurvedAnimation(parent: _rippleController, curve: Curves.easeOut),
     );
+
+    // wearable connection animation
+    _connectionController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1800),
+    );
+
+    _connectionAnimation = Tween<double>(begin: 1.0, end: 1.25).animate(
+      CurvedAnimation(parent: _connectionController, curve: Curves.easeInOut),
+    );
+
+    _connectionController.repeat(reverse: true);
   }
 
   Future<bool> validateLocation() async {
-
-    bool enabled =
-    await Geolocator.isLocationServiceEnabled();
+    bool enabled = await Geolocator.isLocationServiceEnabled();
 
     if (!enabled) {
-
       await Geolocator.openLocationSettings();
 
       return false;
     }
 
-    LocationPermission permission =
-    await Geolocator.checkPermission();
+    LocationPermission permission = await Geolocator.checkPermission();
 
     if (permission == LocationPermission.denied) {
-
-      permission =
-      await Geolocator.requestPermission();
+      permission = await Geolocator.requestPermission();
 
       if (permission == LocationPermission.denied) {
         return false;
       }
     }
 
-    if (permission ==
-        LocationPermission.deniedForever) {
-
+    if (permission == LocationPermission.deniedForever) {
       await Geolocator.openAppSettings();
 
       return false;
@@ -175,296 +157,258 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> with TickerPr
     _holdTimer?.cancel();
     _controller.dispose();
     _rippleController.dispose();
+    _connectionController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-
     return BlocListener<SosCubit, SosState>(
+      listener: (context, state) {
+        if (state is SosAlertActive) {
+          debugPrint("======================");
+          debugPrint("ACTIVE SOS DETECTED");
+          debugPrint("OPENING SOS SCREEN");
+          debugPrint("======================");
 
-        listener: (context, state) {
+          context.go(AppRoutes.sosActive);
+        }
+      },
 
-          if (state is SosAlertActive) {
+      child: Scaffold(
+        body: Stack(
+          children: [
+            // Background soft pink canvas
+            Container(color: AppTheme.background),
 
-            debugPrint("======================");
-            debugPrint("ACTIVE SOS DETECTED");
-            debugPrint("OPENING SOS SCREEN");
-            debugPrint("======================");
-
-            context.go(
-              AppRoutes.sosActive,
-            );
-
-          }
-
-        },
-
-        child: Scaffold(
-      body: Stack(
-        children: [
-          // Background soft pink canvas
-          Container(
-            color: AppTheme.background,
-          ),
-
-          // Decorative top glowing circular ambient highlights
-          Positioned(
-            top: -100,
-            left: -100,
-            width: 400,
-            height: 400,
-            child: Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppTheme.primaryContainer.withOpacity(0.08),
-              ),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 100.0, sigmaY: 100.0),
-                child: Container(color: Colors.transparent),
+            // Decorative top glowing circular ambient highlights
+            Positioned(
+              top: -100,
+              left: -100,
+              width: 400,
+              height: 400,
+              child: Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppTheme.primaryContainer.withOpacity(0.08),
+                ),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 100.0, sigmaY: 100.0),
+                  child: Container(color: Colors.transparent),
+                ),
               ),
             ),
-          ),
 
-          // Main Scrollable Body
-          SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(24.0, 16.0, 24.0, 110.0), // Extra bottom padding for floating nav bar
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // TopAppBar Row matching HTML exactly
-                  BlocBuilder<ProfileCubit, ProfileState>(
-                    builder: (context, state) {
+            // Main Scrollable Body
+            SafeArea(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(24.0, 16.0, 24.0, 110.0),
+                // Extra bottom padding for floating nav bar
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // TopAppBar Row matching HTML exactly
+                    BlocBuilder<ProfileCubit, ProfileState>(
+                      builder: (context, state) {
+                        String avatar = "";
+                        String username = "Loading...";
 
-                      String avatar = "";
-                      String username = "Loading...";
+                        if (state is ProfileLoaded) {
+                          avatar = state.profile.avatar;
+                          username = state.profile.name;
+                        }
 
-                      if (state is ProfileLoaded) {
-                        avatar = state.profile.avatar;
-                        username = state.profile.name;
-                      }
+                        return Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            GestureDetector(
+                              onTap: () => context.push(AppRoutes.profile),
+                              child: ScaleTransition(
+                                scale: _avatarScale,
+                                child: Container(
+                                  width: 48,
+                                  height: 48,
 
-                      return Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: Colors.white,
+                                      width: 2,
+                                    ),
 
-                          GestureDetector(
-                            onTap: () => context.push(AppRoutes.profile),
-                           child: ScaleTransition(
-                            scale: _avatarScale,
-                            child: Container(
-                              width: 48,
-                              height: 48,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: AppTheme.primary.withOpacity(
+                                          .15,
+                                        ),
+                                        blurRadius: 16,
+                                      ),
+                                    ],
+                                  ),
+
+                                  child: ClipOval(
+                                    child: Image.asset(
+                                      AvatarHelper.getAvatarPath(avatar),
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+
+                            SizedBox(
+                              width: 46,
+                              height: 46,
+                              child: IconButton(
+                                icon: const Icon(
+                                  Icons.settings_outlined,
+                                  color: AppTheme.primary,
+                                ),
+                                onPressed: () =>
+                                    context.push(AppRoutes.settings),
+                                style: IconButton.styleFrom(
+                                  backgroundColor: AppTheme.primaryContainer
+                                      .withOpacity(.2),
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 24.0),
+
+                    // Dashboard Welcome Card
+                    BlocBuilder<ProfileCubit, ProfileState>(
+                      builder: (context, state) {
+                        String username = "User";
+
+                        if (state is ProfileLoaded) {
+                          username = state.profile.name;
+                        }
+
+                        final hour = DateTime.now().hour;
+
+                        String greeting;
+
+                        if (hour < 12) {
+                          greeting = "Good Morning";
+                        } else if (hour < 17) {
+                          greeting = "Good Afternoon";
+                        } else if (hour < 21) {
+                          greeting = "Good Evening";
+                        } else {
+                          greeting = "Stay Safe Tonight";
+                        }
+
+                        return FadeTransition(
+                          opacity: _fadeAnimation,
+                          child: SlideTransition(
+                            position: _slideAnimation,
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 700),
+                              curve: Curves.easeOut,
+                              padding: const EdgeInsets.all(24),
 
                               decoration: BoxDecoration(
-                                shape: BoxShape.circle,
+                                borderRadius: BorderRadius.circular(24),
+
+                                gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    Colors.white.withOpacity(.95),
+                                    Colors.white.withOpacity(.85),
+                                  ],
+                                ),
+
                                 border: Border.all(
-                                  color: Colors.white,
-                                  width: 2,
+                                  color: Colors.white.withOpacity(.7),
                                 ),
 
                                 boxShadow: [
                                   BoxShadow(
-                                    color: AppTheme.primary.withOpacity(.15),
-                                    blurRadius: 16,
+                                    color: AppTheme.primary.withOpacity(.08),
+                                    blurRadius: 30,
+                                    offset: const Offset(0, 12),
                                   ),
                                 ],
                               ),
 
-                              child: ClipOval(
-                                child: Image.asset(
-                                  AvatarHelper.getAvatarPath(avatar),
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                            ),
-                           ),
-                          ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      const Text(
+                                        "👋",
+                                        style: TextStyle(fontSize: 24),
+                                      ),
 
-                          SizedBox(
-                            width: 46,
-                            height: 46,
-                            child: IconButton(
-                              icon: const Icon(
-                                Icons.settings_outlined,
-                                color: AppTheme.primary,
-                              ),
-                              onPressed: () => context.push(AppRoutes.settings),
-                              style: IconButton.styleFrom(
-                                backgroundColor:
-                                AppTheme.primaryContainer.withOpacity(.2),
-                              ),
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 24.0),
+                                      const SizedBox(width: 8),
 
-                  // Dashboard Welcome Card
-                  BlocBuilder<ProfileCubit, ProfileState>(
-                    builder: (context, state) {
+                                      Expanded(
+                                        child: Text(
+                                          "$greeting, $username",
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: GoogleFonts.montserrat(
+                                            fontSize: 24,
+                                            fontWeight: FontWeight.bold,
+                                            color: AppTheme.primary,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
 
-                      String username = "User";
+                                  const SizedBox(height: 10),
 
-                      if (state is ProfileLoaded) {
-                        username = state.profile.name;
-                      }
+                                  Text(
+                                    "Your personal safety network is active and continuously monitoring.",
 
-                      final hour = DateTime.now().hour;
-
-                      String greeting;
-
-                      if (hour < 12) {
-                        greeting = "Good Morning";
-                      } else if (hour < 17) {
-                        greeting = "Good Afternoon";
-                      } else if (hour < 21) {
-                        greeting = "Good Evening";
-                      } else {
-                        greeting = "Stay Safe Tonight";
-                      }
-
-                      return FadeTransition(
-                        opacity: _fadeAnimation,
-                        child: SlideTransition(
-                          position: _slideAnimation,
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 700),
-                            curve: Curves.easeOut,
-                            padding: const EdgeInsets.all(24),
-
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(24),
-
-                              gradient: LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: [
-                                  Colors.white.withOpacity(.95),
-                                  Colors.white.withOpacity(.85),
+                                    style: GoogleFonts.beVietnamPro(
+                                      fontSize: 16,
+                                      color: AppTheme.textSecondary,
+                                      height: 1.6,
+                                    ),
+                                  ),
                                 ],
                               ),
-
-                              border: Border.all(
-                                color: Colors.white.withOpacity(.7),
-                              ),
-
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppTheme.primary.withOpacity(.08),
-                                  blurRadius: 30,
-                                  offset: const Offset(0, 12),
-                                ),
-                              ],
                             ),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 32.0),
 
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                    // Central SOS Action Area
+                    Column(
+                      children: [
+                        Center(
+                          child: SizedBox(
+                            width: 280,
+                            height: 280,
+                            child: Stack(
+                              alignment: Alignment.center,
                               children: [
-
-                                Row(
-                                  children: [
-
-                                    const Text(
-                                      "👋",
-                                      style: TextStyle(fontSize: 24),
-                                    ),
-
-                                    const SizedBox(width: 8),
-
-                                    Expanded(
-                                      child: Text(
-                                        "$greeting, $username",
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: GoogleFonts.montserrat(
-                                          fontSize: 24,
-                                          fontWeight: FontWeight.bold,
-                                          color: AppTheme.primary,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-
-                                const SizedBox(height: 10),
-
-                                Text(
-                                  "Your personal safety network is active and continuously monitoring.",
-
-                                  style: GoogleFonts.beVietnamPro(
-                                    fontSize: 16,
-                                    color: AppTheme.textSecondary,
-                                    height: 1.6,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 32.0),
-
-// Central SOS Action Area
-                  Column(
-                    children: [
-                      Center(
-                        child: SizedBox(
-                          width: 280,
-                          height: 280,
-                          child: Stack(
-                            alignment: Alignment.center,
-                            children: [
-
-                              // ==========================
-                              // OUTER PING RING
-                              // ==========================
-                              AnimatedBuilder(
-                                animation: _pingController,
-                                builder: (context, child) {
-                                  return Transform.scale(
-                                    scale: 1.0 + (_pingController.value * 0.4),
-                                    child: Opacity(
-                                      opacity: 1.0 - _pingController.value,
-                                      child: Container(
-                                        width: 200,
-                                        height: 200,
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          color: Colors.red.withOpacity(0.20),
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-
-                              // ==========================
-                              // HOLD RIPPLE
-                              // Only visible while holding
-                              // ==========================
-                              if (_isHolding)
+                                // ==========================
+                                // OUTER PING RING
+                                // ==========================
                                 AnimatedBuilder(
-                                  animation: _rippleController,
+                                  animation: _pingController,
                                   builder: (context, child) {
                                     return Transform.scale(
-                                      scale: _rippleAnimation.value,
+                                      scale:
+                                          1.0 + (_pingController.value * 0.4),
                                       child: Opacity(
-                                        opacity: 1 - _rippleController.value,
+                                        opacity: 1.0 - _pingController.value,
                                         child: Container(
-                                          width: 210,
-                                          height: 210,
+                                          width: 200,
+                                          height: 200,
                                           decoration: BoxDecoration(
                                             shape: BoxShape.circle,
-                                            border: Border.all(
-                                              color: Colors.redAccent.withOpacity(.8),
-                                              width: 4,
-                                            ),
+                                            color: Colors.red.withOpacity(0.20),
                                           ),
                                         ),
                                       ),
@@ -472,431 +416,353 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> with TickerPr
                                   },
                                 ),
 
-                              // ==========================
-                              // PULSE RING
-                              // ==========================
-                              AnimatedBuilder(
-                                animation: _pulseController,
-                                builder: (context, child) {
-                                  return Transform.scale(
-                                    scale: 1.0 + (_pulseController.value * 0.05),
-                                    child: Container(
-                                      width: 240,
-                                      height: 240,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: Colors.red.withOpacity(0.30),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.red.withOpacity(
-                                              0.30 * _pulseController.value,
+                                // ==========================
+                                // HOLD RIPPLE
+                                // Only visible while holding
+                                // ==========================
+                                if (_isHolding)
+                                  AnimatedBuilder(
+                                    animation: _rippleController,
+                                    builder: (context, child) {
+                                      return Transform.scale(
+                                        scale: _rippleAnimation.value,
+                                        child: Opacity(
+                                          opacity: 1 - _rippleController.value,
+                                          child: Container(
+                                            width: 210,
+                                            height: 210,
+                                            decoration: BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              border: Border.all(
+                                                color: Colors.redAccent
+                                                    .withOpacity(.8),
+                                                width: 4,
+                                              ),
                                             ),
-                                            blurRadius: 40,
-                                            spreadRadius: 5,
                                           ),
-                                        ],
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-
-                              // ==========================
-                              // SOS BUTTON
-                              // ==========================
-                              GestureDetector(
-                                onTapDown: (_) {
-
-                                  setState(() {
-                                    _isHolding = true;
-                                  });
-
-                                  HapticFeedback.lightImpact();
-
-                                  _rippleController.repeat();
-
-                                  _holdTimer = Timer(
-                                    const Duration(seconds: 3),
-                                        () async {
-
-                                      if (_isHolding) {
-
-                                        bool canStart = await validateLocation();
-
-                                        if (!canStart) return;
-
-                                        _rippleController.stop();
-                                        _rippleController.reset();
-
-                                        await HapticFeedback.heavyImpact();
-
-                                        if (!mounted) return;
-
-
-                                        context.push(AppRoutes.preAlert);
-                                      }
+                                        ),
+                                      );
                                     },
-                                  );
-                                },
-
-                                onTapUp: (_) {
-
-                                  setState(() {
-                                    _isHolding = false;
-                                  });
-
-                                  _holdTimer?.cancel();
-
-                                  _rippleController.stop();
-                                  _rippleController.reset();
-                                },
-
-                                onTapCancel: () {
-
-                                  setState(() {
-                                    _isHolding = false;
-                                  });
-
-                                  _holdTimer?.cancel();
-
-                                  _rippleController.stop();
-                                  _rippleController.reset();
-                                },
-
-                                child: AnimatedScale(
-                                  duration: const Duration(milliseconds: 150),
-                                  scale: _isHolding ? 0.95 : 1.0,
-                                  child: Container(
-                                    width: 200,
-                                    height: 200,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      gradient: const LinearGradient(
-                                        colors: [
-                                          Color(0xFFDC2626),
-                                          Color(0xFFB91C1C),
-                                        ],
-                                        begin: Alignment.topLeft,
-                                        end: Alignment.bottomRight,
-                                      ),
-                                      border: Border.all(
-                                        color: Colors.white.withOpacity(.20),
-                                        width: 4,
-                                      ),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: const Color(0xFFDC2626).withOpacity(.80),
-                                          blurRadius: 40,
-                                          spreadRadius: -10,
-                                          offset: const Offset(0, 10),
-                                        ),
-                                      ],
-                                    ),
-                                    child: Center(
-                                      child: Text(
-                                        "SOS",
-                                        style: GoogleFonts.montserrat(
-                                          color: Colors.white,
-                                          fontSize: 24,
-                                          fontWeight: FontWeight.w700,
-                                          letterSpacing: 4,
-                                        ),
-                                      ),
-                                    ),
                                   ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
 
-                      const SizedBox(height: 28),
-
-                      Container(
-                        decoration: BoxDecoration(
-                          color: AppTheme.surface.withOpacity(.8),
-                          borderRadius: BorderRadius.circular(9999),
-                          border: Border.all(
-                            color: Colors.white.withOpacity(.3),
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(.05),
-                              blurRadius: 8,
-                              offset: const Offset(0, 1),
-                            ),
-                          ],
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 8,
-                        ),
-                        child: Text(
-                          "PRESS & HOLD FOR 3 SECONDS",
-                          style: GoogleFonts.beVietnamPro(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: AppTheme.textPrimary,
-                            letterSpacing: .7,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 36.0),
-
-                  // Bento Grid: Wearable Connected Card
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.9),
-                      borderRadius: BorderRadius.circular(16.0),
-                      border: Border.all(color: Colors.white.withOpacity(0.6), width: 1.0),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 30,
-                          spreadRadius: -5,
-                          offset: const Offset(0, 8),
-                        )
-                      ],
-                    ),
-                    padding: const EdgeInsets.all(24.0),
-                    child: Row(
-                      children: [
-                        // Watch icon with glowing active emerald indicator dot
-                        Stack(
-                          children: [
-                            Container(
-                              width: 56,
-                              height: 56,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: AppTheme.primaryContainer.withOpacity(0.2),
-                              ),
-                              child: const Icon(
-                                Icons.watch_outlined,
-                                color: AppTheme.primary,
-                                size: 28,
-                              ),
-                            ),
-                            Positioned(
-                              top: 0,
-                              right: 0,
-                              child: Container(
-                                width: 12,
-                                height: 12,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: const Color(0xFF34D399),
-                                  border: Border.all(color: Colors.white, width: 2),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(width: 16.0),
-
-                        // Wearable Info
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "Wearable Connected",
-                                style: GoogleFonts.beVietnamPro(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppTheme.textPrimary,
-                                ),
-                              ),
-                              const SizedBox(height: 4.0),
-                              Text(
-                                "Apple Watch Series 8",
-                                style: GoogleFonts.beVietnamPro(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.normal,
-                                  color: AppTheme.textSecondary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        // Heart Rate
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Row(
-                              children: [
+                                // ==========================
+                                // PULSE RING
+                                // ==========================
                                 AnimatedBuilder(
                                   animation: _pulseController,
                                   builder: (context, child) {
                                     return Transform.scale(
-                                      scale: 1.0 + (_pulseController.value * 0.15),
-                                      child: const Icon(
-                                        Icons.favorite,
-                                        color: AppTheme.primary,
-                                        size: 20,
+                                      scale:
+                                          1.0 + (_pulseController.value * 0.05),
+                                      child: Container(
+                                        width: 240,
+                                        height: 240,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: Colors.red.withOpacity(0.30),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.red.withOpacity(
+                                                0.30 * _pulseController.value,
+                                              ),
+                                              blurRadius: 40,
+                                              spreadRadius: 5,
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     );
                                   },
                                 ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  "72",
-                                  style: GoogleFonts.montserrat(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppTheme.textPrimary,
+
+                                // ==========================
+                                // SOS BUTTON
+                                // ==========================
+                                GestureDetector(
+                                  onTapDown: (_) {
+                                    setState(() {
+                                      _isHolding = true;
+                                    });
+
+                                    HapticFeedback.lightImpact();
+
+                                    _rippleController.repeat();
+
+                                    _holdTimer = Timer(
+                                      const Duration(seconds: 3),
+                                      () async {
+                                        if (_isHolding) {
+                                          bool canStart =
+                                              await validateLocation();
+
+                                          if (!canStart) return;
+
+                                          _rippleController.stop();
+                                          _rippleController.reset();
+
+                                          await HapticFeedback.heavyImpact();
+
+                                          if (!mounted) return;
+
+                                          context.push(AppRoutes.preAlert);
+                                        }
+                                      },
+                                    );
+                                  },
+
+                                  onTapUp: (_) {
+                                    setState(() {
+                                      _isHolding = false;
+                                    });
+
+                                    _holdTimer?.cancel();
+
+                                    _rippleController.stop();
+                                    _rippleController.reset();
+                                  },
+
+                                  onTapCancel: () {
+                                    setState(() {
+                                      _isHolding = false;
+                                    });
+
+                                    _holdTimer?.cancel();
+
+                                    _rippleController.stop();
+                                    _rippleController.reset();
+                                  },
+
+                                  child: AnimatedScale(
+                                    duration: const Duration(milliseconds: 150),
+                                    scale: _isHolding ? 0.95 : 1.0,
+                                    child: Container(
+                                      width: 200,
+                                      height: 200,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        gradient: const LinearGradient(
+                                          colors: [
+                                            Color(0xFFDC2626),
+                                            Color(0xFFB91C1C),
+                                          ],
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                        ),
+                                        border: Border.all(
+                                          color: Colors.white.withOpacity(.20),
+                                          width: 4,
+                                        ),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: const Color(
+                                              0xFFDC2626,
+                                            ).withOpacity(.80),
+                                            blurRadius: 40,
+                                            spreadRadius: -10,
+                                            offset: const Offset(0, 10),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          "SOS",
+                                          style: GoogleFonts.montserrat(
+                                            color: Colors.white,
+                                            fontSize: 24,
+                                            fontWeight: FontWeight.w700,
+                                            letterSpacing: 4,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 2),
-                            Text(
-                              "BPM",
-                              style: GoogleFonts.beVietnamPro(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                                color: AppTheme.textSecondary,
-                                letterSpacing: 0.5,
-                              ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 28),
+
+                        Container(
+                          decoration: BoxDecoration(
+                            color: AppTheme.surface.withOpacity(.8),
+                            borderRadius: BorderRadius.circular(9999),
+                            border: Border.all(
+                              color: Colors.white.withOpacity(.3),
                             ),
-                          ],
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(.05),
+                                blurRadius: 8,
+                                offset: const Offset(0, 1),
+                              ),
+                            ],
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 8,
+                          ),
+                          child: Text(
+                            "PRESS & HOLD FOR 3 SECONDS",
+                            style: GoogleFonts.beVietnamPro(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.textPrimary,
+                              letterSpacing: .7,
+                            ),
+                          ),
                         ),
                       ],
                     ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+                    const SizedBox(height: 30.0),
 
-          // Custom Center-Floating Bottom Navigation Bar (Matching HTML Specifications exactly)
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              height: 85,
-              decoration: BoxDecoration(
-                color: AppTheme.surface.withOpacity(0.9),
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(16.0),
-                  topRight: Radius.circular(16.0),
-                ),
-                border: Border(
-                  top: BorderSide(color: Colors.white.withOpacity(0.4), width: 1.0),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 40.0,
-                    offset: const Offset(0, -10),
-                  )
-                ],
-              ),
-              child: SafeArea(
-                top: false,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _buildNavItem(context, Icons.home, "Home", true, () {}),
-                    _buildNavItem(context, Icons.map_outlined, "Map", false, () {
-                      context.push(AppRoutes.liveTracking);
-                    }),
-
-                    // Elevated Center SOS button overlapping top boundary with direct SOS text labels
-                    Transform.translate(
-                      offset: const Offset(0, -18),
-                      child: GestureDetector(
-                        onTap: () => context.push(AppRoutes.sosActive),
+                    // Bento Grid: Wearable Connected Card
+                    Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(16),
+                        onTap: () {
+                          context.push(AppRoutes.wearableSync);
+                        },
                         child: Container(
-                          width: 64,
-                          height: 64,
                           decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFFDC2626), Color(0xFFB91C1C)],
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
+                            color: Colors.white.withOpacity(0.9),
+                            borderRadius: BorderRadius.circular(16.0),
+                            border: Border.all(
+                              color: Colors.white.withOpacity(0.6),
+                              width: 1.0,
                             ),
-                            border: Border.all(color: Colors.white.withOpacity(0.2), width: 1.0),
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFFDC2626).withOpacity(0.6),
-                                blurRadius: 20.0,
+                                color: Colors.black.withOpacity(0.05),
+                                blurRadius: 30,
+                                spreadRadius: -5,
                                 offset: const Offset(0, 8),
-                              )
+                              ),
                             ],
                           ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                          padding: const EdgeInsets.all(24.0),
+                          child: Row(
                             children: [
-                              const Icon(
-                                Icons.emergency,
-                                color: Colors.white,
-                                size: 28,
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                "SOS",
-                                style: GoogleFonts.beVietnamPro(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                  letterSpacing: 0.5,
+                              Container(
+                                width: 56,
+                                height: 56,
+                                decoration: BoxDecoration(
+                                  color: AppTheme.primary.withOpacity(.08),
+                                  borderRadius: BorderRadius.circular(16),
                                 ),
+                                child: const Icon(
+                                  Icons.watch_outlined,
+                                  color: AppTheme.primary,
+                                  size: 28,
+                                ),
+                              ),
+
+                              const SizedBox(width: 18),
+
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      "Wearable",
+                                      style: GoogleFonts.montserrat(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+
+                                    const SizedBox(height: 4),
+
+                                    Text(
+                                      "Lumina Smart Band",
+                                      style: GoogleFonts.beVietnamPro(
+                                        color: AppTheme.textSecondary,
+                                      ),
+                                    ),
+
+                                    const SizedBox(height: 12),
+
+                                    Row(
+                                      children: [
+                                        AnimatedBuilder(
+                                          animation: _connectionAnimation,
+                                          builder: (context, child) {
+                                            return Transform.scale(
+                                              scale: _connectionAnimation.value,
+                                              child: Container(
+                                                width: 10,
+                                                height: 10,
+                                                decoration: BoxDecoration(
+                                                  shape: BoxShape.circle,
+                                                  color: const Color(
+                                                    0xFF22C55E,
+                                                  ),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: const Color(
+                                                        0xFF22C55E,
+                                                      ).withOpacity(0.45),
+                                                      blurRadius: 8,
+                                                      spreadRadius: 1,
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                        ),
+
+                                        const SizedBox(width: 8),
+
+                                        Text(
+                                          "Connected",
+                                          style: GoogleFonts.beVietnamPro(
+                                            color: Colors.green,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    "Manage",
+                                    style: GoogleFonts.beVietnamPro(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppTheme.primary,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 2),
+                                  const Icon(
+                                    Icons.arrow_forward_ios_rounded,
+                                    size: 10,
+                                    color: AppTheme.primary,
+                                  ),
+                                ],
                               ),
                             ],
                           ),
                         ),
                       ),
                     ),
-
-                    _buildNavItem(context, Icons.group_outlined, "Contacts", false, () {
-                      context.push(AppRoutes.contactsCircle);
-                    }),
-                    _buildNavItem(context, Icons.auto_awesome_outlined, "AI Chat", false, () {
-                      context.push(AppRoutes.aiCompanion);
-                    }),
                   ],
                 ),
               ),
             ),
-          ),
-        ],
-      ),
-     ),
-    );
-  }
-
-  Widget _buildNavItem(BuildContext context, IconData icon, String label, bool isActive, VoidCallback onTap) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              color: isActive ? AppTheme.primary : AppTheme.textSecondary.withOpacity(0.8),
-              size: 24,
-            ),
-            const SizedBox(height: 3),
-            Text(
-              label,
-              style: GoogleFonts.beVietnamPro(
-                fontSize: 12,
-                fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
-                color: isActive ? AppTheme.primary : AppTheme.textSecondary.withOpacity(0.8),
-              ),
-            ),
           ],
         ),
+
+        // custom bottom navigation bar
+        bottomNavigationBar: const LuminaBottomNavigation(currentIndex: 0),
       ),
     );
   }
