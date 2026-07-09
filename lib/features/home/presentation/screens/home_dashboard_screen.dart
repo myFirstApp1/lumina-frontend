@@ -341,8 +341,8 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
                                   Row(
                                     children: [
                                       const Text(
-                                        "👋",
-                                        style: TextStyle(fontSize: 24),
+                                        "👋🏻",
+                                        style: TextStyle(fontSize: 20),
                                       ),
 
                                       const SizedBox(width: 8),
@@ -353,7 +353,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                           style: GoogleFonts.montserrat(
-                                            fontSize: 24,
+                                            fontSize: 20,
                                             fontWeight: FontWeight.bold,
                                             color: AppTheme.primary,
                                           ),
@@ -368,7 +368,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
                                     "Your personal safety network is active and continuously monitoring.",
 
                                     style: GoogleFonts.beVietnamPro(
-                                      fontSize: 16,
+                                      fontSize: 15,
                                       color: AppTheme.textSecondary,
                                       height: 1.6,
                                     ),
@@ -628,7 +628,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
                         child: Container(
                           decoration: BoxDecoration(
                             color: Colors.white.withOpacity(0.9),
-                            borderRadius: BorderRadius.circular(16.0),
+                            borderRadius: BorderRadius.circular(30.0),
                             border: Border.all(
                               color: Colors.white.withOpacity(0.6),
                               width: 1.0,
