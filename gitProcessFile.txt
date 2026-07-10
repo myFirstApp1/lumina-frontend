@@ -471,5 +471,15 @@ commit 28 : ReDesigning the live tracking screen and officially freeze Phase 1&2
                  modified:   lib/features/home/presentation/screens/home_dashboard_screen.dart
                  modified:   lib/features/tracking/presentation/screens/live_tracking_screen.dart
 
+commit 29 : ReDesigning the emergency contacts flow (paused) and officially freeze Phase 1&2
+
+        deleted:    lib/features/contacts/presentation/screens/contact_detail_screen.dart
+        deleted:    lib/features/contacts/presentation/screens/contact_success_screen.dart
+        deleted:    lib/features/contacts/presentation/screens/contact_update_photo_screen.dart
+        modified:   gitProcessFile.txt
+        modified:   lib/core/routes/app_routes.dart
+        modified:   lib/features/contacts/presentation/screens/add_contact_screen.dart
+        modified:   lib/features/contacts/presentation/screens/contacts_circle_screen.dart
+
 
 

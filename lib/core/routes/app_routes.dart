@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/auth/data/models/user_model.dart';
 import '../../features/location/presentation/screens/location_initialization_screen.dart';
 import '../../features/onboarding/presentation/screens/splash_screen.dart';
 import '../../features/onboarding/presentation/screens/onboarding_step1_screen.dart';
@@ -17,9 +18,7 @@ import '../../features/sos/presentation/screens/pre_alert_screen.dart';
 import '../../features/tracking/presentation/screens/live_tracking_screen.dart';
 import '../../features/contacts/presentation/screens/contacts_circle_screen.dart';
 import '../../features/contacts/presentation/screens/add_contact_screen.dart';
-import '../../features/contacts/presentation/screens/contact_success_screen.dart';
-import '../../features/contacts/presentation/screens/contact_detail_screen.dart';
-import '../../features/contacts/presentation/screens/contact_update_photo_screen.dart';
+import 'package:lumina_guardian/features/contacts/data/models/emergency_contact_model.dart' as contacts;
 import '../../features/ai_companion/presentation/screens/ai_companion_screen.dart';
 import '../../features/profile/presentation/screens/wearable_sync_screen.dart';
 import '../../features/profile/presentation/screens/settings_screen.dart';
@@ -135,25 +134,14 @@ class AppRoutes {
       ),
       GoRoute(
         path: addContact,
-        builder: (BuildContext context, GoRouterState state) => const AddContactScreen(),
-      ),
-      GoRoute(
-        path: contactSuccess,
-        builder: (BuildContext context, GoRouterState state) => ContactSuccessScreen(
-          contactData: state.extra as Map<String, dynamic>?,
-        ),
-      ),
-      GoRoute(
-        path: contactDetail,
-        builder: (BuildContext context, GoRouterState state) => ContactDetailScreen(
-          contactData: state.extra as Map<String, dynamic>?,
-        ),
-      ),
-      GoRoute(
-        path: contactUpdatePhoto,
-        builder: (BuildContext context, GoRouterState state) => ContactUpdatePhotoScreen(
-          contactData: state.extra as Map<String, dynamic>?,
-        ),
+        builder: (BuildContext context, GoRouterState state) {
+          final data = state.extra as Map<String, dynamic>?;
+
+          return AddContactScreen(
+            contact: data?["contact"],
+            contactCount: data?["contactCount"] ?? 0,
+          );
+        },
       ),
       GoRoute(
         path: aiCompanion,
