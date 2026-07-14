@@ -53,10 +53,10 @@ class ContactsRepositoryImpl implements ContactsRepository {
   }
 
   @override
-  Future<EmergencyContactModel> updateContact(String contactId, EmergencyContactRequestModel req) async {
+  Future<EmergencyContactModel> updateContact(String userId, String contactId, EmergencyContactRequestModel req) async {
     try {
       final response = await client.dio.put(
-        '/api/users/contacts/$contactId',
+        '/api/users/contacts/$userId/$contactId',
         data: req.toJson(),
       );
       return EmergencyContactModel.fromJson(response.data);

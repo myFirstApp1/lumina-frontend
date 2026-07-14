@@ -482,4 +482,4 @@ commit 29 : ReDesigning the emergency contacts flow (paused) and officially free
         modified:   lib/features/contacts/presentation/screens/contacts_circle_screen.dart
 
 
-
+commit 30 : ReDesigning the emergency flow completed and incident initialize and officially freeze Phase 1&2

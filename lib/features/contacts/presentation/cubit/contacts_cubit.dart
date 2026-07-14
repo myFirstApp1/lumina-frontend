@@ -29,11 +29,18 @@ class ContactsCubit extends Cubit<ContactsState> {
     try {
       final newContact = await repository.addContact(userId, req);
       emit(ContactsLoaded(contacts: [...currentContacts, newContact]));
-    } catch (e) {
+    } catch(e){
+
       emit(ContactsError(message: e.toString()));
-      if (currentContacts.isNotEmpty) {
-        emit(ContactsLoaded(contacts: currentContacts));
+
+      if(currentContacts.isNotEmpty){
+        emit(ContactsLoaded(
+          contacts: currentContacts,
+        ));
       }
+
+      rethrow;
+
     }
   }
 
@@ -46,14 +53,21 @@ class ContactsCubit extends Cubit<ContactsState> {
     
     emit(ContactsLoading());
     try {
-      final updatedContact = await repository.updateContact(contactId, req);
+      final updatedContact = await repository.updateContact(userId, contactId, req);
       final updatedList = currentContacts.map((c) => c.id == contactId ? updatedContact : c).toList();
       emit(ContactsLoaded(contacts: updatedList));
-    } catch (e) {
+    } catch(e){
+
       emit(ContactsError(message: e.toString()));
-      if (currentContacts.isNotEmpty) {
-        emit(ContactsLoaded(contacts: currentContacts));
+
+      if(currentContacts.isNotEmpty){
+        emit(ContactsLoaded(
+          contacts: currentContacts,
+        ));
       }
+
+      rethrow;
+
     }
   }
 
@@ -69,11 +83,18 @@ class ContactsCubit extends Cubit<ContactsState> {
       await repository.deleteContact(userId, contactId);
       final updatedList = currentContacts.where((c) => c.id != contactId).toList();
       emit(ContactsLoaded(contacts: updatedList));
-    } catch (e) {
+    }catch(e){
+
       emit(ContactsError(message: e.toString()));
-      if (currentContacts.isNotEmpty) {
-        emit(ContactsLoaded(contacts: currentContacts));
+
+      if(currentContacts.isNotEmpty){
+        emit(ContactsLoaded(
+          contacts: currentContacts,
+        ));
       }
+
+      rethrow;
+
     }
   }
 }

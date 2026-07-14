@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import '../../../../core/config/api_config.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/dio_client.dart';
 import '../../../../core/secure_storage/secure_storage_manager.dart';
@@ -66,7 +67,7 @@ class AuthRepositoryImpl implements AuthRepository {
 
       // Step 3: Fetch Profile from User Service
       final profileResponse = await _client.dio.get(
-        'http://192.168.1.6:8082/api/users/$userId',
+        '${ApiConfig.userBaseUrl}/api/users/$userId',
       );
 
       debugPrint("PROFILE RESPONSE:");
