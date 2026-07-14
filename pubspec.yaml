@@ -70,7 +70,7 @@ dev_dependencies:
 flutter:
   assets:    # To add assets to your application, add an assets section, like this:
     - assets/images/
-    - assets/images/defaultProfile.jpg
+    - assets/images/defaultProfile.png
     - assets/icon/app_icon.png
     - assets/avatars/
   # The following line ensures that the Material Icons font is

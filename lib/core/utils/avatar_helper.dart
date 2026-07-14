@@ -26,6 +26,6 @@ class AvatarHelper {
 
   static String getAvatarPath(String? avatarId) {
     return avatars[avatarId] ??
-        "assets/images/defaultProfile.jpg";
+        "assets/images/defaultProfile.png";
   }
 }

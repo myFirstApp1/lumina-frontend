@@ -33,6 +33,40 @@ class _ContactsCircleScreenState extends State<ContactsCircleScreen> {
     }
   }
 
+  // custom snack bar
+  void _showSuccessSnackBar(String message) {
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: Colors.green.shade600,
+        margin: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        content: Row(
+          children: [
+            const Icon(
+              Icons.check_circle_outline,
+              color: Colors.white,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                message,
+                style: GoogleFonts.beVietnamPro(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -77,120 +111,152 @@ class _ContactsCircleScreenState extends State<ContactsCircleScreen> {
                       final contacts =
                           (state as ContactsLoaded).contacts;
 
-                      // if no contacts means it's display
-                      if (contacts.isEmpty) {
-                        return Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-
-                              Icon(
-                                Icons.groups_rounded,
-                                size: 72,
-                                color: AppTheme.primary.withOpacity(.35),
-                              ),
-
-                              const SizedBox(height: 20),
-
-                              Text(
-                                "No Emergency Contacts",
-                                style: GoogleFonts.montserrat(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-
-                              const SizedBox(height: 8),
-
-                              Text(
-                                "Tap the button below to add your first trusted contact.",
-                                textAlign: TextAlign.center,
-                                style: GoogleFonts.beVietnamPro(
-                                  color: AppTheme.textSecondary,
-                                ),
-                              ),
-
-                            ],
-                          ),
-                        );
-                      }
                       return Column(
                         crossAxisAlignment:
                         CrossAxisAlignment.stretch,
                         children: [
 
                           // Header
-                          Row(
-                            children: [
+                          Center(
+                            child: Column(
+                              children: [
 
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment:
-                                  CrossAxisAlignment.start,
-                                  children: [
+                                Container(
+                                  width: 88,
+                                  height: 88,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: AppTheme.primary.withOpacity(.08),
+                                  ),
+                                  child: Icon(
+                                    Icons.groups_rounded,
+                                    size: 42,
+                                    color: AppTheme.primary,
+                                  ),
+                                ),
 
-                                    Text(
-                                      "Trusted Circle",
-                                      style: GoogleFonts.montserrat(
-                                        fontSize: 28,
-                                        fontWeight: FontWeight.w700,
-                                        color: AppTheme.primary,
-                                      ),
+                                const SizedBox(height: 24),
+
+                                Text(
+                                  "Emergency Circle",
+                                  textAlign: TextAlign.center,
+                                  style: GoogleFonts.montserrat(
+                                    fontSize: 32,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppTheme.textSecondary,
+                                  ),
+                                ),
+
+                                const SizedBox(height: 8),
+
+                                Text(
+                                  contacts.isEmpty
+                                      ? "No Emergency Contacts"
+                                      : "${contacts.length} Emergency Contact${contacts.length == 1 ? "" : "s"}",
+                                  textAlign: TextAlign.center,
+                                  style: GoogleFonts.beVietnamPro(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w500,
+                                    color: AppTheme.textSecondary,
+                                  ),
+                                ),
+
+                              ],
+                            ),
+                          ),
+
+                          const SizedBox(height: 32),
+
+                          if (contacts.isEmpty) ...[
+
+                            const SizedBox(height: 60),
+
+                            Center(
+                              child: Column(
+                                children: [
+
+                                  Icon(
+                                    Icons.groups_rounded,
+                                    size: 72,
+                                    color: AppTheme.primary.withOpacity(.35),
+                                  ),
+
+                                  const SizedBox(height: 18),
+
+                                  Text(
+                                    "No Emergency Contacts",
+                                    style: GoogleFonts.montserrat(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.bold,
                                     ),
+                                  ),
 
-                                    const SizedBox(height: 6),
+                                  const SizedBox(height: 10),
 
-                                    Text(
-                                      "${contacts.length} Emergency Contact${contacts.length == 1 ? "" : "s"}",
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                                    child: Text(
+                                      "Tap the Add Contact button below to build your trusted circle.",
+                                      textAlign: TextAlign.center,
                                       style: GoogleFonts.beVietnamPro(
-                                        fontSize: 14,
+                                        fontSize: 15,
                                         color: AppTheme.textSecondary,
                                       ),
                                     ),
+                                  ),
 
-                                  ],
-                                ),
+                                ],
                               ),
+                            ),
 
-                            ],
-                          ),
+                          ] else ...[
 
+                            ListView.separated(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: contacts.length,
+                              separatorBuilder: (_, __) =>
+                              const SizedBox(height: 16),
+                              itemBuilder: (context, index) {
+                                final contact = contacts[index];
+                                return _buildContactCard(
 
-                          const SizedBox(height: 20),
+                                  context,
 
-                          ListView.separated(
-                            shrinkWrap: true,
-                            physics:
-                            const NeverScrollableScrollPhysics(),
-                            itemCount: contacts.length,
-                            separatorBuilder: (_, __) =>
-                            const SizedBox(height: 16),
-                            itemBuilder: (context, index) {
+                                  name: contact.name.isNotEmpty
+                                      ? contact.name
+                                      : "Unknown",
 
-                              final contact = contacts[index];
+                                  relation: contact.relation,
+                                  phone: contact.phoneNumber,
 
-                              return _buildContactCard(
-                                context,
-                                name: contact.name.isNotEmpty
-                                    ? contact.name
-                                    : "Unknown",
-                                relation: contact.relation,
-                                phone: contact.phoneNumber,
-                                onTap: () {
-                                  context.push(
-                                    AppRoutes.addContact,
-                                    extra: {
-                                      "contact": contact,
-                                      "contactCount": contacts.length,
-                                    },
-                                  )
-                                      .then((_) => _loadContacts());
-                                },
-                              );
+                                  onTap: () {
+                                    context.push(
+                                      AppRoutes.addContact,
+                                      extra: {
+                                        "contact": contact,
+                                        "contactCount": contacts.length,
+                                      },
+                                    ).then((result) {
 
-                            },
-                          ),
+                                      _loadContacts();
 
+                                      if (!mounted) return;
+
+                                      if (result == "deleted") {
+                                        _showSuccessSnackBar("Contact deleted successfully");
+                                      } else if (result == "updated") {
+                                        _showSuccessSnackBar("Contact updated successfully");
+                                      } else if (result == "added") {
+                                        _showSuccessSnackBar("Contact added successfully");
+                                      }
+
+                                    });
+                                  },
+                                );
+                              },
+                            ),
+                          ],
                         ],
                       );
 

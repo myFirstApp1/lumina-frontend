@@ -6,7 +6,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../cubit/contacts_cubit.dart';
 import '../../../auth/presentation/cubit/auth_cubit.dart';
 import '../../data/models/emergency_contact_model.dart';
-import '../../../../core/routes/app_routes.dart';
 import '../../../../core/theme/app_theme.dart';
 
 class AddContactScreen extends StatefulWidget {
@@ -113,19 +112,100 @@ class _AddContactScreenState extends State<AddContactScreen> {
   /// emergency contact save
   void _handleContinue() async {
     if (_formKey.currentState!.validate()) {
-      await _saveContact();
-      if (mounted) {
+      try {
+
+        await _saveContact();
+
+        if(!mounted) return;
+
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              "Emergency contact saved successfully",
-              style: GoogleFonts.beVietnamPro(),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.green.shade600,
+            elevation: 8,
+            margin: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
             ),
-            backgroundColor: AppTheme.success,
+            duration: const Duration(seconds: 2),
+            content: Row(
+              children: [
+
+                const Icon(
+                  Icons.check_circle_outline,
+                  color: Colors.white,
+                ),
+
+                const SizedBox(width: 12),
+
+                Expanded(
+                  child: Text(
+                    isEditMode
+                        ? "Contact updated successfully"
+                        : "Contact added successfully",
+                    style: GoogleFonts.beVietnamPro(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+
+              ],
+            ),
           ),
         );
 
         context.pop(true);
+
+      } catch (e) {
+
+        if (!mounted) return;
+
+        final message = e
+            .toString()
+            .replaceFirst("Exception: ", "")
+            .trim();
+
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.red.shade600,
+            elevation: 8,
+            margin: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            duration: const Duration(seconds: 3),
+            content: Row(
+              children: [
+
+                const Icon(
+                  Icons.error_outline_rounded,
+                  color: Colors.white,
+                ),
+
+                const SizedBox(width: 12),
+
+                Expanded(
+                  child: Text(
+                    message,
+                    style: GoogleFonts.beVietnamPro(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+
+              ],
+            ),
+          ),
+        );
+
       }
     }
   }
@@ -366,11 +446,9 @@ class _AddContactScreenState extends State<AddContactScreen> {
       widget.contact!.id,
     );
 
-    if (mounted) {
+    if (!mounted) return;
 
-      Navigator.pop(context, true);
-
-    }
+    Navigator.pop(context, "deleted");
 
   }
   @override
