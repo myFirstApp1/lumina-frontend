@@ -483,3 +483,25 @@ commit 29 : ReDesigning the emergency contacts flow (paused) and officially free
 
 
 commit 30 : ReDesigning the emergency flow completed and incident initialize and officially freeze Phase 1&2
+
+deleted:    assets/images/defaultProfile.jpg
+        new file:   assets/images/defaultProfile.png
+        modified:   gitProcessFile.txt
+        modified:   lib/core/config/api_config.dart
+        modified:   lib/core/utils/avatar_helper.dart
+        modified:   lib/features/auth/data/repositories/auth_repository_impl.dart
+        modified:   lib/features/contacts/data/repositories/contacts_repository_impl.dart
+        modified:   lib/features/contacts/domain/repositories/contacts_repository.dart
+        modified:   lib/features/contacts/presentation/cubit/contacts_cubit.dart
+        modified:   lib/features/contacts/presentation/screens/add_contact_screen.dart
+        modified:   lib/features/contacts/presentation/screens/contacts_circle_screen.dart
+        new file:   lib/features/incident/data/models/emergency_monitor_model.dart
+        new file:   lib/features/incident/data/models/incident_model.dart
+        new file:   lib/features/incident/data/models/timeline_event_model.dart
+        new file:   lib/features/incident/data/repositories/incident_repository_impl.dart
+        new file:   lib/features/incident/domain/repositories/incident_repository.dart
+        new file:   lib/features/incident/presentation/cubit/incident_cubit.dart
+        new file:   lib/features/incident/presentation/cubit/incident_state.dart
+        modified:   pubspec.yaml
+
+
