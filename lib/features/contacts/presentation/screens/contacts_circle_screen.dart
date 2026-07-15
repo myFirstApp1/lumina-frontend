@@ -18,6 +18,10 @@ class ContactsCircleScreen extends StatefulWidget {
 }
 
 class _ContactsCircleScreenState extends State<ContactsCircleScreen> {
+
+  bool _isMaxContactsReached = false;
+
+
   @override
   void initState() {
     super.initState();
@@ -29,7 +33,19 @@ class _ContactsCircleScreenState extends State<ContactsCircleScreen> {
   void _loadContacts() {
     final authState = context.read<AuthCubit>().state;
     if (authState is AuthAuthenticated) {
-      context.read<ContactsCubit>().loadContacts(authState.user.userId);
+      context
+          .read<ContactsCubit>()
+          .loadContacts(authState.user.userId)
+          .then((_) {
+        final state = context.read<ContactsCubit>().state;
+
+        if (state is ContactsLoaded && mounted) {
+          setState(() {
+            _isMaxContactsReached =
+                state.contacts.length >= 15;
+          });
+        }
+      });
     }
   }
 
@@ -271,6 +287,7 @@ class _ContactsCircleScreenState extends State<ContactsCircleScreen> {
           ),
         ],
       ),
+
       floatingActionButton:FloatingActionButton.extended(
 
         shape: RoundedRectangleBorder(
@@ -279,13 +296,19 @@ class _ContactsCircleScreenState extends State<ContactsCircleScreen> {
 
         heroTag: "add_contact",
 
-        backgroundColor: AppTheme.primary,
+        backgroundColor: _isMaxContactsReached
+            ? Colors.grey.shade400
+            : AppTheme.primary,
 
         foregroundColor: Colors.white,
 
         elevation: 8,
 
-        icon: const Icon(Icons.person_add),
+        icon: Icon(
+          _isMaxContactsReached
+              ? Icons.lock
+              : Icons.person_add,
+        ),
 
         label: Text(
           "Add Contact",
@@ -295,6 +318,32 @@ class _ContactsCircleScreenState extends State<ContactsCircleScreen> {
         ),
 
         onPressed: () {
+
+          if (_isMaxContactsReached) {
+
+            ScaffoldMessenger.of(context).showSnackBar(
+
+              SnackBar(
+
+                behavior: SnackBarBehavior.floating,
+
+                backgroundColor: Colors.orange.shade700,
+
+                content: Text(
+                  "Maximum of 15 emergency contacts allowed.",
+                  style: GoogleFonts.beVietnamPro(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+
+              ),
+
+            );
+
+            return;
+
+          }
 
           context
               .push(AppRoutes.addContact)

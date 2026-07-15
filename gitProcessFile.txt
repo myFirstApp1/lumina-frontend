@@ -505,3 +505,9 @@ deleted:    assets/images/defaultProfile.jpg
         modified:   pubspec.yaml
 
 
+commit 30 : ReDesigning emergency contact flow completed and officially freeze Phase 1&2
+
+        modified:   gitProcessFile.txt
+        modified:   lib/features/contacts/presentation/screens/add_contact_screen.dart
+        modified:   lib/features/contacts/presentation/screens/contacts_circle_screen.dart
+
