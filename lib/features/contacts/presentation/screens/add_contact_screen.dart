@@ -50,6 +50,9 @@ class _AddContactScreenState extends State<AddContactScreen> {
   bool get isEditMode =>
       widget.contact != null;
 
+  // loading while save
+  bool _isSaving = false;
+
   @override
   void initState() {
     super.initState();
@@ -111,8 +114,18 @@ class _AddContactScreenState extends State<AddContactScreen> {
 
   /// emergency contact save
   void _handleContinue() async {
-    if (_formKey.currentState!.validate()) {
-      try {
+
+    if (_isSaving) return;
+
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    setState(() {
+      _isSaving = true;
+    });
+
+    try {
 
         await _saveContact();
 
@@ -157,7 +170,9 @@ class _AddContactScreenState extends State<AddContactScreen> {
           ),
         );
 
-        context.pop(true);
+        context.pop(
+          isEditMode ? "updated" : "added",
+        );
 
       } catch (e) {
 
@@ -207,7 +222,15 @@ class _AddContactScreenState extends State<AddContactScreen> {
         );
 
       }
+    finally {
+
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+        });
+      }
     }
+
   }
 
   // relationshipPicker feature
@@ -322,54 +345,159 @@ class _AddContactScreenState extends State<AddContactScreen> {
       context: context,
       builder: (_) {
 
-        return AlertDialog(
+        return Dialog(
 
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(24),
-          ),
+          backgroundColor: Colors.transparent,
 
-          title: Text(
-            "Delete Contact?",
-            style: GoogleFonts.montserrat(
-              fontWeight: FontWeight.bold,
-              color: AppTheme.primary,
-            ),
-          ),
+          child: Container(
 
-          content: Text(
-            "This contact will no longer receive emergency alerts.",
-            style: GoogleFonts.beVietnamPro(),
-          ),
+            padding: const EdgeInsets.all(24),
 
-          actions: [
-
-            TextButton(
-
-              onPressed: () {
-                Navigator.pop(context, false);
-              },
-
-              child: const Text("Cancel"),
-
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(28),
             ),
 
-            ElevatedButton(
+            child: Column(
 
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-              ),
+              mainAxisSize: MainAxisSize.min,
 
-              onPressed: () {
-                Navigator.pop(context, true);
-              },
+              children: [
 
-              child: const Text(
-                "Delete",
-              ),
+                Container(
+
+                  width: 78,
+                  height: 78,
+
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(.10),
+                    shape: BoxShape.circle,
+                  ),
+
+                  child: const Icon(
+                    Icons.delete_outline_rounded,
+                    size: 40,
+                    color: Colors.red,
+                  ),
+
+                ),
+
+                const SizedBox(height: 22),
+
+                Text(
+                  "Delete Contact?",
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.montserrat(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+
+                const SizedBox(height: 10),
+
+                Text(
+                  "${widget.contact!.name} will no longer receive emergency alerts from Lumina Guardian.",
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.beVietnamPro(
+                    fontSize: 15,
+                    color: AppTheme.textSecondary,
+                  ),
+                ),
+
+                const SizedBox(height: 28),
+
+                Row(
+
+                  children: [
+
+                    Expanded(
+
+                      child: OutlinedButton(
+
+                        onPressed: () {
+
+                          Navigator.pop(context,false);
+
+                        },
+
+                        style: OutlinedButton.styleFrom(
+
+                          minimumSize: const Size(
+                            double.infinity,
+                            54,
+                          ),
+
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(18),
+                          ),
+
+                        ),
+
+                        child: Text(
+
+                          "Cancel",
+
+                          style: GoogleFonts.beVietnamPro(
+                            fontWeight: FontWeight.w600,
+                          ),
+
+                        ),
+
+                      ),
+
+                    ),
+
+                    const SizedBox(width: 12),
+
+                    Expanded(
+
+                      child: ElevatedButton(
+
+                        onPressed: () {
+
+                          Navigator.pop(context,true);
+
+                        },
+
+                        style: ElevatedButton.styleFrom(
+
+                          backgroundColor: Colors.red,
+
+                          minimumSize: const Size(
+                            double.infinity,
+                            54,
+                          ),
+
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(18),
+                          ),
+
+                        ),
+
+                        child: Text(
+
+                          "Delete",
+
+                          style: GoogleFonts.beVietnamPro(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+
+                        ),
+
+                      ),
+
+                    ),
+
+                  ],
+
+                ),
+
+              ],
 
             ),
 
-          ],
+          ),
 
         );
 
@@ -441,14 +569,30 @@ class _AddContactScreenState extends State<AddContactScreen> {
       return;
     }
 
-    await context.read<ContactsCubit>().deleteContact(
-      authState.user.userId,
-      widget.contact!.id,
-    );
+    setState(() {
+      _isSaving = true;
+    });
 
-    if (!mounted) return;
+    try {
 
-    Navigator.pop(context, "deleted");
+      await context.read<ContactsCubit>().deleteContact(
+        authState.user.userId,
+        widget.contact!.id,
+      );
+
+      if (!mounted) return;
+
+      Navigator.pop(context, "deleted");
+
+    } finally {
+
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+        });
+      }
+
+    }
 
   }
   @override
@@ -636,6 +780,7 @@ class _AddContactScreenState extends State<AddContactScreen> {
                             },
                           ),
 
+                          //update button
                           const SizedBox(height: 24),
                           // Action Button
                           SizedBox(
@@ -661,7 +806,9 @@ class _AddContactScreenState extends State<AddContactScreen> {
                                 ],
                               ),
                               child: ElevatedButton(
-                                onPressed: _handleContinue,
+                                onPressed: _isSaving
+                                    ? null
+                                    : _handleContinue,
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.transparent,
                                   shadowColor: Colors.transparent,
@@ -670,7 +817,18 @@ class _AddContactScreenState extends State<AddContactScreen> {
                                     borderRadius: BorderRadius.circular(20),
                                   ),
                                 ),
-                                child: Text(
+                                child: _isSaving
+                                    ? const SizedBox(
+                                  width: 22,
+                                  height: 22,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.5,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white,
+                                    ),
+                                  ),
+                                )
+                                    : Text(
                                   isEditMode
                                       ? "Update Contact"
                                       : "Save Contact",
@@ -689,7 +847,9 @@ class _AddContactScreenState extends State<AddContactScreen> {
 
                             OutlinedButton.icon(
 
-                              onPressed: _confirmDelete,
+                              onPressed: _isSaving
+                                  ? null
+                                  : _confirmDelete,
 
                               icon: const Icon(
                                 Icons.delete_outline_rounded,
