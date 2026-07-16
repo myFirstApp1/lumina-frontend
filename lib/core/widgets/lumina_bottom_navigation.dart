@@ -80,10 +80,11 @@ class LuminaBottomNavigation extends StatelessWidget {
               Expanded(
                 child: _buildNavItem(
                   context,
-                  icon: Icons.family_restroom,
-                  label: "Family",
+                  // icon: Icons.family_restroom,
+                  icon:Icons.history_rounded,
+                  label: "Incidents", // Family
                   index: 3,
-                  route: AppRoutes.contactsCircle,
+                  route: AppRoutes.incidentHistory,
                 ),
               ),
 

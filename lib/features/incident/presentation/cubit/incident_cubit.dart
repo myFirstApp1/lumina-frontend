@@ -1,45 +1,51 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/errors/failures.dart';
+import '../../../../core/secure_storage/secure_storage_manager.dart';
 import '../../domain/repositories/incident_repository.dart';
 import 'incident_state.dart';
 
 class IncidentCubit extends Cubit<IncidentState> {
   final IncidentRepository _repository;
+  final SecureStorageManager _storage;
 
   IncidentCubit({
     required IncidentRepository repository,
+    required SecureStorageManager storage,
   })  : _repository = repository,
+  _storage = storage,
         super(IncidentState.initial());
 
   /// Load all incidents for the current user.
-  Future<void> loadIncidentHistory(
-      String userId,
-      ) async {
-    emit(
-      state.copyWith(
-        isLoading: true,
-        error: null,
-      ),
-    );
+  Future<void> loadIncidentHistory() async {
+    final userId = await _storage.getUserId();
+
+    if (userId == null || userId.isEmpty) {
+      emit(state.copyWith(
+        isLoading: false,
+        error: 'User session not found.',
+      ));
+      return;
+    }
+
+    emit(state.copyWith(
+      isLoading: true,
+      error: null,
+    ));
 
     try {
       final incidents =
       await _repository.getIncidentHistory(userId);
 
-      emit(
-        state.copyWith(
-          isLoading: false,
-          incidents: incidents,
-        ),
-      );
+      emit(state.copyWith(
+        isLoading: false,
+        incidents: incidents,
+      ));
     } on ServerException catch (e) {
-      emit(
-        state.copyWith(
-          isLoading: false,
-          error: e.message,
-        ),
-      );
+      emit(state.copyWith(
+        isLoading: false,
+        error: e.message,
+      ));
     }
   }
 

@@ -511,3 +511,13 @@ commit 30 : ReDesigning emergency contact flow completed and officially freeze P
         modified:   lib/features/contacts/presentation/screens/add_contact_screen.dart
         modified:   lib/features/contacts/presentation/screens/contacts_circle_screen.dart
 
+commit 31 : Designing incident screen (family dashboard) completed and officially freeze Phase 1&2
+
+  modified:   gitProcessFile.txt
+        modified:   lib/core/routes/app_routes.dart
+        modified:   lib/core/widgets/lumina_bottom_navigation.dart
+        modified:   lib/features/incident/presentation/cubit/incident_cubit.dart
+        new file:   lib/features/incident/presentation/screens/emergency_details_screen.dart
+        new file:   lib/features/incident/presentation/screens/incident_history_screen.dart
+
+
