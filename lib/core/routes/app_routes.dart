@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/auth/data/models/user_model.dart';
+import '../../features/incident/presentation/screens/emergency_details_screen.dart';
+import '../../features/incident/presentation/screens/incident_history_screen.dart';
 import '../../features/location/presentation/screens/location_initialization_screen.dart';
 import '../../features/onboarding/presentation/screens/splash_screen.dart';
 import '../../features/onboarding/presentation/screens/onboarding_step1_screen.dart';
@@ -52,6 +54,8 @@ class AppRoutes {
   static const String contactSuccess = '/contacts/success';
   static const String contactDetail = '/contact-detail';
   static const String contactUpdatePhoto = '/contacts/update-photo';
+  static const incidentHistory = "/incident-history";
+  static const emergencyDetails = "/emergency-details";
   static const String aiCompanion = '/ai-companion';
   static const String wearableSync = '/wearable-sync';
   static const String settings = '/settings';
@@ -140,6 +144,22 @@ class AppRoutes {
           return AddContactScreen(
             contact: data?["contact"],
             contactCount: data?["contactCount"] ?? 0,
+          );
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.incidentHistory,
+        builder: (context, state) => const IncidentHistoryScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.emergencyDetails,
+        builder: (context, state) {
+
+          final incidentId =
+          state.extra as String;
+
+          return EmergencyDetailsScreen(
+            incidentId: incidentId,
           );
         },
       ),
