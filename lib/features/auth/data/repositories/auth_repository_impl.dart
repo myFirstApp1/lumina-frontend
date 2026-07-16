@@ -92,6 +92,14 @@ class AuthRepositoryImpl implements AuthRepository {
       );
     } on DioException catch (e) {
       debugPrint("LOGIN ERROR: ${e.response?.data}");
+      debugPrint("STATUS CODE:");
+      debugPrint(e.response?.statusCode.toString());
+
+      debugPrint("HEADERS:");
+      debugPrint(e.response?.headers.toString());
+
+      debugPrint("REQUEST:");
+      debugPrint(e.requestOptions.path);
 
       throw ServerException(
         e.response?.data?['message'] as String? ?? 'Login failed',
@@ -232,6 +240,7 @@ class AuthRepositoryImpl implements AuthRepository {
     } finally {
 
       // Always clear local session
+
       await _secureStorage.clearUserSession();
     }
   }

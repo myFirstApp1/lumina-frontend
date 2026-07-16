@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/secure_storage/secure_storage_manager.dart';
+import '../../../../core/services/protection/protection_service.dart';
 import '../../data/models/user_model.dart';
 import '../../domain/repositories/auth_repository.dart';
 
@@ -39,12 +40,15 @@ class AuthError extends AuthState {
 class AuthCubit extends Cubit<AuthState> {
   final AuthRepository _authRepository;
   final SecureStorageManager _secureStorage;
+  final ProtectionService _protectionService;
 
   AuthCubit({
     required AuthRepository authRepository,
     required SecureStorageManager secureStorage,
+    required ProtectionService protectionService
   })  : _authRepository = authRepository,
         _secureStorage = secureStorage,
+        _protectionService = protectionService,
         super(const AuthInitial());
 
   Future<void> checkAuthStatus() async {
@@ -102,9 +106,10 @@ class AuthCubit extends Cubit<AuthState> {
         email,
         password,
       );
+      // Automatically enable protection
+      await _protectionService.start();
 
       debugPrint("+++++++++\nAUTH CUBIT USER ID\n++++++++ = ${user.userId}");
-
       emit(AuthAuthenticated(user));
     } catch (e) {
       emit(AuthError(e.toString()));
@@ -134,6 +139,7 @@ class AuthCubit extends Cubit<AuthState> {
   Future<void> logout() async {
     emit(const AuthLoading());
     try {
+      await _protectionService.stop();
       await _authRepository.logout();
     } finally {
       emit(const AuthUnauthenticated());
