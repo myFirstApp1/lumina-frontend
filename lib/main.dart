@@ -4,12 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'core/routes/app_routes.dart';
+import 'core/services/protection/heartbeat_manager.dart';
 import 'core/services/recovery_service.dart';
 import 'core/services/startup_service.dart';
 import 'core/theme/app_theme.dart';
 import 'core/network/dio_client.dart';
 import 'core/secure_storage/secure_storage_manager.dart';
 import 'core/services/location_service.dart';
+import 'core/services/protection/protection_service.dart';
 import 'core/config/api_config.dart';
 import 'features/auth/data/repositories/auth_repository_impl.dart';
 import 'features/auth/presentation/cubit/auth_cubit.dart';
@@ -94,6 +96,16 @@ void main() {
     final protectionRepository = ProtectionRepositoryImpl(
       client: safetyDioClient,
     );
+    final heartbeatManager = HeartbeatManager(
+      repository: protectionRepository,
+      storage: secureStorage,
+      locationService: locationService,
+    );
+    final protectionService = ProtectionService(
+      repository: protectionRepository,
+      storage: secureStorage,
+      heartbeatManager: heartbeatManager,
+    );
     final deviceRepository = DeviceRepositoryImpl(
       client: safetyDioClient,
     );
@@ -102,6 +114,7 @@ void main() {
     final authCubit = AuthCubit(
       authRepository: authRepository,
       secureStorage: secureStorage,
+      protectionService: protectionService,
     );
     final trackingCubit = TrackingCubit(
       trackingRepository: trackingRepository,
@@ -121,6 +134,7 @@ void main() {
     final contactsCubit = ContactsCubit(repository: contactsRepository);
     final protectionCubit = ProtectionCubit(
       repository: protectionRepository,
+      storage: secureStorage,  //newly added when changing protection cubit
     );
     final deviceCubit = DeviceCubit(
       repository: deviceRepository,
@@ -148,6 +162,9 @@ void main() {
       debugPrint("################################");
       debugPrint("APP RECOVERY FLOW STARTED");
       debugPrint("################################");
+
+
+      await protectionService.recover();
 
       await trackingCubit.restoreTrackingIfNeeded();
 

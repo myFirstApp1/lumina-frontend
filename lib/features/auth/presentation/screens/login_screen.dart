@@ -6,7 +6,6 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/routes/app_routes.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../cubit/auth_cubit.dart';
-import '../../../protection/presentation/cubit/protection_cubit.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -89,12 +88,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: BlocListener<AuthCubit, AuthState>(
                     listener: (context, state) async {
                       if (state is AuthAuthenticated) {
-
-                        await context
-                            .read<ProtectionCubit>()
-                            .startProtection(
-                          state.user.userId,
-                        );
 
                         context.go(
                           AppRoutes.locationInit,

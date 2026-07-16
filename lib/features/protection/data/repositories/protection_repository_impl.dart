@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/cupertino.dart';
 
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/dio_client.dart';
@@ -25,6 +26,9 @@ class ProtectionRepositoryImpl
         },
       );
     } on DioException catch (e) {
+      debugPrint("START PROTECTION ERROR");
+      debugPrint("STATUS = ${e.response?.statusCode}");
+      debugPrint("BODY = ${e.response?.data}");
       throw ServerException(
         e.response?.data['message'] ??
             'Failed to start protection',
@@ -35,12 +39,23 @@ class ProtectionRepositoryImpl
   @override
   Future<void> sendHeartbeat(
       String userId,
+      int battery,
+      double latitude,
+      double longitude,
       ) async {
     try {
       await _client.dio.put(
         '/api/heartbeat/$userId',
+        queryParameters: {
+          'battery': battery,
+          'lat': latitude,
+          'lon': longitude,
+        },
       );
     } on DioException catch (e) {
+      debugPrint("SEND HEARTBEAT ERROR");
+      debugPrint("STATUS = ${e.response?.statusCode}");
+      debugPrint("BODY = ${e.response?.data}");
       throw ServerException(
         e.response?.data['message'] ??
             'Failed to send heartbeat',
@@ -60,6 +75,9 @@ class ProtectionRepositoryImpl
         },
       );
     } on DioException catch (e) {
+      debugPrint("STOP PROTECTION ERROR");
+      debugPrint("STATUS = ${e.response?.statusCode}");
+      debugPrint("BODY = ${e.response?.data}");
       throw ServerException(
         e.response?.data['message'] ??
             'Failed to stop protection',
@@ -81,6 +99,9 @@ class ProtectionRepositoryImpl
         },
       );
     } on DioException catch (e) {
+      debugPrint("PAUSE PROTECTION ERROR");
+      debugPrint("STATUS = ${e.response?.statusCode}");
+      debugPrint("BODY = ${e.response?.data}");
       throw ServerException(
         e.response?.data['message'] ??
             'Failed to pause protection',
@@ -100,6 +121,9 @@ class ProtectionRepositoryImpl
         },
       );
     } on DioException catch (e) {
+      debugPrint("RESUME PROTECTION ERROR");
+      debugPrint("STATUS = ${e.response?.statusCode}");
+      debugPrint("BODY = ${e.response?.data}");
       throw ServerException(
         e.response?.data['message'] ??
             'Failed to resume protection',
@@ -119,6 +143,9 @@ class ProtectionRepositoryImpl
         },
       );
     } on DioException catch (e) {
+      debugPrint("CONFIRM SAFE PROTECTION ERROR");
+      debugPrint("STATUS = ${e.response?.statusCode}");
+      debugPrint("BODY = ${e.response?.data}");
       throw ServerException(
         e.response?.data['message'] ??
             'Failed to confirm safe',
@@ -140,6 +167,9 @@ class ProtectionRepositoryImpl
 
       return response.data.toString();
     } on DioException catch (e) {
+      debugPrint("GET PROTECTION STATUS ERROR");
+      debugPrint("STATUS = ${e.response?.statusCode}");
+      debugPrint("BODY = ${e.response?.data}");
       throw ServerException(
         e.response?.data['message'] ??
             'Failed to get protection status',

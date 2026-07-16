@@ -68,7 +68,9 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
       if (authState is AuthAuthenticated) {
         await context.read<ProfileCubit>().loadProfile(authState.user.userId);
 
-        context.read<ProtectionCubit>().startProtection(authState.user.userId);
+        context.read<ProtectionCubit>().startProtection(
+            //authState.user.userId
+        );
 
         await context.read<TrackingCubit>().restoreTrackingIfNeeded();
       }

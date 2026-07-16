@@ -1,7 +1,12 @@
 abstract class ProtectionRepository {
   Future<void> startProtection(String userId);
 
-  Future<void> sendHeartbeat(String userId);
+  Future<void> sendHeartbeat(
+      String userId,
+      int battery,
+      double latitude,
+      double longitude,
+      );
 
   Future<void> stopProtection(String userId);
 

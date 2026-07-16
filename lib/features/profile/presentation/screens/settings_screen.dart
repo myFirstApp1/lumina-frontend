@@ -136,6 +136,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     child: OutlinedButton.icon(
                       onPressed: () {
                         context.read<AuthCubit>().logout();
+
                       },
                       icon: const Icon(
                         Icons.logout,

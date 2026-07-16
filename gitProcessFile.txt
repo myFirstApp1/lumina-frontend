@@ -521,3 +521,22 @@ commit 31 : Designing incident screen (family dashboard) completed and officiall
         new file:   lib/features/incident/presentation/screens/incident_history_screen.dart
 
 
+commit 31 : Start phase 1&2 Protection : heartbeat, incident,..
+
+ modified:   gitProcessFile.txt
+        new file:   lib/core/services/protection/heartbeat_manager.dart
+        new file:   lib/core/services/protection/protection_lifecycle.dart
+        new file:   lib/core/services/protection/protection_service.dart
+        new file:   lib/core/services/protection/protection_state.dart
+        modified:   lib/features/auth/data/repositories/auth_repository_impl.dart
+        modified:   lib/features/auth/presentation/cubit/auth_cubit.dart
+        modified:   lib/features/auth/presentation/screens/login_screen.dart
+        modified:   lib/features/home/presentation/screens/home_dashboard_screen.dart
+        modified:   lib/features/profile/presentation/screens/settings_screen.dart
+        modified:   lib/features/protection/data/repositories/protection_repository_impl.dart
+        modified:   lib/features/protection/domain/repositories/protection_repository.dart
+        modified:   lib/features/protection/presentation/cubit/protection_cubit.dart
+        modified:   lib/main.dart
+
+
+
