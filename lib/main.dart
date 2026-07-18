@@ -139,7 +139,7 @@ void main() {
     final deviceCubit = DeviceCubit(
       repository: deviceRepository,
     );
-    final ImagePicker picker = ImagePicker();
+    // final ImagePicker picker = ImagePicker();
     
     // Check user authentication status on startup
 

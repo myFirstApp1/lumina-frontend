@@ -229,18 +229,35 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       final response = await _client.dio.post('/api/auth/logout');
 
-      debugPrint("Logout Success : ${response.statusCode}");
+      debugPrint("================================");
+      debugPrint("LOGOUT SUCCESS");
+      debugPrint("STATUS : ${response.statusCode}");
+      debugPrint("BODY   : ${response.data}");
+      debugPrint("================================");
+    } on DioException catch (e, stack) {
+      debugPrint("================================");
+      debugPrint("LOGOUT FAILED");
 
-    } catch (e) {
+      debugPrint("STATUS:");
+      debugPrint("${e.response?.statusCode}");
 
-      debugPrint("Logout API failed : $e");
+      debugPrint("BODY:");
+      debugPrint("${e.response?.data}");
 
-      // Best effort remote logout
+      debugPrint("BASE URL:");
+      debugPrint(e.requestOptions.baseUrl);
 
+      debugPrint("PATH:");
+      debugPrint(e.requestOptions.path);
+
+      debugPrint("HEADERS:");
+      debugPrint("${e.response?.headers}");
+
+      debugPrint("STACK:");
+      debugPrint(stack.toString());
+
+      debugPrint("================================");
     } finally {
-
-      // Always clear local session
-
       await _secureStorage.clearUserSession();
     }
   }
