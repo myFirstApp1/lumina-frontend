@@ -71,8 +71,6 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
         context.read<ProtectionCubit>().startProtection(
             //authState.user.userId
         );
-
-        await context.read<TrackingCubit>().restoreTrackingIfNeeded();
       }
 
       await context.read<SosCubit>().restoreActiveSos();

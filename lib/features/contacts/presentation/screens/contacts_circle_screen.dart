@@ -185,34 +185,34 @@ class _ContactsCircleScreenState extends State<ContactsCircleScreen> {
 
                           if (contacts.isEmpty) ...[
 
-                            const SizedBox(height: 60),
+                            const SizedBox(height: 100),
 
                             Center(
                               child: Column(
                                 children: [
 
                                   Icon(
-                                    Icons.groups_rounded,
-                                    size: 72,
+                                    Icons.group_add_sharp,
+                                    size: 70,
                                     color: AppTheme.primary.withOpacity(.35),
                                   ),
 
                                   const SizedBox(height: 18),
 
-                                  Text(
-                                    "No Emergency Contacts",
-                                    style: GoogleFonts.montserrat(
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-
-                                  const SizedBox(height: 10),
+                                  // Text(
+                                  //   "No Emergency Contacts",
+                                  //   style: GoogleFonts.montserrat(
+                                  //     fontSize: 22,
+                                  //     fontWeight: FontWeight.bold,
+                                  //   ),
+                                  // ),
+                                  //
+                                  // const SizedBox(height: 10),
 
                                   Padding(
                                     padding: const EdgeInsets.symmetric(horizontal: 24),
                                     child: Text(
-                                      "Tap the Add Contact button below to build your trusted circle.",
+                                      "Tap the Add Contact button below \n to build your trusted circle.",
                                       textAlign: TextAlign.center,
                                       style: GoogleFonts.beVietnamPro(
                                         fontSize: 15,
