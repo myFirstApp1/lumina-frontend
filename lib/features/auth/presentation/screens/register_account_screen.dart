@@ -17,7 +17,7 @@ class _RegisterAccountScreenState extends State<RegisterAccountScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
-
+  final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
 
@@ -41,6 +41,7 @@ class _RegisterAccountScreenState extends State<RegisterAccountScreen> {
       context.read<AuthCubit>().register(
         _usernameController.text.trim(),
         _emailController.text.trim(),
+        _phoneController.text.trim(),
         _passwordController.text,
       );
     }
@@ -50,7 +51,7 @@ class _RegisterAccountScreenState extends State<RegisterAccountScreen> {
   void dispose() {
     _usernameController.dispose();
     _emailController.dispose();
-
+    _phoneController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
@@ -210,6 +211,7 @@ class _RegisterAccountScreenState extends State<RegisterAccountScreen> {
 
                   // ===== FORM START =====
 
+                 // username
                   _buildLabel("Username"),
                   _buildInputField(
                     controller: _usernameController,
@@ -223,6 +225,7 @@ class _RegisterAccountScreenState extends State<RegisterAccountScreen> {
                     },
                   ),
 
+                  // email
                   const SizedBox(height: 15),
 
                   _buildLabel("Email Address"),
@@ -246,6 +249,29 @@ class _RegisterAccountScreenState extends State<RegisterAccountScreen> {
                     },
                   ),
 
+                     // phone number
+                      const SizedBox(height: 15),
+
+                      _buildLabel("Phone Number"),
+                      _buildInputField(
+                        controller: _phoneController,
+                        hint: "9876543210",
+                        icon: Icons.phone_outlined,
+                        keyboardType: TextInputType.phone,
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return "Phone number is required";
+                          }
+
+                          if (!RegExp(r'^[6-9][0-9]{9}$').hasMatch(value.trim())) {
+                            return "Enter a valid 10-digit mobile number";
+                          }
+
+                          return null;
+                        },
+                      ),
+
+                  // password
                   const SizedBox(height: 15),
 
                   _buildLabel("Password"),
@@ -281,6 +307,7 @@ class _RegisterAccountScreenState extends State<RegisterAccountScreen> {
                     ),
                   ),
 
+                  // confirm password
                   const SizedBox(height: 20),
 
                   _buildLabel("Confirm Password"),

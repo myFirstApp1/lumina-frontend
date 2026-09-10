@@ -116,10 +116,10 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
-  Future<void> register(String username, String email, String password) async {
+  Future<void> register(String username, String email, String phone, String password) async {
     emit(const AuthLoading());
     try {
-      final txnId = await _authRepository.register(username, email, password);
+      final txnId = await _authRepository.register(username, email, phone, password);
       emit(AuthOtpVerificationRequired(email: email, txnId: txnId));
     } catch (e) {
       emit(AuthError(e.toString()));

@@ -30,6 +30,8 @@ import 'features/protection/data/repositories/protection_repository_impl.dart';
 import 'features/protection/presentation/cubit/protection_cubit.dart';
 import 'features/device/data/repositories/device_repository_impl.dart';
 import 'features/device/presentation/cubit/device_cubit.dart';
+import 'features/incident/data/repositories/incident_repository_impl.dart';
+import 'features/incident/presentation/cubit/incident_cubit.dart';
 
 void main() {
   runZonedGuarded(() async {
@@ -51,18 +53,8 @@ void main() {
     final secureStorage = SecureStorageManager();
 
     // Initialize network client with base URL
-    final authDioClient = DioClient(
-      baseUrl: ApiConfig.authBaseUrl,
-      secureStorage: secureStorage,
-    );
-    final safetyDioClient = DioClient(
-      baseUrl: ApiConfig.safetyBaseUrl,
-      secureStorage: secureStorage,
-    );
-
-    // User Service Dio client sharing same secure storage (interceptors)
-    final userDioClient = DioClient(
-      baseUrl: ApiConfig.userBaseUrl,
+    final dioClient = DioClient(
+      baseUrl: ApiConfig.baseUrl,
       secureStorage: secureStorage,
     );
 
@@ -71,11 +63,11 @@ void main() {
 
     // Initialize repositories
     final authRepository = AuthRepositoryImpl(
-      client: authDioClient,
+      client: dioClient,
       secureStorage: secureStorage,
     );
     final trackingRepository = TrackingRepositoryImpl(
-      client: safetyDioClient,
+      client: dioClient,
     );
     final recoveryService = RecoveryService(
       trackingRepository: trackingRepository,
@@ -85,16 +77,16 @@ void main() {
       recoveryService: recoveryService,
     );
     final sosRepository = SosRepositoryImpl(
-      client: safetyDioClient,
+      client: dioClient,
     );
     final profileRepository = ProfileRepositoryImpl(
-      client: userDioClient,
+      client: dioClient,
     );
     final contactsRepository = ContactsRepositoryImpl(
-      client: userDioClient,
+      client: dioClient,
     );
     final protectionRepository = ProtectionRepositoryImpl(
-      client: safetyDioClient,
+      client: dioClient,
     );
     final heartbeatManager = HeartbeatManager(
       repository: protectionRepository,
@@ -107,7 +99,10 @@ void main() {
       heartbeatManager: heartbeatManager,
     );
     final deviceRepository = DeviceRepositoryImpl(
-      client: safetyDioClient,
+      client: dioClient,
+    );
+    final incidentRepository = IncidentRepositoryImpl(
+      client: dioClient,
     );
 
     // Initialize cubits
@@ -138,6 +133,11 @@ void main() {
     );
     final deviceCubit = DeviceCubit(
       repository: deviceRepository,
+    );
+
+    final incidentCubit = IncidentCubit(
+      repository: incidentRepository,
+      storage: secureStorage,
     );
     // final ImagePicker picker = ImagePicker();
     
@@ -182,6 +182,7 @@ void main() {
       contactsCubit: contactsCubit,
       protectionCubit: protectionCubit,
       deviceCubit: deviceCubit,
+      incidentCubit: incidentCubit,
       startupService: startupService,
     ));
   }, (Object error, StackTrace stack) {
@@ -239,6 +240,7 @@ class LuminaGuardianApp extends StatelessWidget {
   final ContactsCubit contactsCubit;
   final ProtectionCubit protectionCubit;
   final DeviceCubit deviceCubit;
+  final IncidentCubit incidentCubit;
   final StartupService startupService;
 
   const LuminaGuardianApp({
@@ -252,6 +254,7 @@ class LuminaGuardianApp extends StatelessWidget {
     required this.contactsCubit,
     required this.protectionCubit,
     required this.deviceCubit,
+    required this.incidentCubit,
     required this.startupService,
   }) : super(key: key);
     
@@ -270,6 +273,7 @@ class LuminaGuardianApp extends StatelessWidget {
         BlocProvider<ContactsCubit>.value(value: contactsCubit),
         BlocProvider<ProtectionCubit>.value(value: protectionCubit),
         BlocProvider<DeviceCubit>.value(value: deviceCubit),
+        BlocProvider<IncidentCubit>.value(value: incidentCubit,),
         BlocProvider<LocationInitializationCubit>(create: (_) => LocationInitializationCubit(),),
       ],
       child: MaterialApp.router(

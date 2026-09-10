@@ -67,7 +67,7 @@ class AuthRepositoryImpl implements AuthRepository {
 
       // Step 3: Fetch Profile from User Service
       final profileResponse = await _client.dio.get(
-        '${ApiConfig.userBaseUrl}/api/users/$userId',
+        '/api/users/$userId',
       );
 
       debugPrint("PROFILE RESPONSE:");
@@ -112,6 +112,7 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<String> register(
       String username,
       String email,
+      String phone,
       String password,
       ) async {
     try {
@@ -123,6 +124,7 @@ class AuthRepositoryImpl implements AuthRepository {
       debugPrint("REQUEST PAYLOAD:");
       debugPrint("username = $username");
       debugPrint("email    = $email");
+      debugPrint("phone    = $phone");
       debugPrint("password = $password");
 
       final response = await _client.dio.post(
@@ -130,6 +132,7 @@ class AuthRepositoryImpl implements AuthRepository {
         data: {
           'username': username,
           'email': email,
+          'phone': phone,
           'password': password,
         },
       );
@@ -188,6 +191,7 @@ class AuthRepositoryImpl implements AuthRepository {
       debugPrint("======================================");
 
       rethrow;
+
     } catch (e, stack) {
 
       debugPrint("======================================");
