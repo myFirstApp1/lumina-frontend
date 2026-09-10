@@ -101,7 +101,7 @@ class BackgroundLocationService {
     // Config client
     // Set a default server address for testing; in production this reads from secure configuration
     final dioClient = DioClient(
-      baseUrl: ApiConfig.safetyBaseUrl, 
+      baseUrl: ApiConfig.baseUrl,
       secureStorage: secureStorage,
     );
 
