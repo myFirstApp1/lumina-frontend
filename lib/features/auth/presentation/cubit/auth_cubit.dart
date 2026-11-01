@@ -136,6 +136,23 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
+  Future<void> resendOtp(String email) async {
+    emit(const AuthLoading());
+
+    try {
+      final newTxnId = await _authRepository.resendOtp(email);
+
+      emit(
+        AuthOtpVerificationRequired(
+          email: email,
+          txnId: newTxnId,
+        ),
+      );
+    } catch (e) {
+      emit(AuthError(e.toString()));
+    }
+  }
+
   Future<void> logout() async {
     emit(const AuthLoading());
     try {

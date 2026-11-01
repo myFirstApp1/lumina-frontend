@@ -19,16 +19,29 @@ class DioClient {
 
     dio.interceptors.add(
       QueuedInterceptorsWrapper(
-        onRequest: (options, handler) async {
-          final token = await _secureStorage.getAccessToken();
+          onRequest: (options, handler) async {
+            final token = await _secureStorage.getAccessToken();
 
-          if (token != null &&
-              !options.headers.containsKey('Authorization')) {
-            options.headers['Authorization'] = 'Bearer $token';
-          }
+            print('========== DIO REQUEST ==========');
+            print('METHOD: ${options.method}');
+            print('URL: ${options.uri}');
+            print('TOKEN EXISTS: ${token != null}');
+            print('TOKEN LENGTH: ${token?.length ?? 0}');
 
-          return handler.next(options);
-        },
+            if (token != null && token.trim().isNotEmpty) {
+              options.headers['Authorization'] = 'Bearer ${token.trim()}';
+            }
+
+            options.headers['Content-Type'] = 'application/json';
+
+            print(
+              'AUTH HEADER EXISTS: '
+                  '${options.headers['Authorization'] != null}',
+            );
+            print('=================================');
+
+            return handler.next(options);
+          },
         onError: (DioException error, handler) async {
           if (error.response?.statusCode == 401) {
             await _secureStorage.deleteTokens();

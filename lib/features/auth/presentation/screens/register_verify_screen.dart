@@ -22,13 +22,18 @@ class _RegisterVerifyScreenState extends State<RegisterVerifyScreen> {
   final List<TextEditingController> _controllers = List.generate(6, (index) => TextEditingController());
   final List<FocusNode> _focusNodes = List.generate(6, (index) => FocusNode());
 
-  int _secondsRemaining = 299; // 4 minutes and 59 seconds (299s)
+  int _secondsRemaining = 59; // 59 seconds (59s)
   Timer? _countdownTimer;
+
+  String? _currentTxnId;
+  bool _isResending = false;
 
   @override
   void initState() {
     super.initState();
+    _currentTxnId = widget.txnId;
     _startTimer();
+
     // Auto-focus the first field on load
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _focusNodes[0].requestFocus();
@@ -69,30 +74,41 @@ class _RegisterVerifyScreenState extends State<RegisterVerifyScreen> {
     return "$minutesStr:$secondsStr";
   }
 
-  void _handleResendCode() {
-    if (_secondsRemaining == 0) {
-      setState(() {
-        _secondsRemaining = 299;
-      });
-      _startTimer();
+  Future<void> _handleResendCode() async {
+    if (_secondsRemaining > 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("A new secure code has been sent to your email."),
+          content: Text(
+            "Please wait until the countdown finishes before requesting a new code.",
+          ),
           backgroundColor: AppTheme.primary,
         ),
       );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Please wait until the countdown finishes before requesting a new code."),
-          backgroundColor: AppTheme.primary,
-        ),
-      );
+      return;
     }
+
+    final email = widget.email;
+
+    if (email == null || email.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Email not found. Please register again."),
+          backgroundColor: AppTheme.error,
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _isResending = true;
+    });
+
+    context.read<AuthCubit>().resendOtp(email);
   }
 
   void _handleVerify() {
     final String otp = _controllers.map((c) => c.text).join();
+
     if (otp.length < 6) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -103,9 +119,12 @@ class _RegisterVerifyScreenState extends State<RegisterVerifyScreen> {
       return;
     }
 
-    final txnId = widget.txnId ?? (context.read<AuthCubit>().state is AuthOtpVerificationRequired
-        ? (context.read<AuthCubit>().state as AuthOtpVerificationRequired).txnId
-        : '');
+    final txnId = _currentTxnId ??
+        (context.read<AuthCubit>().state is AuthOtpVerificationRequired
+            ? (context.read<AuthCubit>().state
+        as AuthOtpVerificationRequired)
+            .txnId
+            : '');
 
     if (txnId.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -125,9 +144,37 @@ class _RegisterVerifyScreenState extends State<RegisterVerifyScreen> {
     return Scaffold(
       body: BlocListener<AuthCubit, AuthState>(
         listener: (context, state) {
-          if (state is AuthUnauthenticated) {
+          if (state is AuthOtpVerificationRequired) {
+            setState(() {
+              _currentTxnId = state.txnId;
+              _isResending = false;
+              _secondsRemaining = 299;
+            });
+
+            _countdownTimer?.cancel();
+            _startTimer();
+
+            for (final controller in _controllers) {
+              controller.clear();
+            }
+
+            _focusNodes[0].requestFocus();
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  "A new secure code has been sent to your email.",
+                ),
+                backgroundColor: AppTheme.primary,
+              ),
+            );
+          } else if (state is AuthUnauthenticated) {
             context.go(AppRoutes.login);
           } else if (state is AuthError) {
+            setState(() {
+              _isResending = false;
+            });
+
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.message),
@@ -366,9 +413,9 @@ class _RegisterVerifyScreenState extends State<RegisterVerifyScreen> {
                                     ),
                                     const SizedBox(width: 4),
                                     GestureDetector(
-                                      onTap: _handleResendCode,
+                                      onTap: _isResending ? null : _handleResendCode,
                                       child: Text(
-                                        "Resend Code",
+                                        _isResending ? "Sending..." : "Resend Code",
                                         style: GoogleFonts.beVietnamPro(
                                           fontSize: 15,
                                           fontWeight: FontWeight.bold,
