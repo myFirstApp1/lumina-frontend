@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/ai_companion/presentation/screens/voice_companion_screen.dart';
 import '../../features/auth/data/models/user_model.dart';
 import '../../features/incident/presentation/screens/emergency_details_screen.dart';
 import '../../features/incident/presentation/screens/incident_history_screen.dart';
@@ -57,6 +58,7 @@ class AppRoutes {
   static const incidentHistory = "/incident-history";
   static const emergencyDetails = "/emergency-details";
   static const String aiCompanion = '/ai-companion';
+  static const String voiceCompanion = '/voice-companion';
   static const String wearableSync = '/wearable-sync';
   static const String settings = '/settings';
   static const String profile = '/profile';
@@ -166,6 +168,10 @@ class AppRoutes {
       GoRoute(
         path: aiCompanion,
         builder: (BuildContext context, GoRouterState state) => const AiCompanionScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.voiceCompanion,
+        builder: (context, state) => const VoiceCompanionScreen(),
       ),
       GoRoute(
         path: wearableSync,

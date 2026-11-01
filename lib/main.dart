@@ -70,7 +70,7 @@ void main() {
       client: dioClient,
     );
     final recoveryService = RecoveryService(
-      trackingRepository: trackingRepository,
+      //trackingRepository: trackingRepository,
     );
     final startupService = StartupService(
       storage: secureStorage,

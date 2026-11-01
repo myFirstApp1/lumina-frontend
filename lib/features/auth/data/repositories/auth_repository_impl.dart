@@ -101,11 +101,44 @@ class AuthRepositoryImpl implements AuthRepository {
       debugPrint("REQUEST:");
       debugPrint(e.requestOptions.path);
 
+      final message = _getDioErrorMessage(e);
+
       throw ServerException(
-        e.response?.data?['message'] as String? ?? 'Login failed',
+        message,
         statusCode: e.response?.statusCode,
       );
     }
+  }
+
+  String _getDioErrorMessage(DioException error) {
+    final statusCode = error.response?.statusCode;
+    final responseData = error.response?.data;
+
+    if (responseData is Map<String, dynamic>) {
+      final message = responseData['message'];
+
+      if (message != null && message.toString().trim().isNotEmpty) {
+        return message.toString();
+      }
+    }
+
+    if (statusCode == 401) {
+      return 'Invalid email or password';
+    }
+
+    if (statusCode == 400) {
+      return 'Invalid request';
+    }
+
+    if (statusCode == 404) {
+      return 'Requested resource not found';
+    }
+
+    if (statusCode != null) {
+      return 'Request failed with status $statusCode';
+    }
+
+    return error.message ?? 'Network error. Please try again.';
   }
 
   @override
@@ -214,6 +247,75 @@ class AuthRepositoryImpl implements AuthRepository {
     } on DioException catch (e) {
       throw ServerException(
         e.response?.data['message'] as String? ?? 'OTP validation failed',
+        statusCode: e.response?.statusCode,
+      );
+    }
+  }
+
+  @override
+  Future<String> resendOtp(String email) async {
+    try {
+      debugPrint("======================================");
+      debugPrint("RESEND OTP API CALLED");
+      debugPrint("BASE URL: ${_client.dio.options.baseUrl}");
+      debugPrint("ENDPOINT: /api/auth/otp/resend");
+      debugPrint("EMAIL: $email");
+      debugPrint("CHANNEL: EMAIL");
+
+      final response = await _client.dio.post(
+        '/api/auth/otp/resend',
+        data: {
+          'email': email,
+          'channel': 'EMAIL',
+        },
+      );
+
+      debugPrint("======================================");
+      debugPrint("RESEND OTP SUCCESS");
+      debugPrint("STATUS CODE: ${response.statusCode}");
+      debugPrint("FULL RESPONSE:");
+      debugPrint(response.data.toString());
+
+      final responseData = response.data;
+
+      /*
+       * Expected backend response:
+       *
+       * {
+       *   data: {
+       *     data: {
+       *       txnId: "..."
+       *     }
+       *   }
+       * }
+       */
+
+      final txnId =
+          responseData?['data']?['data']?['txnId'] ??
+              responseData?['data']?['txnId'];
+
+      if (txnId == null || txnId.toString().isEmpty) {
+        throw ServerException(
+          'Transaction ID missing from resend OTP response',
+        );
+      }
+
+      debugPrint("NEW OTP TXN ID: $txnId");
+      debugPrint("======================================");
+
+      return txnId.toString();
+    } on DioException catch (e, stack) {
+      debugPrint("======================================");
+      debugPrint("RESEND OTP FAILED");
+      debugPrint("ERROR TYPE: ${e.type}");
+      debugPrint("ERROR MESSAGE: ${e.message}");
+      debugPrint("STATUS CODE: ${e.response?.statusCode}");
+      debugPrint("RESPONSE BODY: ${e.response?.data}");
+      debugPrint("STACK TRACE: $stack");
+      debugPrint("======================================");
+
+      throw ServerException(
+        _getDioErrorMessage(e),
         statusCode: e.response?.statusCode,
       );
     }

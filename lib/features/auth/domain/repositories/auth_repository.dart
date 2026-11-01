@@ -4,6 +4,7 @@ abstract class AuthRepository {
   Future<UserModel> login(String email, String password);
   Future<String> register(String username, String email, String phone, String password);
   Future<void> verifyOtp(String txnId, String code);
+  Future<String> resendOtp(String email);
   Future<bool> hasValidSession();
   Future<void> logout();
 }
