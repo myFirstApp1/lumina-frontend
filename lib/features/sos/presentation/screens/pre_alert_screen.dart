@@ -31,6 +31,11 @@ class _PreAlertScreenState extends State<PreAlertScreen> {
       const Duration(seconds: 1),
           (timer) async {
 
+        if (!mounted) {
+          timer.cancel();
+          return;
+        }
+
         debugPrint(
           "COUNTDOWN = $_secondsRemaining",
         );
@@ -125,6 +130,26 @@ class _PreAlertScreenState extends State<PreAlertScreen> {
             context.pushReplacement(
               AppRoutes.sosActive,
             );
+
+          }
+
+          // The SOS request failed: tell the user and go back, instead of
+          // leaving them on a countdown that looks like it dispatched.
+          if (state is SosError) {
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: AppTheme.error,
+                duration: const Duration(seconds: 6),
+              ),
+            );
+
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go(AppRoutes.home);
+            }
 
           }
 
@@ -225,7 +250,7 @@ class _PreAlertScreenState extends State<PreAlertScreen> {
                       ),
                       const SizedBox(height: 20),
                       Text(
-                        _isTriggeredText ? "ALERT DISPATCHED" : "AI Monitoring Active",
+                        _isTriggeredText ? "SENDING ALERT..." : "AI Monitoring Active",
                         style: TextStyle(
                           color: _isTriggeredText ? AppTheme.error : AppTheme.success,
                           fontWeight: FontWeight.bold,

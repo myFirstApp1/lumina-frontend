@@ -1,6 +1,8 @@
 import 'dart:async';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:geolocator/geolocator.dart';
+import '../../../../core/errors/failures.dart';
 import '../../../../core/secure_storage/secure_storage_manager.dart';
 import '../../../../core/services/location_service.dart';
 import '../../../../features/tracking/presentation/cubit/tracking_cubit.dart';
@@ -80,7 +82,6 @@ class SosCubit extends Cubit<SosState> {
           if (currentSeconds <= 1) {
 
             timer.cancel();
-            //triggerSos(latitude: 0.0, longitude: 0.0, triggerType: 'DEAD_MAN_TIMEOUT');
           } else {
 
             emit(
@@ -100,54 +101,100 @@ class SosCubit extends Cubit<SosState> {
     );
   }
 
+  // =========================================================
+  // TRIGGER SOS
+  // =========================================================
+
   Future<void> triggerSos() async {
+
+    // Ignore a second trigger while one is already being sent.
+    if (state is SosLoading) {
+      return;
+    }
 
     emit(const SosLoading());
 
-    debugPrint("SOS METHOD ENTERED");
     try {
 
-      final userId =
-      await _secureStorage.getUserId();
+      final userId = await _secureStorage.getUserId();
 
-      debugPrint("========== SOS ==========");
-      debugPrint("USER ID = $userId");
+      if (userId == null || userId.isEmpty) {
+        throw ServerException('User session not found. Please log in again.');
+      }
 
-      final location =
-      await _locationService.getCurrentLocationString();
+      // Location is best effort. A missing GPS fix must never block an SOS:
+      // the backend falls back to the last known location.
+      final position = await _bestEffortPosition();
 
-      debugPrint("LOCATION = $location");
-
-      await _sosRepository.triggerSos(
-        userId: userId!,
-        location: location,
-      );
-
-      final trackingId =
-      await _trackingRepository.getTrackingId(
-        userId,
-      );
-
-      await _trackingCubit.startTrackingSession(
+      final result = await _sosRepository.triggerSos(
         userId: userId,
-        trackingId: trackingId,
+        latitude: position?.latitude,
+        longitude: position?.longitude,
       );
-      debugPrint("SOS API SUCCESS");
+
+      debugPrint("SOS ACCEPTED BY BACKEND ($result)");
+
+      // From here on the SOS is active on the server. Nothing below may turn
+      // it into an error on screen.
+      final trackingId = await _loadTrackingId(userId);
+
+      if (trackingId != null && trackingId.isNotEmpty) {
+        try {
+          await _trackingCubit.startTrackingSession(
+            userId: userId,
+            trackingId: trackingId,
+          );
+        } catch (e) {
+          debugPrint("START TRACKING AFTER SOS FAILED: $e");
+        }
+      } else {
+        debugPrint("SOS ACTIVE BUT NO TRACKING ID RETURNED");
+      }
 
       emit(
         SosAlertActive(
-          trackingId: trackingId,
+          trackingId: trackingId ?? '',
         ),
       );
 
     } catch (e) {
 
-      debugPrint("SOS ERROR");
-      debugPrint(e.toString());
+      debugPrint("SOS ERROR: $e");
 
-      emit(SosError(e.toString()));
+      emit(SosError(_messageOf(e, 'Could not send SOS. Please try again.')));
     }
   }
+
+  Future<Position?> _bestEffortPosition() async {
+    try {
+      return await _locationService
+          .getCurrentLocation()
+          .timeout(const Duration(seconds: 5));
+    } catch (e) {
+      debugPrint("SOS LOCATION UNAVAILABLE: $e");
+      return null;
+    }
+  }
+
+  /// The backend creates the tracking id while handling the SOS event. Ask for
+  /// it a few times in case the read races the write.
+  Future<String?> _loadTrackingId(String userId) async {
+    for (var attempt = 0; attempt < 3; attempt++) {
+      final id = await _trackingRepository.getActiveTrackingId(userId);
+
+      if (id != null && id.isNotEmpty) {
+        return id;
+      }
+
+      await Future.delayed(const Duration(milliseconds: 500));
+    }
+
+    return null;
+  }
+
+  // =========================================================
+  // RESTORE AFTER APP RESTART
+  // =========================================================
 
   Future<void> restoreActiveSos() async {
 
@@ -195,71 +242,54 @@ class SosCubit extends Cubit<SosState> {
 
   }
 
-  Future<void> triggerEmergency(String userId) async {
-    emit(const SosLoading());
-
-    try {
-
-      final position =
-      await _locationService.getCurrentLocation();
-
-      final location =
-          "${position.latitude},${position.longitude}";
-
-      await _sosRepository.triggerSos(
-        userId: userId,
-        location: location,
-      );
-
-      // TODO(P2): Replace with proper tracking restoration flow
-      emit(
-        const SosAlertActive(
-          trackingId: "",
-        ),
-      );
-
-    } catch (e) {
-
-      emit(
-        SosError(
-          e.toString(),
-        ),
-      );
-
-    }
-  }
+  // =========================================================
+  // STOP SOS (MARK SAFE)
+  // =========================================================
 
   Future<void> stopSos() async {
 
+    final previous = state;
+
     emit(const SosLoading());
 
     try {
 
-      debugPrint("====================");
-      debugPrint("STOP SOS REQUESTED");
-      debugPrint("====================");
+      final userId = await _secureStorage.getUserId();
+
+      if (userId == null || userId.isEmpty) {
+        throw ServerException('User session not found. Please log in again.');
+      }
+
+      // The backend is the authority: this closes the incident, stops
+      // tracking and puts the safety session back to ACTIVE.
+      await _sosRepository.markSafe(userId: userId);
 
       await _trackingCubit.stopTrackingSession();
 
-      debugPrint("====================");
       debugPrint("SOS STOPPED");
-      debugPrint("====================");
 
       emit(const SosInitial());
 
     } catch (e) {
 
-      debugPrint("STOP SOS FAILED");
-      debugPrint(e.toString());
+      debugPrint("STOP SOS FAILED: $e");
 
-      emit(
-        SosError(
-          e.toString(),
-        ),
-      );
+      emit(SosError(_messageOf(e, 'Could not stop SOS. Please try again.')));
+
+      // The SOS is still active on the server: keep showing it.
+      if (previous is SosAlertActive) {
+        emit(previous);
+      }
 
     }
 
+  }
+
+  String _messageOf(Object e, String fallback) {
+    if (e is ServerException && e.message.isNotEmpty) {
+      return e.message;
+    }
+    return fallback;
   }
 
   @override
