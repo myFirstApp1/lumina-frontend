@@ -1,192 +1,157 @@
 import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../../core/theme/app_theme.dart';
 
 class TermsOfServiceScreen extends StatelessWidget {
   const TermsOfServiceScreen({Key? key}) : super(key: key);
 
+  static const Color _pink = Color(0xFFD95791);
+  static const Color _lavender = Color(0xFFAA91D8);
+  static const Color _dark = Color(0xFF393044);
+  static const Color _muted = Color(0xFF898193);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFFFF7FA),
       body: Stack(
         children: [
-          // Background soft canvas
-          Container(
-            color: AppTheme.background,
+          const Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Color(0xFFFFE5EF),
+                    Color(0xFFFFF5F6),
+                    Color(0xFFF0EAFF),
+                    Color(0xFFFFF9F3),
+                  ],
+                ),
+              ),
+            ),
           ),
-
-          // Main Scrollable Canvas
+          Positioned(top: 130, right: -100, child: _glow(220, const Color(0xFFFFC6DD))),
+          Positioned(top: 620, left: -110, child: _glow(230, const Color(0xFFDCCFFF))),
           SafeArea(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(20.0, 72.0, 20.0, 48.0),
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 40),
               child: Center(
-                child: Container(
-                  constraints: const BoxConstraints(maxWidth: 896), // max-w-4xl
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 760),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Header Section
-                      const SizedBox(height: 16),
+                      _topBar(context),
+                      const SizedBox(height: 28),
                       Text(
-                        "Terms of Service",
+                        'TERMS & CONDITIONS',
                         textAlign: TextAlign.center,
                         style: GoogleFonts.montserrat(
-                          fontSize: 48,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.primary,
+                          fontSize: 11, fontWeight: FontWeight.w800,
+                          letterSpacing: 1.8, color: _pink,
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 10),
+                      Text(
+                        'Terms of Service',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.montserrat(
+                          fontSize: 30, fontWeight: FontWeight.w800, color: _dark,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
                       Center(
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF5F3F3), // surface-container-low
-                            borderRadius: BorderRadius.circular(20.0),
-                            border: Border.all(color: Colors.white, width: 1.0),
-                          ),
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                          child: Text(
-                            "Last Updated: October 24, 2023",
-                            style: GoogleFonts.beVietnamPro(
-                              fontSize: 16,
-                              color: AppTheme.textSecondary,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
+                        child: _glassPill('Last Updated: October 24, 2023'),
                       ),
-                      
-                      const SizedBox(height: 32),
-
-                      // Introduction Card
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16.0),
-                          border: Border.all(color: Colors.white.withOpacity(0.5), width: 1.0),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppTheme.primaryContainer.withOpacity(0.08),
-                              blurRadius: 30,
-                              offset: const Offset(0, 8),
-                            )
-                          ],
-                        ),
-                        padding: const EdgeInsets.all(24.0),
+                      const SizedBox(height: 26),
+                      _glassCard(
                         child: Text(
-                          "Welcome to Lumina Guardian. We provide a digital guardianship platform designed to enhance your personal safety and peace of mind. By accessing or using our application, you agree to be bound by these terms. We encourage you to read them carefully as they form a legal agreement between you and Lumina Guardian.",
-                          style: GoogleFonts.beVietnamPro(
-                            fontSize: 18,
-                            color: AppTheme.textPrimary,
-                            height: 1.6,
-                          ),
+                          'Welcome to Lumina Guardian. We provide a digital guardianship platform designed to enhance your personal safety and peace of mind. By accessing or using our application, you agree to be bound by these terms. We encourage you to read them carefully as they form a legal agreement between you and Lumina Guardian.',
+                          style: _bodyStyle(fontSize: 15.5, height: 1.75),
                         ),
                       ),
-
-                      const SizedBox(height: 24),
-
-                      // Terms Sections
-                      _buildSectionCard(
-                        icon: Icons.handshake,
-                        iconColor: AppTheme.primary,
-                        bgColor: AppTheme.primaryContainer.withOpacity(0.1),
-                        title: "Acceptance of Terms",
-                        content: "By creating an account, downloading our application, or using our services, you signify your acceptance of these Terms. If you do not agree to these terms, please do not use Lumina Guardian. These terms may be updated periodically, and continued use constitutes acceptance of those changes.",
+                      const SizedBox(height: 18),
+                      _section(
+                        Icons.handshake_rounded,
+                        'Acceptance of Terms',
+                        'By creating an account, downloading our application, or using our services, you signify your acceptance of these Terms. If you do not agree to these terms, please do not use Lumina Guardian. These terms may be updated periodically, and continued use constitutes acceptance of those changes.',
                       ),
-                      const SizedBox(height: 16),
-
-                      _buildSectionCard(
-                        icon: Icons.how_to_reg,
-                        iconColor: AppTheme.primary,
-                        bgColor: AppTheme.primaryContainer.withOpacity(0.1),
-                        title: "User Eligibility",
-                        content: "You must be at least 18 years old to create an account. By using the app, you represent and warrant that you meet this age requirement. If you are under 18, you may only use the service with the involvement and consent of a parent or legal guardian who agrees to be bound by these terms.",
+                      const SizedBox(height: 14),
+                      _section(
+                        Icons.verified_user_outlined,
+                        'User Eligibility',
+                        'You must be at least 18 years old to create an account. By using the app, you represent and warrant that you meet this age requirement. If you are under 18, you may only use the service with the involvement and consent of a parent or legal guardian who agrees to be bound by these terms.',
                       ),
-                      const SizedBox(height: 16),
-
-                      _buildProhibitedConductCard(),
-                      const SizedBox(height: 16),
-
-                      _buildSectionCard(
-                        icon: Icons.shield,
-                        iconColor: AppTheme.primary,
-                        bgColor: AppTheme.primaryContainer.withOpacity(0.1),
-                        title: "Limitation of Liability",
-                        content: "While Lumina Guardian is designed to enhance safety, it is a supplementary tool and not a replacement for emergency services (e.g., 911). We do not guarantee that the service will prevent harm. To the maximum extent permitted by law, Lumina Guardian shall not be liable for any indirect, incidental, or consequential damages arising out of your use of the service.",
-                      ),
-                      const SizedBox(height: 16),
-
-                      _buildSectionCard(
-                        icon: Icons.credit_card,
-                        iconColor: AppTheme.primary,
-                        bgColor: AppTheme.primaryContainer.withOpacity(0.1),
-                        title: "Subscription & Payments",
-                        content: "Certain premium features of Lumina Guardian require a subscription. By choosing a paid plan, you agree to our pricing and payment terms. Subscriptions auto-renew unless canceled at least 24 hours before the end of the current period. Refunds are handled in accordance with our refund policy and the policies of the respective app stores.",
-                      ),
-
-                      const SizedBox(height: 32),
-
-                      // Footer Card
-                      Container(
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF5F3F3), // surface-container-low
-                          borderRadius: BorderRadius.circular(16.0),
-                          border: Border.all(color: AppTheme.outlineVariant.withOpacity(0.3), width: 1.0),
-                        ),
-                        padding: const EdgeInsets.all(24.0),
+                      const SizedBox(height: 14),
+                      _glassCard(
                         child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            _sectionHeading(Icons.warning_amber_rounded, 'Prohibited Conduct', danger: true),
+                            const SizedBox(height: 10),
                             Text(
-                              "Have Questions?",
-                              style: GoogleFonts.montserrat(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: AppTheme.textPrimary,
-                              ),
+                              'To maintain a safe community, you agree not to engage in any of the following:',
+                              style: _bodyStyle(),
                             ),
-                            const SizedBox(height: 8),
-                            Text(
-                              "If you need clarification on any of our terms or have specific legal inquiries, our team is here to help.",
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.beVietnamPro(
-                                fontSize: 16,
-                                color: AppTheme.textSecondary,
-                                height: 1.5,
-                              ),
-                            ),
-                            const SizedBox(height: 20),
-                            Container(
-                              height: 48,
-                              decoration: BoxDecoration(
-                                gradient: AppTheme.primaryGradient,
-                                borderRadius: BorderRadius.circular(24.0),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: AppTheme.primary.withOpacity(0.25),
-                                    blurRadius: 12,
-                                    offset: const Offset(0, 4),
-                                  )
+                            const SizedBox(height: 12),
+                            ...[
+                              'Using the service for any illegal or unauthorized purpose.',
+                              'Attempting to interfere with or compromise the system integrity or security.',
+                              'Harassing, abusing, or harming another person through the platform.',
+                              'Submitting false safety alerts or misusing the SOS functionality.',
+                            ].map((rule) => Padding(
+                              padding: const EdgeInsets.only(bottom: 9),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Padding(
+                                    padding: EdgeInsets.only(top: 8),
+                                    child: Icon(Icons.circle, size: 6, color: _pink),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(child: Text(rule, style: _bodyStyle(fontSize: 14.5))),
                                 ],
                               ),
-                              child: ElevatedButton.icon(
-                                onPressed: () {},
-                                icon: const Icon(Icons.mail, color: Colors.white, size: 18),
-                                label: Text(
-                                  "Contact Legal Team",
-                                  style: GoogleFonts.beVietnamPro(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.transparent,
-                                  foregroundColor: Colors.white,
-                                  shadowColor: Colors.transparent,
-                                  padding: const EdgeInsets.symmetric(horizontal: 32.0),
-                                ),
-                              ),
+                            )),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      _section(
+                        Icons.shield_outlined,
+                        'Limitation of Liability',
+                        'While Lumina Guardian is designed to enhance safety, it is a supplementary tool and not a replacement for emergency services (e.g., 911). We do not guarantee that the service will prevent harm. To the maximum extent permitted by law, Lumina Guardian shall not be liable for any indirect, incidental, or consequential damages arising out of your use of the service.',
+                      ),
+                      const SizedBox(height: 14),
+                      _section(
+                        Icons.credit_card_rounded,
+                        'Subscription & Payments',
+                        'Certain premium features of Lumina Guardian require a subscription. By choosing a paid plan, you agree to our pricing and payment terms. Subscriptions auto-renew unless canceled at least 24 hours before the end of the current period. Refunds are handled in accordance with our refund policy and the policies of the respective app stores.',
+                      ),
+                      const SizedBox(height: 18),
+                      _glassCard(
+                        child: Column(
+                          children: [
+                            const Icon(Icons.mail_outline_rounded, color: _pink, size: 30),
+                            const SizedBox(height: 10),
+                            Text('Have Questions?', style: GoogleFonts.montserrat(
+                              fontSize: 19, fontWeight: FontWeight.w800, color: _dark,
+                            )),
+                            const SizedBox(height: 8),
+                            Text(
+                              'If you need clarification on any of our terms or have specific legal inquiries, our team is here to help.',
+                              textAlign: TextAlign.center,
+                              style: _bodyStyle(fontSize: 13.5),
+                            ),
+                            const SizedBox(height: 16),
+                            _gradientAction(
+                              label: 'Contact Legal Team',
+                              icon: Icons.mail_outline_rounded,
+                              onPressed: () {},
                             ),
                           ],
                         ),
@@ -197,212 +162,131 @@ class TermsOfServiceScreen extends StatelessWidget {
               ),
             ),
           ),
-
-          // Custom TopAppBar matching spec exactly
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: ClipRect(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                child: Container(
-                  height: 64,
-                  decoration: BoxDecoration(
-                    color: AppTheme.surface.withOpacity(0.7),
-                    border: Border(
-                      bottom: BorderSide(
-                        color: AppTheme.outlineVariant.withOpacity(0.3),
-                        width: 1.0,
-                      ),
-                    ),
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      // Back button
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back, color: AppTheme.primary),
-                        onPressed: () => context.pop(),
-                      ),
-                      // Title
-                      Text(
-                        "Lumina Guardian",
-                        style: GoogleFonts.montserrat(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.primary,
-                        ),
-                      ),
-                      // Notifications button
-                      IconButton(
-                        icon: const Icon(Icons.notifications, color: AppTheme.primary),
-                        onPressed: () {},
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
         ],
       ),
     );
   }
 
-  Widget _buildSectionCard({
-    required IconData icon,
-    required Color iconColor,
-    required Color bgColor,
-    required String title,
-    required String content,
-  }) {
-    return Container(
+  static Widget _glow(double size, Color color) => Container(
+    width: size, height: size,
+    decoration: BoxDecoration(shape: BoxShape.circle, color: color.withOpacity(.30)),
+  );
+
+  static Widget _topBar(BuildContext context) => ClipRRect(
+    borderRadius: BorderRadius.circular(20),
+    child: BackdropFilter(
+      filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+      child: Container(
+        height: 54,
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(.48),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.white.withOpacity(.8)),
+        ),
+        child: Row(
+          children: [
+            IconButton(
+              onPressed: () { if (context.canPop()) context.pop(); },
+              icon: const Icon(Icons.arrow_back_rounded, color: _dark),
+            ),
+            Expanded(child: Text('Lumina Guardian', textAlign: TextAlign.center,
+                style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w800, color: _pink))),
+            const SizedBox(width: 48),
+          ],
+        ),
+      ),
+    ),
+  );
+
+  static Widget _glassPill(String text) => ClipRRect(
+    borderRadius: BorderRadius.circular(30),
+    child: BackdropFilter(
+      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(.55),
+          borderRadius: BorderRadius.circular(30),
+          border: Border.all(color: Colors.white.withOpacity(.9)),
+        ),
+        child: Text(text, style: GoogleFonts.beVietnamPro(fontSize: 12, color: _muted, fontWeight: FontWeight.w600)),
+      ),
+    ),
+  );
+
+  static Widget _glassCard({required Widget child}) => ClipRRect(
+    borderRadius: BorderRadius.circular(24),
+    child: BackdropFilter(
+      filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(.72),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: Colors.white.withOpacity(.95)),
+          boxShadow: [BoxShadow(color: _lavender.withOpacity(.08), blurRadius: 22, offset: const Offset(0, 7))],
+        ),
+        child: child,
+      ),
+    ),
+  );
+
+  static TextStyle _bodyStyle({double fontSize = 14.5, double height = 1.65}) =>
+      GoogleFonts.beVietnamPro(fontSize: fontSize, color: _muted, height: height);
+
+  static Widget _sectionHeading(IconData icon, String title, {bool danger = false}) => Row(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Container(
+        width: 42, height: 42,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(14),
+          gradient: LinearGradient(colors: danger
+              ? [const Color(0xFFFFE2E7), const Color(0xFFFFEEF0)]
+              : [const Color(0xFFFCE4EE), const Color(0xFFEDE5FA)]),
+        ),
+        child: Icon(icon, color: danger ? const Color(0xFFD65A70) : _pink, size: 20),
+      ),
+      const SizedBox(width: 13),
+      Expanded(child: Padding(
+        padding: const EdgeInsets.only(top: 7),
+        child: Text(title, style: GoogleFonts.montserrat(
+          fontSize: 16, fontWeight: FontWeight.w800, color: _dark,
+        )),
+      )),
+    ],
+  );
+
+  static Widget _section(IconData icon, String title, String content) => _glassCard(
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _sectionHeading(icon, title),
+        const SizedBox(height: 13),
+        Text(content, style: _bodyStyle()),
+      ],
+    ),
+  );
+
+  static Widget _gradientAction({
+    required String label, required IconData icon, required VoidCallback onPressed,
+  }) => SizedBox(
+    width: double.infinity, height: 50,
+    child: DecoratedBox(
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(color: Colors.white.withOpacity(0.4), width: 1.0),
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.primaryContainer.withOpacity(0.05),
-            blurRadius: 20,
-            offset: const Offset(0, 4),
-          )
-        ],
+        gradient: const LinearGradient(colors: [_pink, _lavender]),
+        borderRadius: BorderRadius.circular(17),
+        boxShadow: [BoxShadow(color: _pink.withOpacity(.20), blurRadius: 14, offset: const Offset(0, 5))],
       ),
-      padding: const EdgeInsets.all(24.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: bgColor,
-            ),
-            child: Icon(icon, color: iconColor, size: 28),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: GoogleFonts.montserrat(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  content,
-                  style: GoogleFonts.beVietnamPro(
-                    fontSize: 16,
-                    color: AppTheme.textSecondary,
-                    height: 1.6,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+      child: ElevatedButton.icon(
+        onPressed: onPressed, icon: Icon(icon, size: 18, color: Colors.white),
+        label: Text(label, style: GoogleFonts.beVietnamPro(fontWeight: FontWeight.w700, color: Colors.white)),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.transparent, shadowColor: Colors.transparent,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(17)),
+        ),
       ),
-    );
-  }
-
-  Widget _buildProhibitedConductCard() {
-    final List<String> rules = [
-      "Using the service for any illegal or unauthorized purpose.",
-      "Attempting to interfere with or compromise the system integrity or security.",
-      "Harassing, abusing, or harming another person through the platform.",
-      "Submitting false safety alerts or misusing the SOS functionality."
-    ];
-
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(color: Colors.white.withOpacity(0.4), width: 1.0),
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.primaryContainer.withOpacity(0.05),
-            blurRadius: 20,
-            offset: const Offset(0, 4),
-          )
-        ],
-      ),
-      padding: const EdgeInsets.all(24.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppTheme.error.withOpacity(0.15),
-            ),
-            child: const Icon(Icons.warning, color: AppTheme.error, size: 28),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Prohibited Conduct",
-                  style: GoogleFonts.montserrat(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  "To maintain a safe community, you agree not to engage in any of the following:",
-                  style: GoogleFonts.beVietnamPro(
-                    fontSize: 16,
-                    color: AppTheme.textSecondary,
-                    height: 1.6,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Column(
-                  children: rules.map((rule) {
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4.0),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Padding(
-                            padding: EdgeInsets.only(top: 8.0),
-                            child: Icon(Icons.circle, size: 6, color: AppTheme.textSecondary),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              rule,
-                              style: GoogleFonts.beVietnamPro(
-                                fontSize: 16,
-                                color: AppTheme.textSecondary,
-                                height: 1.5,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+    ),
+  );
 }

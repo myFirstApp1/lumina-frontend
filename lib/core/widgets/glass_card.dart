@@ -17,11 +17,12 @@ class GlassCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cardBorderRadius = BorderRadius.circular(borderRadius ?? 24.0);
-    
-    Widget cardContent = Container(
+    final cardBorderRadius = BorderRadius.circular(borderRadius ?? 23.0);
+
+    final cardContent = Container(
       decoration: BoxDecoration(
-        color: AppTheme.cardSurface,
+        // A soft translucent surface that matches the Edit Profile screen.
+        color: AppTheme.cardSurface.withOpacity(0.72),
         borderRadius: cardBorderRadius,
         border: AppTheme.glassBorder,
         boxShadow: AppTheme.softShadow,
@@ -30,17 +31,17 @@ class GlassCard extends StatelessWidget {
       child: child,
     );
 
-    if (onTap != null) {
-      return GestureDetector(
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeInOut,
-          child: cardContent,
-        ),
-      );
+    if (onTap == null) {
+      return cardContent;
     }
 
-    return cardContent;
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeInOut,
+        child: cardContent,
+      ),
+    );
   }
 }

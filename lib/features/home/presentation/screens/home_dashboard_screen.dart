@@ -1,4 +1,4 @@
-//import 'dart:async';
+
 import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
@@ -69,7 +69,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
         await context.read<ProfileCubit>().loadProfile(authState.user.userId);
 
         context.read<ProtectionCubit>().startProtection(
-            //authState.user.userId
+          //authState.user.userId
         );
       }
 
@@ -179,7 +179,11 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
         body: Stack(
           children: [
             // Background soft pink canvas
-            Container(color: AppTheme.background),
+            Container(
+              decoration: const BoxDecoration(
+                gradient: AppTheme.backgroundGradient,
+              ),
+            ),
 
             // Decorative top glowing circular ambient highlights
             Positioned(
@@ -190,7 +194,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
               child: Container(
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppTheme.primaryContainer.withOpacity(0.08),
+                  color: AppTheme.primary.withOpacity(0.07),
                 ),
                 child: BackdropFilter(
                   filter: ImageFilter.blur(sigmaX: 100.0, sigmaY: 100.0),
@@ -207,19 +211,16 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // TopAppBar Row matching HTML exactly
+                    // Header: profile, centered app title, notifications and settings.
                     BlocBuilder<ProfileCubit, ProfileState>(
                       builder: (context, state) {
                         String avatar = "";
-                        String username = "Loading...";
 
                         if (state is ProfileLoaded) {
                           avatar = state.profile.avatar;
-                          username = state.profile.name;
                         }
 
                         return Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             GestureDetector(
                               onTap: () => context.push(AppRoutes.profile),
@@ -228,24 +229,19 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
                                 child: Container(
                                   width: 48,
                                   height: 48,
-
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
                                     border: Border.all(
                                       color: Colors.white,
                                       width: 2,
                                     ),
-
                                     boxShadow: [
                                       BoxShadow(
-                                        color: AppTheme.primary.withOpacity(
-                                          .15,
-                                        ),
+                                        color: AppTheme.primary.withOpacity(.15),
                                         blurRadius: 16,
                                       ),
                                     ],
                                   ),
-
                                   child: ClipOval(
                                     child: Image.asset(
                                       AvatarHelper.getAvatarPath(avatar),
@@ -255,20 +251,143 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
                                 ),
                               ),
                             ),
-
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    'LUMINA',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: GoogleFonts.montserrat(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: 1.8,
+                                      color: AppTheme.textPrimary,
+                                    ),
+                                  ),
+                                  Text(
+                                    'GUARDIAN',
+                                    style: GoogleFonts.beVietnamPro(
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: 2.8,
+                                      color: AppTheme.primary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                             SizedBox(
-                              width: 46,
+                              width: 42,
                               height: 46,
                               child: IconButton(
+                                tooltip: 'Notifications',
+                                icon: const Icon(
+                                  Icons.notifications_none_rounded,
+                                  color: AppTheme.primary,
+                                  size: 25,
+                                ),
+                                onPressed: () {
+                                  showModalBottomSheet<void>(
+                                    context: context,
+                                    backgroundColor: Colors.transparent,
+                                    isScrollControlled: true,
+                                    builder: (sheetContext) {
+                                      return Container(
+                                        padding: const EdgeInsets.fromLTRB(
+                                          24, 12, 24, 32,
+                                        ),
+                                        decoration: const BoxDecoration(
+                                          color: Color(0xFFFFF7FA),
+                                          borderRadius: BorderRadius.vertical(
+                                            top: Radius.circular(28),
+                                          ),
+                                        ),
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Container(
+                                              width: 42,
+                                              height: 4,
+                                              decoration: BoxDecoration(
+                                                color: AppTheme.outlineVariant,
+                                                borderRadius: BorderRadius.circular(8),
+                                              ),
+                                            ),
+                                            const SizedBox(height: 22),
+                                            Row(
+                                              children: [
+                                                const Expanded(
+                                                  child: Text(
+                                                    'Notifications',
+                                                    style: TextStyle(
+                                                      color: AppTheme.textPrimary,
+                                                      fontSize: 20,
+                                                      fontWeight: FontWeight.w700,
+                                                    ),
+                                                  ),
+                                                ),
+                                                IconButton(
+                                                  tooltip: 'Close',
+                                                  onPressed: () =>
+                                                      Navigator.pop(sheetContext),
+                                                  icon: const Icon(Icons.close),
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 24),
+                                            Icon(
+                                              Icons.notifications_none_rounded,
+                                              size: 42,
+                                              color: AppTheme.primary.withOpacity(.7),
+                                            ),
+                                            const SizedBox(height: 12),
+                                            const Text(
+                                              'Notification centre',
+                                              style: TextStyle(
+                                                color: AppTheme.textPrimary,
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 6),
+                                            const Text(
+                                              'Your safety alerts and updates will appear here when notifications are connected.',
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(
+                                                color: AppTheme.textSecondary,
+                                                height: 1.5,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    },
+                                  );
+                                },
+                                style: IconButton.styleFrom(
+                                  backgroundColor:
+                                  AppTheme.primaryContainer.withOpacity(.2),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            SizedBox(
+                              width: 42,
+                              height: 46,
+                              child: IconButton(
+                                tooltip: 'Settings',
                                 icon: const Icon(
                                   Icons.settings_outlined,
                                   color: AppTheme.primary,
+                                  size: 24,
                                 ),
                                 onPressed: () =>
                                     context.push(AppRoutes.settings),
                                 style: IconButton.styleFrom(
-                                  backgroundColor: AppTheme.primaryContainer
-                                      .withOpacity(.2),
+                                  backgroundColor:
+                                  AppTheme.primaryContainer.withOpacity(.2),
                                 ),
                               ),
                             ),
@@ -311,26 +430,25 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
                               padding: const EdgeInsets.all(24),
 
                               decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(24),
-
+                                borderRadius: BorderRadius.circular(26),
                                 gradient: LinearGradient(
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                   colors: [
-                                    Colors.white.withOpacity(.95),
-                                    Colors.white.withOpacity(.85),
+                                    Colors.white.withOpacity(.82),
+                                    Colors.white.withOpacity(.68),
                                   ],
                                 ),
 
                                 border: Border.all(
-                                  color: Colors.white.withOpacity(.7),
+                                  color: Colors.white.withOpacity(.9),
                                 ),
 
                                 boxShadow: [
                                   BoxShadow(
-                                    color: AppTheme.primary.withOpacity(.08),
-                                    blurRadius: 30,
-                                    offset: const Offset(0, 12),
+                                    color: AppTheme.primary.withOpacity(.07),
+                                    blurRadius: 24,
+                                    offset: const Offset(0, 9),
                                   ),
                                 ],
                               ),
@@ -400,7 +518,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
                                   builder: (context, child) {
                                     return Transform.scale(
                                       scale:
-                                          1.0 + (_pingController.value * 0.4),
+                                      1.0 + (_pingController.value * 0.4),
                                       child: Opacity(
                                         opacity: 1.0 - _pingController.value,
                                         child: Container(
@@ -408,7 +526,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
                                           height: 200,
                                           decoration: BoxDecoration(
                                             shape: BoxShape.circle,
-                                            color: Colors.red.withOpacity(0.20),
+                                            color: AppTheme.error.withOpacity(0.14),
                                           ),
                                         ),
                                       ),
@@ -434,8 +552,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
                                             decoration: BoxDecoration(
                                               shape: BoxShape.circle,
                                               border: Border.all(
-                                                color: Colors.redAccent
-                                                    .withOpacity(.8),
+                                                color: AppTheme.error.withOpacity(.75),
                                                 width: 4,
                                               ),
                                             ),
@@ -453,17 +570,17 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
                                   builder: (context, child) {
                                     return Transform.scale(
                                       scale:
-                                          1.0 + (_pulseController.value * 0.05),
+                                      1.0 + (_pulseController.value * 0.05),
                                       child: Container(
                                         width: 240,
                                         height: 240,
                                         decoration: BoxDecoration(
                                           shape: BoxShape.circle,
-                                          color: Colors.red.withOpacity(0.30),
+                                          color: AppTheme.error.withOpacity(0.22),
                                           boxShadow: [
                                             BoxShadow(
-                                              color: Colors.red.withOpacity(
-                                                0.30 * _pulseController.value,
+                                              color: AppTheme.error.withOpacity(
+                                                0.24 * _pulseController.value,
                                               ),
                                               blurRadius: 40,
                                               spreadRadius: 5,
@@ -490,10 +607,10 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
 
                                     _holdTimer = Timer(
                                       const Duration(seconds: 3),
-                                      () async {
+                                          () async {
                                         if (_isHolding) {
                                           bool canStart =
-                                              await validateLocation();
+                                          await validateLocation();
 
                                           if (!canStart) return;
 
@@ -556,8 +673,8 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
                                           BoxShadow(
                                             color: const Color(
                                               0xFFDC2626,
-                                            ).withOpacity(.80),
-                                            blurRadius: 40,
+                                            ).withOpacity(.55),
+                                            blurRadius: 34,
                                             spreadRadius: -10,
                                             offset: const Offset(0, 10),
                                           ),
@@ -586,15 +703,15 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
 
                         Container(
                           decoration: BoxDecoration(
-                            color: AppTheme.surface.withOpacity(.8),
+                            color: Colors.white.withOpacity(.76),
                             borderRadius: BorderRadius.circular(9999),
                             border: Border.all(
-                              color: Colors.white.withOpacity(.3),
+                              color: Colors.white.withOpacity(.9),
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(.05),
-                                blurRadius: 8,
+                                color: AppTheme.primary.withOpacity(.06),
+                                blurRadius: 12,
                                 offset: const Offset(0, 1),
                               ),
                             ],
@@ -615,7 +732,96 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
                         ),
                       ],
                     ),
-                    const SizedBox(height: 30.0),
+                    const SizedBox(height: 26),
+
+                    // Recent safety activity — honest empty state until connected
+                    // to the incident/timeline data source.
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(.78),
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(.92),
+                          width: 1.2,
+                        ),
+                        boxShadow: AppTheme.softShadow,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  'Safety Activity',
+                                  style: GoogleFonts.montserrat(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppTheme.textPrimary,
+                                  ),
+                                ),
+                              ),
+                              TextButton(
+                                onPressed: () =>
+                                    context.push(AppRoutes.incidentHistory),
+                                child: Text(
+                                  'View all',
+                                  style: GoogleFonts.beVietnamPro(
+                                    color: AppTheme.primary,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                width: 42,
+                                height: 42,
+                                decoration: BoxDecoration(
+                                  color: AppTheme.primary.withOpacity(.10),
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                child: const Icon(
+                                  Icons.shield_outlined,
+                                  color: AppTheme.primary,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Your safety timeline',
+                                      style: GoogleFonts.beVietnamPro(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w700,
+                                        color: AppTheme.textPrimary,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'SOS alerts, protection events and other safety updates will appear here.',
+                                      style: GoogleFonts.beVietnamPro(
+                                        fontSize: 12,
+                                        height: 1.45,
+                                        color: AppTheme.textSecondary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
 
                     // Bento Grid: Wearable Connected Card
                     Material(
@@ -627,18 +833,18 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
                         },
                         child: Container(
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.9),
-                            borderRadius: BorderRadius.circular(30.0),
+                            color: Colors.white.withOpacity(0.76),
+                            borderRadius: BorderRadius.circular(26.0),
                             border: Border.all(
-                              color: Colors.white.withOpacity(0.6),
+                              color: Colors.white.withOpacity(0.9),
                               width: 1.0,
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
-                                blurRadius: 30,
-                                spreadRadius: -5,
-                                offset: const Offset(0, 8),
+                                color: AppTheme.primary.withOpacity(0.06),
+                                blurRadius: 24,
+                                spreadRadius: -4,
+                                offset: const Offset(0, 7),
                               ),
                             ],
                           ),
@@ -720,7 +926,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
                                         Text(
                                           "Connected",
                                           style: GoogleFonts.beVietnamPro(
-                                            color: Colors.green,
+                                            color: AppTheme.success,
                                             fontWeight: FontWeight.w600,
                                           ),
                                         ),
