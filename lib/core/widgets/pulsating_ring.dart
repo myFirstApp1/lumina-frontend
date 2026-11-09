@@ -20,35 +20,37 @@ class PulsatingRing extends StatefulWidget {
   State<PulsatingRing> createState() => _PulsatingRingState();
 }
 
-class _PulsatingRingState extends State<PulsatingRing> with TickerProviderStateMixin {
-  late List<AnimationController> _controllers;
+class _PulsatingRingState extends State<PulsatingRing>
+    with TickerProviderStateMixin {
+  late final List<AnimationController> _controllers;
 
   @override
   void initState() {
     super.initState();
+
     _controllers = List.generate(widget.ringsCount, (index) {
       final controller = AnimationController(
         vsync: this,
         duration: widget.duration,
       );
-      
-      // Stagger the ring animation start times
+
+      // Preserve the original staggered pulse timing.
       Future.delayed(
         widget.duration * (index / widget.ringsCount),
-        () {
+            () {
           if (mounted) {
             controller.repeat();
           }
         },
       );
-      
+
       return controller;
     });
   }
 
   @override
   void dispose() {
-    for (var controller in _controllers) {
+    for (final controller in _controllers) {
       controller.dispose();
     }
     super.dispose();
@@ -60,30 +62,36 @@ class _PulsatingRingState extends State<PulsatingRing> with TickerProviderStateM
       alignment: Alignment.center,
       children: [
         ...List.generate(widget.ringsCount, (index) {
-          final animation = Tween<double>(begin: 0.2, end: 1.0).animate(
-            CurvedAnimation(
-              parent: _controllers[index],
-              curve: Curves.easeOut,
-            ),
-          );
-          
-          final opacityAnimation = Tween<double>(begin: 0.6, end: 0.0).animate(
-            CurvedAnimation(
-              parent: _controllers[index],
-              curve: Curves.easeOut,
-            ),
+          final curvedAnimation = CurvedAnimation(
+            parent: _controllers[index],
+            curve: Curves.easeOut,
           );
 
+          final scaleAnimation = Tween<double>(
+            begin: 0.2,
+            end: 1.0,
+          ).animate(curvedAnimation);
+
+          final opacityAnimation = Tween<double>(
+            begin: 0.6,
+            end: 0.0,
+          ).animate(curvedAnimation);
+
           return AnimatedBuilder(
-            animation: animation,
+            animation: _controllers[index],
             builder: (context, child) {
-              final size = widget.maxRadius * animation.value;
-              return Container(
-                width: size,
-                height: size,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: widget.pulseColor.withOpacity(opacityAnimation.value),
+              final diameter = widget.maxRadius * scaleAnimation.value;
+
+              return SizedBox(
+                width: diameter,
+                height: diameter,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: widget.pulseColor.withOpacity(
+                      opacityAnimation.value,
+                    ),
+                  ),
                 ),
               );
             },

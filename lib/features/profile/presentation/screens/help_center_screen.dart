@@ -1,8 +1,8 @@
 import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../../core/theme/app_theme.dart';
 
 class HelpCenterScreen extends StatefulWidget {
   const HelpCenterScreen({Key? key}) : super(key: key);
@@ -14,6 +14,11 @@ class HelpCenterScreen extends StatefulWidget {
 class _HelpCenterScreenState extends State<HelpCenterScreen> {
   final TextEditingController _searchController = TextEditingController();
 
+  static const Color _pink = Color(0xFFD95791);
+  static const Color _lavender = Color(0xFFAA91D8);
+  static const Color _dark = Color(0xFF393044);
+  static const Color _muted = Color(0xFF898193);
+
   @override
   void dispose() {
     _searchController.dispose();
@@ -23,411 +28,253 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFFFF7FA),
       body: Stack(
         children: [
-          // Background soft canvas
-          Container(
-            color: AppTheme.background,
-          ),
-
-          // Main Scrollable Canvas
+          const Positioned.fill(child: DecoratedBox(
+            decoration: BoxDecoration(gradient: LinearGradient(
+              begin: Alignment.topLeft, end: Alignment.bottomRight,
+              colors: [Color(0xFFFFE5EF), Color(0xFFFFF5F6), Color(0xFFF0EAFF), Color(0xFFFFF9F3)],
+            )),
+          )),
+          Positioned(top: 180, right: -105, child: _glow(220, const Color(0xFFFFC6DD))),
+          Positioned(bottom: 170, left: -110, child: _glow(230, const Color(0xFFDCCFFF))),
           SafeArea(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(20.0, 72.0, 20.0, 48.0),
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 40),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Page Title
-                  Text(
-                    "Help Center",
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.montserrat(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    "We're here to help you stay safe and connected.",
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.beVietnamPro(
-                      fontSize: 14,
-                      color: AppTheme.textSecondary,
-                    ),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // Search Bar Input
-                  Container(
-                    height: 52,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(26.0),
-                      border: Border.all(color: AppTheme.outlineVariant.withOpacity(0.5)),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppTheme.primary.withOpacity(0.04),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        )
-                      ],
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.search,
-                          color: AppTheme.outline,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: TextField(
-                            controller: _searchController,
-                            style: GoogleFonts.beVietnamPro(
-                              fontSize: 15,
-                              color: AppTheme.textPrimary,
-                            ),
-                            decoration: InputDecoration(
-                              hintText: "How can we help you?",
-                              hintStyle: GoogleFonts.beVietnamPro(
-                                color: AppTheme.outline.withOpacity(0.6),
-                              ),
-                              border: InputBorder.none,
-                              enabledBorder: InputBorder.none,
-                              focusedBorder: InputBorder.none,
-                              filled: false,
-                              contentPadding: EdgeInsets.zero,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
+                  _topBar(context),
                   const SizedBox(height: 28),
-
-                  // Topics Categories Grid
-                  _buildSectionHeader("Topics"),
-                  const SizedBox(height: 12),
+                  Text('Help Center', textAlign: TextAlign.center,
+                      style: GoogleFonts.montserrat(fontSize: 27, fontWeight: FontWeight.w800, color: _dark)),
+                  const SizedBox(height: 7),
+                  Text("We're here to help you stay safe and connected.",
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.beVietnamPro(fontSize: 13, color: _muted)),
+                  const SizedBox(height: 22),
+                  _searchField(),
+                  const SizedBox(height: 28),
+                  _sectionHeader('TOPICS'),
+                  const SizedBox(height: 13),
                   GridView.count(
                     crossAxisCount: 2,
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
-                    childAspectRatio: 1.15,
+                    crossAxisSpacing: 13,
+                    mainAxisSpacing: 13,
+                    childAspectRatio: 1.12,
                     children: [
-                      _buildTopicButton(
-                        icon: Icons.rocket_launch,
-                        label: "Getting Started",
-                      ),
-                      _buildTopicButton(
-                        icon: Icons.notifications_active,
-                        label: "SOS & Alerts",
-                      ),
-                      _buildTopicButton(
-                        icon: Icons.lock,
-                        label: "Privacy & Security",
-                      ),
-                      _buildTopicButton(
-                        icon: Icons.watch,
-                        label: "Wearable Devices",
-                      ),
+                      _topic(Icons.rocket_launch_rounded, 'Getting Started'),
+                      _topic(Icons.notifications_active_outlined, 'SOS & Alerts'),
+                      _topic(Icons.lock_outline_rounded, 'Privacy & Security'),
+                      _topic(Icons.watch_outlined, 'Wearable Devices'),
                     ],
                   ),
-
                   const SizedBox(height: 28),
-
-                  // FAQ Section
-                  _buildSectionHeader("Frequently Asked Questions"),
-                  const SizedBox(height: 12),
-                  _buildFaqItem("How do I add a Trusted Contact?"),
-                  const SizedBox(height: 8),
-                  _buildFaqItem("What happens when I trigger an SOS?"),
-                  const SizedBox(height: 8),
-                  _buildFaqItem("How is my location data protected?"),
-
-                  const SizedBox(height: 32),
-
-                  // Support Agent Card
-                  _buildSupportCard(),
+                  _sectionHeader('FREQUENTLY ASKED QUESTIONS'),
+                  const SizedBox(height: 13),
+                  _faq('How do I add a Trusted Contact?'),
+                  const SizedBox(height: 9),
+                  _faq('What happens when I trigger an SOS?'),
+                  const SizedBox(height: 9),
+                  _faq('How is my location data protected?'),
+                  const SizedBox(height: 24),
+                  _supportCard(),
                 ],
               ),
             ),
           ),
-
-          // Custom TopAppBar matching specs exactly
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: ClipRect(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                child: Container(
-                  height: 64,
-                  decoration: BoxDecoration(
-                    color: AppTheme.surface.withOpacity(0.7),
-                    border: Border(
-                      bottom: BorderSide(
-                        color: AppTheme.outlineVariant.withOpacity(0.3),
-                        width: 1.0,
-                      ),
-                    ),
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      // Back button
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back, color: AppTheme.textSecondary),
-                        onPressed: () => context.pop(),
-                      ),
-                      // Title
-                      Text(
-                        "Lumina Guardian",
-                        style: GoogleFonts.montserrat(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.primary,
-                        ),
-                      ),
-                      // Balancing hidden trailing element
-                      const SizedBox(width: 48),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
         ],
       ),
     );
   }
 
-  Widget _buildSectionHeader(String label) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 4.0),
-      child: Text(
-        label.toUpperCase(),
-        style: GoogleFonts.beVietnamPro(
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
-          color: AppTheme.textSecondary,
-          letterSpacing: 1.0,
+  Widget _glow(double size, Color color) => Container(
+    width: size, height: size,
+    decoration: BoxDecoration(shape: BoxShape.circle, color: color.withOpacity(.30)),
+  );
+
+  Widget _topBar(BuildContext context) => ClipRRect(
+    borderRadius: BorderRadius.circular(20),
+    child: BackdropFilter(
+      filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+      child: Container(
+        height: 54, padding: const EdgeInsets.symmetric(horizontal: 8),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(.48),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.white.withOpacity(.8)),
         ),
+        child: Row(children: [
+          IconButton(
+            onPressed: () { if (context.canPop()) context.pop(); },
+            icon: const Icon(Icons.arrow_back_rounded, color: _dark),
+          ),
+          Expanded(child: Text('Lumina Guardian', textAlign: TextAlign.center,
+              style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.w800, color: _pink))),
+          const SizedBox(width: 48),
+        ]),
       ),
-    );
-  }
+    ),
+  );
 
-  Widget _buildTopicButton({required IconData icon, required String label}) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.7),
-        borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(color: AppTheme.outlineVariant.withOpacity(0.5), width: 1.0),
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.primary.withOpacity(0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          )
-        ],
+  Widget _searchField() => ClipRRect(
+    borderRadius: BorderRadius.circular(22),
+    child: BackdropFilter(
+      filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+      child: Container(
+        height: 54,
+        padding: const EdgeInsets.symmetric(horizontal: 17),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(.76),
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(color: Colors.white.withOpacity(.95)),
+          boxShadow: [BoxShadow(color: _pink.withOpacity(.06), blurRadius: 16, offset: const Offset(0, 5))],
+        ),
+        child: Row(children: [
+          const Icon(Icons.search_rounded, color: _muted, size: 21),
+          const SizedBox(width: 12),
+          Expanded(child: TextField(
+            controller: _searchController,
+            style: GoogleFonts.beVietnamPro(fontSize: 14, color: _dark),
+            decoration: InputDecoration(
+              hintText: 'How can we help you?',
+              hintStyle: GoogleFonts.beVietnamPro(color: _muted.withOpacity(.7)),
+              border: InputBorder.none, enabledBorder: InputBorder.none,
+              focusedBorder: InputBorder.none, filled: false,
+              contentPadding: EdgeInsets.zero,
+            ),
+          )),
+        ]),
       ),
+    ),
+  );
+
+  Widget _sectionHeader(String title) => Padding(
+    padding: const EdgeInsets.only(left: 5),
+    child: Text(title, style: GoogleFonts.montserrat(
+      fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 1.2, color: _dark,
+    )),
+  );
+
+  Widget _topic(IconData icon, String label) => ClipRRect(
+    borderRadius: BorderRadius.circular(22),
+    child: BackdropFilter(
+      filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
       child: Material(
-        color: Colors.transparent,
+        color: Colors.white.withOpacity(.68),
         child: InkWell(
           onTap: () {},
-          borderRadius: BorderRadius.circular(16.0),
-          child: Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppTheme.primary.withOpacity(0.05),
-                  ),
-                  child: Icon(icon, color: AppTheme.primary, size: 24),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  label,
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.beVietnamPro(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.textPrimary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFaqItem(String question) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.7),
-        borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(color: AppTheme.outlineVariant.withOpacity(0.5), width: 1.0),
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.primary.withOpacity(0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          )
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () {},
-          borderRadius: BorderRadius.circular(16.0),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    question,
-                    style: GoogleFonts.beVietnamPro(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.textPrimary,
-                    ),
-                  ),
-                ),
-                const Icon(
-                  Icons.chevron_right,
-                  color: AppTheme.outline,
-                  size: 20,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSupportCard() {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [
-            AppTheme.primaryContainer,
-            AppTheme.primary,
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(24.0),
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.primaryContainer.withOpacity(0.2),
-            blurRadius: 16,
-            offset: const Offset(0, 8),
-          )
-        ],
-      ),
-      padding: const EdgeInsets.all(24.0),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
+          borderRadius: BorderRadius.circular(22),
+          child: Container(
             decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(22),
+              border: Border.all(color: Colors.white.withOpacity(.95)),
+              boxShadow: [BoxShadow(color: _lavender.withOpacity(.06), blurRadius: 15, offset: const Offset(0, 5))],
             ),
-            child: const Icon(
-              Icons.support_agent,
-              color: Colors.white,
-              size: 36,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            "Still need help?",
-            style: GoogleFonts.montserrat(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            "Our team is here for you 24/7. Reach out to us anytime for personalized assistance.",
-            textAlign: TextAlign.center,
-            style: GoogleFonts.beVietnamPro(
-              fontSize: 13,
-              color: Colors.white.withOpacity(0.85),
-              height: 1.5,
-            ),
-          ),
-          const SizedBox(height: 24),
-          Row(
-            children: [
-              Expanded(
-                child: SizedBox(
-                  height: 48,
-                  child: ElevatedButton.icon(
-                    onPressed: () {},
-                    icon: const Icon(Icons.chat_bubble_outline, color: AppTheme.primary, size: 18),
-                    label: Text(
-                      "Live Chat",
-                      style: GoogleFonts.beVietnamPro(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: AppTheme.primary,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(24.0),
-                      ),
-                    ),
-                  ),
+            padding: const EdgeInsets.all(12),
+            child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+              Container(
+                width: 56, height: 56,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(colors: [_pink.withOpacity(.13), _lavender.withOpacity(.17)]),
                 ),
+                child: Icon(icon, color: _pink, size: 25),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: SizedBox(
-                  height: 48,
-                  child: OutlinedButton.icon(
-                    onPressed: () {},
-                    icon: const Icon(Icons.mail_outline, color: Colors.white, size: 18),
-                    label: Text(
-                      "Email Us",
-                      style: GoogleFonts.beVietnamPro(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      side: const BorderSide(color: Colors.white, width: 2.0),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(24.0),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
+              const SizedBox(height: 12),
+              Text(label, textAlign: TextAlign.center,
+                  style: GoogleFonts.beVietnamPro(fontSize: 12, fontWeight: FontWeight.w800, color: _dark)),
+            ]),
           ),
-        ],
+        ),
       ),
-    );
-  }
+    ),
+  );
+
+  Widget _faq(String question) => ClipRRect(
+    borderRadius: BorderRadius.circular(19),
+    child: BackdropFilter(
+      filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+      child: Material(
+        color: Colors.white.withOpacity(.70),
+        child: InkWell(
+          onTap: () {},
+          borderRadius: BorderRadius.circular(19),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 17, vertical: 18),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(19),
+              border: Border.all(color: Colors.white.withOpacity(.95)),
+              boxShadow: [BoxShadow(color: _pink.withOpacity(.05), blurRadius: 12, offset: const Offset(0, 4))],
+            ),
+            child: Row(children: [
+              Expanded(child: Text(question,
+                  style: GoogleFonts.beVietnamPro(fontSize: 13, fontWeight: FontWeight.w700, color: _dark))),
+              const Icon(Icons.chevron_right_rounded, color: _muted, size: 22),
+            ]),
+          ),
+        ),
+      ),
+    ),
+  );
+
+  Widget _supportCard() => Container(
+    padding: const EdgeInsets.all(22),
+    decoration: BoxDecoration(
+      gradient: const LinearGradient(
+        begin: Alignment.topLeft, end: Alignment.bottomRight,
+        colors: [_pink, _lavender],
+      ),
+      borderRadius: BorderRadius.circular(25),
+      boxShadow: [BoxShadow(color: _pink.withOpacity(.20), blurRadius: 20, offset: const Offset(0, 8))],
+    ),
+    child: Column(children: [
+      Container(
+        width: 58, height: 58,
+        decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withOpacity(.20)),
+        child: const Icon(Icons.support_agent_rounded, color: Colors.white, size: 31),
+      ),
+      const SizedBox(height: 13),
+      Text('Still need help?', style: GoogleFonts.montserrat(
+        fontSize: 19, fontWeight: FontWeight.w800, color: Colors.white,
+      )),
+      const SizedBox(height: 8),
+      Text(
+        'Our team is here for you 24/7. Reach out to us anytime for personalized assistance.',
+        textAlign: TextAlign.center,
+        style: GoogleFonts.beVietnamPro(fontSize: 12.5, color: Colors.white.withOpacity(.92), height: 1.55),
+      ),
+      const SizedBox(height: 20),
+      Row(children: [
+        Expanded(child: SizedBox(
+          height: 46,
+          child: ElevatedButton.icon(
+            onPressed: () {},
+            icon: const Icon(Icons.chat_bubble_outline_rounded, size: 17),
+            label: Text('Live Chat', style: GoogleFonts.beVietnamPro(fontSize: 12, fontWeight: FontWeight.w800)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.white, foregroundColor: _pink,
+              elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+            ),
+          ),
+        )),
+        const SizedBox(width: 10),
+        Expanded(child: SizedBox(
+          height: 46,
+          child: OutlinedButton.icon(
+            onPressed: () {},
+            icon: const Icon(Icons.mail_outline_rounded, size: 17, color: Colors.white),
+            label: Text('Email Us', style: GoogleFonts.beVietnamPro(fontSize: 12, fontWeight: FontWeight.w800, color: Colors.white)),
+            style: OutlinedButton.styleFrom(
+              side: BorderSide(color: Colors.white.withOpacity(.8)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+            ),
+          ),
+        )),
+      ]),
+    ]),
+  );
 }

@@ -31,6 +31,8 @@ class _CustomTextFieldState extends State<CustomTextField> {
 
   @override
   Widget build(BuildContext context) {
+    final fieldRadius = AppTheme.radiusDefault;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -39,30 +41,34 @@ class _CustomTextFieldState extends State<CustomTextField> {
           child: Text(
             widget.label,
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.textSecondary,
-                ),
+              fontWeight: FontWeight.w700,
+              color: AppTheme.textSecondary,
+            ),
           ),
         ),
         Focus(
           onFocusChange: (hasFocus) {
-            setState(() {
-              _isFocused = hasFocus;
-            });
+            if (_isFocused != hasFocus) {
+              setState(() {
+                _isFocused = hasFocus;
+              });
+            }
           },
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
+            curve: Curves.easeInOut,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16.0),
+              borderRadius: fieldRadius,
               boxShadow: _isFocused
                   ? [
-                      BoxShadow(
-                        color: AppTheme.primaryContainer.withOpacity(0.2),
-                        blurRadius: 8.0,
-                        spreadRadius: 2.0,
-                      )
-                    ]
-                  : [],
+                BoxShadow(
+                  color: AppTheme.primary.withOpacity(0.12),
+                  blurRadius: 12,
+                  spreadRadius: 1,
+                  offset: const Offset(0, 3),
+                ),
+              ]
+                  : const [],
             ),
             child: TextFormField(
               controller: widget.controller,
@@ -70,26 +76,34 @@ class _CustomTextFieldState extends State<CustomTextField> {
               keyboardType: widget.keyboardType,
               validator: widget.validator,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppTheme.textPrimary,
-                    fontWeight: FontWeight.w500,
-                  ),
+                color: AppTheme.textPrimary,
+                fontWeight: FontWeight.w500,
+              ),
               decoration: InputDecoration(
                 hintText: widget.hint,
                 prefixIcon: widget.prefixIcon != null
-                    ? Icon(widget.prefixIcon, color: AppTheme.outline)
+                    ? Icon(
+                  widget.prefixIcon,
+                  color: AppTheme.textSecondary,
+                  size: 20,
+                )
                     : null,
                 suffixIcon: widget.isPassword
                     ? IconButton(
-                        icon: Icon(
-                          _obscureText ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                          color: AppTheme.outline,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _obscureText = !_obscureText;
-                          });
-                        },
-                      )
+                  tooltip: _obscureText ? 'Show password' : 'Hide password',
+                  icon: Icon(
+                    _obscureText
+                        ? Icons.visibility_off_outlined
+                        : Icons.visibility_outlined,
+                    color: AppTheme.textSecondary,
+                    size: 20,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _obscureText = !_obscureText;
+                    });
+                  },
+                )
                     : null,
               ),
             ),
@@ -99,3 +113,4 @@ class _CustomTextFieldState extends State<CustomTextField> {
     );
   }
 }
+

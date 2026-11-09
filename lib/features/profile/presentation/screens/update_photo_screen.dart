@@ -18,6 +18,11 @@ class UpdatePhotoScreen extends StatefulWidget {
 }
 
 class _UpdatePhotoScreenState extends State<UpdatePhotoScreen> {
+  static const Color _pink = Color(0xFFD95791);
+  static const Color _lavender = Color(0xFFAA91D8);
+  static const Color _dark = Color(0xFF393044);
+  static const Color _muted = Color(0xFF898193);
+
   final ImagePicker _picker = ImagePicker();
   File? selectedImage;
 
@@ -174,11 +179,11 @@ class _UpdatePhotoScreenState extends State<UpdatePhotoScreen> {
   void _showAvatarPicker() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFFFF7FA),
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
-          top: Radius.circular(30),
+          top: Radius.circular(26),
         ),
       ),
       builder: (_) {
@@ -231,7 +236,7 @@ class _UpdatePhotoScreenState extends State<UpdatePhotoScreen> {
                             shape: BoxShape.circle,
                             border: Border.all(
                               color: selected
-                                  ? AppTheme.primary
+                                  ? const Color(0xFFD95791)
                                   : Colors.transparent,
                               width: 3,
                             ),
@@ -257,17 +262,40 @@ class _UpdatePhotoScreenState extends State<UpdatePhotoScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFFFF7FA),
       body: Stack(
         children: [
-          // Background soft canvas
-          Container(
-            color: const Color(0xFFFBF9F8), // AppTheme.background
+          const Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Color(0xFFFFE5EF),
+                    Color(0xFFFFF5F6),
+                    Color(0xFFF0EAFF),
+                    Color(0xFFFFF9F3),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            top: 110,
+            right: -90,
+            child: _glowCircle(210, const Color(0xFFFFC6DD)),
+          ),
+          Positioned(
+            top: 430,
+            left: -100,
+            child: _glowCircle(220, const Color(0xFFDCCFFF)),
           ),
 
           // Main content canvas scrollable to prevent bottom overflow
           SafeArea(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(24.0, 80.0, 24.0, 110.0),
+              padding: const EdgeInsets.fromLTRB(20.0, 78.0, 20.0, 36.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -279,8 +307,8 @@ class _UpdatePhotoScreenState extends State<UpdatePhotoScreen> {
                           children: [
                             // Photo preview
                             Container(
-                              width: 160,
-                              height: 160,
+                              width: 132,
+                              height: 132,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 border: Border.all(
@@ -289,9 +317,9 @@ class _UpdatePhotoScreenState extends State<UpdatePhotoScreen> {
                                 ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: AppTheme.primary.withOpacity(.15),
-                                    blurRadius: 24,
-                                    offset: const Offset(0, 8),
+                                    color: _pink.withOpacity(0.15),
+                                    blurRadius: 18,
+                                    offset: const Offset(0, 6),
                                   ),
                                 ],
                               ),
@@ -310,63 +338,197 @@ class _UpdatePhotoScreenState extends State<UpdatePhotoScreen> {
                           ],
                         ),
 
-                        const SizedBox(height: 22),
+                        const SizedBox(height: 18),
 
                         Text(
                           "Choose your profile picture",
                           textAlign: TextAlign.center,
-                          style: GoogleFonts.beVietnamPro(
+                          style: GoogleFonts.montserrat(
                             fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            color: AppTheme.textSecondary,
+                            fontWeight: FontWeight.w800,
+                            color: _dark,
                           ),
                         ),
-                        const SizedBox(height: 28),
+                        const SizedBox(height: 7),
+                        Text(
+                          "Personalize your Lumina Guardian profile",
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.beVietnamPro(
+                            fontSize: 11,
+                            color: _muted,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
                       ],
                     ),
                   ),
 
 
 
-                  // Action items (bento grid / list)
-                  Column(
-                    children: [
-                      // Choose an Avatar
-                      _buildActionItem(
-                        icon: Icons.face_retouching_natural,
-                        title: "Avatar Collection",
-                        subtitle: "Choose from 10 premium avatars",
-                        onTap: _showAvatarPicker,
+                  // One shared glass content card, matching Edit Profile
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(23),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                      child: Container(
+                        padding: const EdgeInsets.fromLTRB(20, 22, 20, 22),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.67),
+                          borderRadius: BorderRadius.circular(23),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.9),
+                            width: 1.2,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: _lavender.withOpacity(0.07),
+                              blurRadius: 20,
+                              offset: const Offset(0, 7),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          children: [
+                            // Choose an Avatar
+                            _buildActionItem(
+                              icon: Icons.face_retouching_natural,
+                              title: "Avatar Collection",
+                              subtitle: "Choose from 10 premium avatars",
+                              onTap: _showAvatarPicker,
+                            ),
+                            const SizedBox(height: 12),
+
+                            // Choose from gallery
+                            _buildActionItem(
+                              icon: Icons.photo_library_outlined,
+                              title: "Choose from Gallery",
+                              subtitle: "Select a photo from your device",
+                              onTap: pickFromGallery,
+                            ),
+                            const SizedBox(height: 12),
+
+                            // Take photo
+                            _buildActionItem(
+                              icon: Icons.photo_camera_outlined,
+                              title: "Take Photo",
+                              subtitle: "Capture a new profile picture",
+                              onTap: takePhoto,
+                            ),
+
+                            const SizedBox(height: 12),
+
+                            // Save button - same style as Edit Profile
+                            SizedBox(
+                              width: double.infinity,
+                              height: 55,
+                              child: ElevatedButton(
+                                onPressed: loading ? null : _handleSaveChanges,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.transparent,
+                                  shadowColor: Colors.transparent,
+                                  elevation: 0,
+                                  padding: EdgeInsets.zero,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(18),
+                                  ),
+                                ),
+                                child: Ink(
+                                  width: double.infinity,
+                                  height: 55,
+                                  decoration: const BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [_pink, _lavender],
+                                      begin: Alignment.centerLeft,
+                                      end: Alignment.centerRight,
+                                    ),
+                                    borderRadius: BorderRadius.all(
+                                      Radius.circular(18),
+                                    ),
+                                  ),
+                                  child: Center(
+                                    child: loading
+                                        ? const SizedBox(
+                                      width: 22,
+                                      height: 22,
+                                      child: CircularProgressIndicator(
+                                        color: Colors.white,
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                        : Text(
+                                      "Save Changes",
+                                      style: GoogleFonts.montserrat(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w800,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+
+                            // Cancel button - same style as Edit Profile
+                            SizedBox(
+                              width: double.infinity,
+                              height: 53,
+                              child: TextButton(
+                                onPressed: () => context.pop(),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: _pink,
+                                  backgroundColor: Colors.white.withOpacity(0.65),
+                                  side: BorderSide(
+                                    color: _pink.withOpacity(0.3),
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(18),
+                                  ),
+                                ),
+                                child: Text(
+                                  "Cancel",
+                                  style: GoogleFonts.beVietnamPro(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                    color: _pink,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                          ],
+                        ),
                       ),
-                      const SizedBox(height: 12),
-
-                      // Choose from gallery
-                      _buildActionItem(
-                        icon: Icons.photo_library_outlined,
-                        title: "Choose from Gallery",
-                        subtitle: "Select a photo from your device",
-                        onTap: pickFromGallery,
+                    ),
+                  ),
+                  const SizedBox(height: 98),
+                  Center(
+                    child: Text(
+                      'LUMINA GUARDIAN',
+                      style: GoogleFonts.montserrat(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 2,
+                        color: _muted,
                       ),
-                      const SizedBox(height: 12),
-
-                      // Take photo
-                      _buildActionItem(
-                        icon: Icons.photo_camera_outlined,
-                        title: "Take Photo",
-                        subtitle: "Capture a new profile picture",
-                        onTap: takePhoto,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Center(
+                    child: Text(
+                      'Your safety, our priority.',
+                      style: GoogleFonts.beVietnamPro(
+                        fontSize: 11,
+                        color: _muted,
                       ),
-
-                      const SizedBox(height: 24),
-
-                    ],
+                    ),
                   ),
                 ],
               ),
             ),
           ),
 
-          // Custom transactional TopAppBar matching specs exactly
+          // Header styled to match Edit Profile.
           Positioned(
             top: 0,
             left: 0,
@@ -374,150 +536,68 @@ class _UpdatePhotoScreenState extends State<UpdatePhotoScreen> {
             child: SafeArea(
               bottom: false,
               child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 12,
-                ),
-                child: Stack(
-                  alignment: Alignment.center,
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+                child: Row(
                   children: [
-
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Container(
-                        width: 52,
-                        height: 52,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppTheme.primary.withOpacity(.08),
-                              blurRadius: 16,
-                              offset: const Offset(0, 6),
-                            ),
-                          ],
-                        ),
-                        child: IconButton(
-                          icon: const Icon(Icons.arrow_back_ios_new_rounded),
-                          color: AppTheme.primary,
-                          onPressed: () => context.pop(),
-                        ),
-                      ),
-                    ),
-
-                    Text(
-                      "Update Photo",
-                      style: GoogleFonts.montserrat(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w500,
-                        color: AppTheme.primary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-
-          // Bottom CTA Fixed button overlapping list with linear gradient
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: Container(
-              padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.bottomCenter,
-                  end: Alignment.topCenter,
-                  colors: [
-                    AppTheme.surface,
-                    AppTheme.surface.withOpacity(0.96),
-                    AppTheme.surface.withOpacity(0.70),
-                    Colors.transparent,
-                  ],
-                ),
-              ),
-              child: SafeArea(
-                top: false,
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 58,
-                  child: ElevatedButton(
-                    onPressed: loading ? null : _handleSaveChanges,
-                    style: ElevatedButton.styleFrom(
-                      elevation: 0,
-                      padding: EdgeInsets.zero,
-                      backgroundColor: Colors.transparent,
-                      shadowColor: Colors.transparent,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18),
-                      ),
-                    ),
-                    child: Ink(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(18),
-                        gradient: const LinearGradient(
-                          begin: Alignment.centerLeft,
-                          end: Alignment.centerRight,
-                          colors: [
-                            AppTheme.primary,
-                            Color(0xFFE95D96),
-                          ],
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppTheme.primary.withOpacity(0.30),
-                            blurRadius: 24,
-                            spreadRadius: 1,
-                            offset: const Offset(0, 10),
-                          ),
-                        ],
-                      ),
-                      child: Center(
-                        child: AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 250),
-                          child: loading
-                              ? const SizedBox(
-                            key: ValueKey("loading"),
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2.5,
-                              color: Colors.white,
-                            ),
-                          )
-                              : Row(
-                            key: const ValueKey("button"),
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(
-                                Icons.check_rounded,
-                                color: Colors.white,
-                                size: 22,
-                              ),
-                              const SizedBox(width: 10),
-                              Text(
-                                "Save Changes",
-                                style: GoogleFonts.beVietnamPro(
-                                  color: Colors.white,
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: 0.3,
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                        child: Material(
+                          color: Colors.white.withOpacity(0.55),
+                          child: InkWell(
+                            onTap: () => context.pop(),
+                            child: Container(
+                              width: 46,
+                              height: 46,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.8),
                                 ),
                               ),
-                            ],
+                              child: const Icon(
+                                Icons.arrow_back_rounded,
+                                color: _dark,
+                                size: 21,
+                              ),
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
+                    const Expanded(
+                      child: Center(
+                        child: Text(
+                          'Update Photo',
+                          style: TextStyle(
+                            fontSize: 21,
+                            fontWeight: FontWeight.w800,
+                            color: _dark,
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 46),
+                  ],
                 ),
               ),
             ),
           ),
+
         ],
+      ),
+    );
+  }
+
+  Widget _glowCircle(double size, Color color) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: color.withOpacity(.35),
       ),
     );
   }
@@ -531,79 +611,58 @@ class _UpdatePhotoScreenState extends State<UpdatePhotoScreen> {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(18),
         onTap: onTap,
-        child: Ink(
-          padding: const EdgeInsets.all(18),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: [
-              BoxShadow(
-                color: AppTheme.primary.withOpacity(.05),
-                blurRadius: 24,
-                offset: const Offset(0, 8),
-              ),
-            ],
+            color: const Color(0xFFF8EFF5),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: _lavender.withOpacity(0.18)),
           ),
           child: Row(
             children: [
-
               Container(
-                width: 56,
-                height: 56,
+                width: 42,
+                height: 42,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFFEEF5),
-                  borderRadius: BorderRadius.circular(18),
+                  borderRadius: BorderRadius.circular(14),
+                  color: _pink.withOpacity(0.13),
                 ),
                 child: Icon(
                   icon,
-                  color: AppTheme.primary,
-                  size: 26,
+                  color: _pink,
+                  size: 20,
                 ),
               ),
-
-              const SizedBox(width: 18),
-
+              const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-
                     Text(
                       title,
-                      style: GoogleFonts.montserrat(
-                        fontSize: 16,
+                      style: GoogleFonts.beVietnamPro(
+                        fontSize: 13,
                         fontWeight: FontWeight.w700,
-                        color: AppTheme.textPrimary,
+                        color: _dark,
                       ),
                     ),
-
                     const SizedBox(height: 4),
-
                     Text(
                       subtitle,
                       style: GoogleFonts.beVietnamPro(
-                        fontSize: 13,
-                        color: AppTheme.textSecondary,
+                        fontSize: 11,
+                        color: _muted,
                       ),
                     ),
                   ],
                 ),
               ),
-
-              Container(
-                width: 34,
-                height: 34,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF8F8F8),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.arrow_forward_ios_rounded,
-                  size: 14,
-                  color: AppTheme.primary,
-                ),
+              const Icon(
+                Icons.chevron_right_rounded,
+                color: Color(0xFF898193),
+                size: 21,
               ),
             ],
           ),

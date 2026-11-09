@@ -1,14 +1,16 @@
 import 'dart:ui';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 import '../../../../core/routes/app_routes.dart';
 import '../../../../core/theme/app_theme.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/utils/avatar_helper.dart';
+import '../../../auth/presentation/cubit/auth_cubit.dart';
 import '../cubit/profile_cubit.dart';
 import '../cubit/profile_state.dart';
-import '../../../auth/presentation/cubit/auth_cubit.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -18,19 +20,19 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  static const Color _pink = Color(0xFFD95791);
+  static const Color _lavender = Color(0xFFAA91D8);
+  static const Color _dark = Color(0xFF393044);
+  static const Color _muted = Color(0xFF898193);
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final authState = context.read<AuthCubit>().state;
       if (authState is AuthAuthenticated) {
-        debugPrint(
-          "PROFILE SCREEN USER ID = ${authState.user.userId}",
-        );
-
-        context.read<ProfileCubit>().loadProfile(
-          authState.user.userId,
-        );
+        debugPrint("PROFILE SCREEN USER ID = ${authState.user.userId}");
+        context.read<ProfileCubit>().loadProfile(authState.user.userId);
       }
     });
   }
@@ -41,345 +43,453 @@ class _ProfileScreenState extends State<ProfileScreen> {
       builder: (context, state) {
         if (state is ProfileLoading || state is ProfileInitial) {
           return const Scaffold(
-            body: Center(child: CircularProgressIndicator(color: AppTheme.primary)),
+            backgroundColor: Color(0xFFFFF7FA),
+            body: Center(child: CircularProgressIndicator(color: _pink)),
           );
         }
 
         if (state is ProfileError) {
           return Scaffold(
-            body: Center(child: Text("Error: ${state.message}", style: const TextStyle(color: Colors.red))),
+            backgroundColor: const Color(0xFFFFF7FA),
+            body: Center(
+              child: Text(
+                "Error: ${state.message}",
+                style: const TextStyle(color: _pink),
+              ),
+            ),
           );
         }
 
         final profile = (state as ProfileLoaded).profile;
 
         return Scaffold(
+          backgroundColor: const Color(0xFFFFF7FA),
           body: Stack(
             children: [
-          // Background soft canvas
-          Container(
-            color: AppTheme.background,
-          ),
-
-           // Glowing background accent
-              Positioned(
-                bottom: -120,
-                left: -120,
-                child: Container(
-                  width: 260,
-                  height: 260,
+              const Positioned.fill(
+                child: DecoratedBox(
                   decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppTheme.primary.withOpacity(.05),
-                  ),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(
-                      sigmaX: 120,
-                      sigmaY: 120,
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Color(0xFFFFE5EF),
+                        Color(0xFFFFF5F6),
+                        Color(0xFFF0EAFF),
+                        Color(0xFFFFF9F3),
+                      ],
                     ),
-                    child: const SizedBox(),
                   ),
                 ),
               ),
-
-          // Main scrollable content
-          SafeArea(
-            child: SingleChildScrollView(
-              padding: EdgeInsets.fromLTRB(
-                24,
-                MediaQuery.of(context).padding.top + 90,
-                24,
-                40,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Profile photo header
-                  Center(
-                    child: Column(
-                      children: [
-                        Stack(
-                          children: [
-                            // Soft glow halo
-                            Container(
-                              width: 112,
-                              height: 112,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: AppTheme.primary.withOpacity(0.15),
-                                    blurRadius: 24,
-                                    offset: const Offset(0, 8),
-                                  )
-                                ],
-                              ),
-                            ),
-                            // Avatar image
-                            Container(
-                              width: 112,
-                              height: 112,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(color: Colors.white, width: 4.0),
-                                  image: DecorationImage(
-                                    image: AssetImage(
-                                      AvatarHelper.getAvatarPath(profile.avatar),
-                                    ),
-                                    fit: BoxFit.cover,
-                                  ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 18),
-
-                        Text(
-                          profile.name.isNotEmpty ? profile.name : "No Name",
-                          style: GoogleFonts.montserrat(
-                            fontSize: 30,
-                            fontWeight: FontWeight.w500,
-                            color: AppTheme.primary,
+              Positioned(top: 100, right: -90,
+                  child: _glowCircle(210, const Color(0xFFFFC6DD))),
+              Positioned(top: 430, left: -100,
+                  child: _glowCircle(220, const Color(0xFFDCCFFF))),
+              Positioned(bottom: 30, right: -80,
+                  child: _glowCircle(180, const Color(0xFFFFD9E9))),
+              SafeArea(
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 40),
+                  children: [
+                    _buildHeader(context),
+                    const SizedBox(height: 24),
+                    _buildProfileHero(profile),
+                    const SizedBox(height: 26),
+                    _buildSectionHeader(
+                      'PERSONAL INFORMATION',
+                      Icons.person_outline_rounded,
+                    ),
+                    const SizedBox(height: 12),
+                    _buildGlassCard(
+                      child: Column(
+                        children: [
+                          _buildDetailRow(
+                            Icons.person_outline_rounded,
+                            'User Name',
+                            profile.name.isNotEmpty ? profile.name : 'N/A',
                           ),
-                        ),
-
-                        const SizedBox(height: 6),
-
-                        Text(
-                          "Protected Account",
-                          style: GoogleFonts.beVietnamPro(
-                            fontSize: 15,
-                            color: Colors.green,
-                            fontWeight: FontWeight.w500,
+                          _buildDivider(),
+                          _buildDetailRow(
+                            Icons.email_outlined,
+                            'Email Address',
+                            profile.email.isNotEmpty ? profile.email : 'N/A',
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-
-                  // Personal Information Bento Card
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.9),
-                      borderRadius: BorderRadius.circular(36),
-                      border: Border.all(color: Colors.white.withOpacity(0.6), width: 1.0),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppTheme.primary.withOpacity(0.06),
-                          blurRadius: 20,
-                          offset: const Offset(0, 4),
-                        )
-                      ],
-                    ),
-                    padding: const EdgeInsets.all(28.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        // Card Header with Edit button
-                        Row(
-                          children: [
-                            Container(
-                              width: 40,
-                              height: 40,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: AppTheme.primary.withOpacity(0.1),
-                              ),
-                              child: const Icon(
-                                Icons.person_outlined,
-                                color: AppTheme.primary,
-                                size: 22,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Text(
-                              "Personal Information",
-                              style: GoogleFonts.montserrat(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: AppTheme.textPrimary,
-                              ),
-                            ),
-                            const Spacer(),
-                            IconButton(
-                              icon: const Icon(
-                                Icons.edit,
-                                color: AppTheme.primary,
-                                size: 20,
-                              ),
-                              onPressed: () => context.push(AppRoutes.editProfile),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        const Divider(color: AppTheme.outlineVariant),
-                        const SizedBox(height: 16),
-
-                        // Details Items
-                        _buildDetailItem("User Name", profile.name.isNotEmpty ? profile.name : "N/A"),
-                        const SizedBox(height: 20),
-                        _buildDetailItem("Email Address", profile.email.isNotEmpty ? profile.email : "N/A"),
-                        const SizedBox(height: 20),
-                        _buildDetailItem("Phone Number", profile.phone.isNotEmpty ? profile.phone : "N/A"),
-                        const SizedBox(height: 20),
-                        _buildDetailItem("Address", profile.address.isNotEmpty ? profile.address : "N/A"),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          // Custom TopAppBar exactly matching HTML specs
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: ClipRect(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                child: Container(
-                  height: MediaQuery.of(context).padding.top + 70,
-                  decoration: BoxDecoration(
-                    color: AppTheme.surface.withOpacity(0.7),
-                    border: Border(
-                      bottom: BorderSide(
-                        color: AppTheme.outlineVariant.withOpacity(0.3),
-                        width: 1.0,
+                          _buildDivider(),
+                          _buildDetailRow(
+                            Icons.phone_iphone_rounded,
+                            'Phone Number',
+                            profile.phone.isNotEmpty ? profile.phone : 'N/A',
+                          ),
+                          _buildDivider(),
+                          _buildDetailRow(
+                            Icons.home_outlined,
+                            'Home Address',
+                            profile.address.isNotEmpty ? profile.address : 'N/A',
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                  padding: EdgeInsets.only(
-                      top: MediaQuery.of(context).padding.top + 12,
-                      left: 24,
-                      right: 24,
-                      bottom: 18,
+                    const SizedBox(height: 20),
+                    _buildActionCard(
+                      icon: Icons.edit_outlined,
+                      title: 'Edit Profile',
+                      subtitle: 'Update your personal information',
+                      onTap: () => context.push(AppRoutes.editProfile),
                     ),
-                  child: Row(
-                    children: [
-                      // Back Button
-                      Container(
-                        width: 46,
-                        height: 46,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
-                              blurRadius: 10,
-                            ),
-                          ],
-                        ),
-                        child: IconButton(
-                          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
-                          color: AppTheme.primary,
-                          onPressed: () => context.pop(),
+                    const SizedBox(height: 12),
+                    _buildActionCard(
+                      icon: Icons.photo_camera_outlined,
+                      title: 'Update Profile Photo',
+                      subtitle: 'Choose an avatar or upload a photo',
+                      onTap: () => context.push(AppRoutes.updatePhoto),
+                    ),
+                    const SizedBox(height: 24),
+                    Center(
+                      child: Text(
+                        'LUMINA GUARDIAN',
+                        style: GoogleFonts.montserrat(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 2,
+                          color: _muted,
                         ),
                       ),
-
-                      // Center Title
-                      Expanded(
-                        child: Center(
-                          child: Text(
-                            "Profile",
-                            style: GoogleFonts.montserrat(
-                              fontSize: 24,
-                              fontWeight: FontWeight.w500,
-                              color: AppTheme.primary,
-                            ),
-                          ),
+                    ),
+                    const SizedBox(height: 6),
+                    Center(
+                      child: Text(
+                        'Your safety, our priority.',
+                        style: GoogleFonts.beVietnamPro(
+                          fontSize: 11,
+                          color: _muted,
                         ),
                       ),
-
-                      // Settings Button
-                      Container(
-                        width: 46,
-                        height: 46,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
-                              blurRadius: 10,
-                            ),
-                          ],
-                        ),
-                        child: IconButton(
-                          icon: const Icon(
-                            Icons.settings_outlined,
-                            color: AppTheme.primary,
-                            size: 22,
-                          ),
-                          onPressed: () => context.push(AppRoutes.settings),
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-            ),
+            ],
           ),
-        ],
-      ),
-    );
-    },
+        );
+      },
     );
   }
 
-  Widget _buildDetailItem(String title, String value) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _glowCircle(double size, Color color) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: color.withOpacity(.35),
+      ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    return Row(
       children: [
-        Text(
-          title.toString(),
-          style: GoogleFonts.beVietnamPro(
-            fontSize: 15,
-            fontWeight: FontWeight.w500,
-            color: AppTheme.primary,
-            letterSpacing: 0.8,
+        _glassIconButton(
+          icon: Icons.arrow_back_rounded,
+          onTap: () {
+            if (context.canPop()) context.pop();
+          },
+        ),
+        const Expanded(
+          child: Center(
+            child: Text(
+              'Profile',
+              style: TextStyle(
+                fontSize: 21,
+                fontWeight: FontWeight.w800,
+                color: _dark,
+                letterSpacing: -.5,
+              ),
+            ),
           ),
         ),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: GoogleFonts.beVietnamPro(
-            fontSize: 16,
-            fontWeight: FontWeight.w400,
-            color: AppTheme.textSecondary,
-          ),
+        _glassIconButton(
+          icon: Icons.settings_outlined,
+          onTap: () => context.push(AppRoutes.settings),
         ),
       ],
     );
   }
 
-  Widget _buildNavItem(BuildContext context, IconData icon, String label, bool isActive, VoidCallback onTap) {
-    return InkWell(
-      onTap: onTap,
+  Widget _glassIconButton({
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return ClipRRect(
       borderRadius: BorderRadius.circular(16),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              color: isActive ? AppTheme.primary : AppTheme.textSecondary.withOpacity(0.8),
-              size: 24,
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+        child: Material(
+          color: Colors.white.withOpacity(.55),
+          child: InkWell(
+            onTap: onTap,
+            child: Container(
+              width: 46,
+              height: 46,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.white.withOpacity(.8)),
+              ),
+              child: Icon(icon, color: _dark, size: 21),
             ),
-            const SizedBox(height: 3),
-            Text(
-              label,
-              style: GoogleFonts.beVietnamPro(
-                fontSize: 12,
-                fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
-                color: isActive ? AppTheme.primary : AppTheme.textSecondary.withOpacity(0.8),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProfileHero(dynamic profile) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(26),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 22),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Colors.white.withOpacity(.82),
+                Colors.white.withOpacity(.48),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(26),
+            border: Border.all(color: Colors.white.withOpacity(.9)),
+            boxShadow: [
+              BoxShadow(
+                color: _pink.withOpacity(.08),
+                blurRadius: 25,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 82,
+                height: 82,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 3),
+                  boxShadow: [
+                    BoxShadow(
+                      color: _pink.withOpacity(.16),
+                      blurRadius: 18,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                  image: DecorationImage(
+                    image: AssetImage(AvatarHelper.getAvatarPath(profile.avatar)),
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      profile.name.isNotEmpty ? profile.name : 'No Name',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.montserrat(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        color: _dark,
+                      ),
+                    ),
+                    const SizedBox(height: 7),
+                    Row(
+                      children: [
+                        const Icon(Icons.verified_user_rounded,
+                            size: 15, color: Color(0xFF36A66A)),
+                        const SizedBox(width: 6),
+                        Flexible(
+                          child: Text(
+                            'Protected Account',
+                            style: GoogleFonts.beVietnamPro(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFF36A66A),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    GestureDetector(
+                      onTap: () => context.push(AppRoutes.updatePhoto),
+                      child: Text(
+                        'Change profile photo',
+                        style: GoogleFonts.beVietnamPro(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: _pink,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title, IconData icon) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 5),
+      child: Row(
+        children: [
+          Icon(icon, size: 17, color: _pink),
+          const SizedBox(width: 9),
+          Text(
+            title,
+            style: GoogleFonts.montserrat(
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1.15,
+              color: _dark,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGlassCard({required Widget child}) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(23),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(.67),
+            borderRadius: BorderRadius.circular(23),
+            border: Border.all(color: Colors.white.withOpacity(.9), width: 1.2),
+            boxShadow: [
+              BoxShadow(
+                color: _lavender.withOpacity(.07),
+                blurRadius: 20,
+                offset: const Offset(0, 7),
+              ),
+            ],
+          ),
+          child: child,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(IconData icon, String title, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      child: Row(
+        children: [
+          _buildIconContainer(icon),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: GoogleFonts.beVietnamPro(
+                    fontSize: 11,
+                    color: _muted,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  value,
+                  style: GoogleFonts.beVietnamPro(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: _dark,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildIconContainer(IconData icon) {
+    return Container(
+      width: 42,
+      height: 42,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(14),
+        gradient: LinearGradient(
+          colors: [_pink.withOpacity(.13), _lavender.withOpacity(.16)],
+        ),
+      ),
+      child: Icon(icon, color: _pink, size: 20),
+    );
+  }
+
+  Widget _buildDivider() {
+    return Padding(
+      padding: const EdgeInsets.only(left: 72),
+      child: Divider(
+        height: 1,
+        thickness: .8,
+        color: _lavender.withOpacity(.16),
+      ),
+    );
+  }
+
+  Widget _buildActionCard({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(23),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+        child: Material(
+          color: Colors.white.withOpacity(.67),
+          child: InkWell(
+            onTap: onTap,
+            child: Container(
+              padding: const EdgeInsets.all(15),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(23),
+                border: Border.all(color: Colors.white.withOpacity(.9)),
+              ),
+              child: Row(
+                children: [
+                  _buildIconContainer(icon),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(title, style: GoogleFonts.beVietnamPro(
+                            fontSize: 13, fontWeight: FontWeight.w700, color: _dark)),
+                        const SizedBox(height: 4),
+                        Text(subtitle, style: GoogleFonts.beVietnamPro(
+                            fontSize: 11, color: _muted)),
+                      ],
+                    ),
+                  ),
+                  const Icon(Icons.chevron_right_rounded, color: _muted),
+                ],
               ),
             ),
-          ],
+          ),
         ),
       ),
     );

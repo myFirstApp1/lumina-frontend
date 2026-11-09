@@ -4,64 +4,69 @@ import 'package:google_fonts/google_fonts.dart';
 class AppTheme {
   AppTheme._();
 
-  // Primary Colors (Elegant feminine pink / rose palette)
-  static const Color primary = Color(0xFFAB2C5D);
-  static const Color primaryContainer = Color(0xFFF06292); // Vibrant rose pink
+  // Lumina Guardian visual identity — aligned with the Edit Profile screen.
+  static const Color primary = Color(0xFFD95791);
+  static const Color primaryContainer = Color(0xFFAA91D8);
   static const Color onPrimary = Colors.white;
-  static const Color onPrimaryContainer = Color(0xFF5E002B);
+  static const Color onPrimaryContainer = Color(0xFF393044);
 
-  // Background & Surface
-  static const Color background = Color(0xFFFBF9F8); // Soft cream-pink
-  static const Color surface = Color(0xFFFBF9F8);
-  static const Color cardSurface = Colors.white; // Pure white for interactive cards
-  
-  // Semantic Colors
-  static const Color error = Color(0xFFBA1A1A); // Deep red for urgent SOS
-  static const Color success = Color(0xFF2E7D32); // Emerald green for safe status
-  static const Color warning = Color(0xFFEF6C00); // Amber for pre-alert warnings
-  
-  // Neutral Colors
-  static const Color textPrimary = Color(0xFF1B1C1C); // Dark charcoal for high contrast
-  static const Color textSecondary = Color(0xFF574146); // Muted brown-grey for subtitles
-  static const Color outline = Color(0xFF8A7176);
-  static const Color outlineVariant = Color(0xFFDDBFC5);
-  static const Color transparentWhite = Color(0xB3FFFFFF); // 70% transparent white for glassmorphism
-  
-  // Soft Rose-tinted Ambient Shadow
+  // Background & surfaces.
+  static const Color background = Color(0xFFFFF7FA);
+  static const Color surface = Color(0xFFFFF7FA);
+  static const Color cardSurface = Colors.white;
+
+  // Semantic colors — intentionally separate from the decorative pink palette.
+  // Keep SOS red, safe green and warning amber visually recognizable.
+  static const Color error = Color(0xFFBA1A1A);
+  static const Color success = Color(0xFF2E7D32);
+  static const Color warning = Color(0xFFEF6C00);
+
+  // Neutral colors from the Edit Profile screen.
+  static const Color textPrimary = Color(0xFF393044);
+  static const Color textSecondary = Color(0xFF898193);
+  static const Color outline = Color(0xFFB7AAB5);
+  static const Color outlineVariant = Color(0xFFE8DCE5);
+  static const Color transparentWhite = Color(0xB3FFFFFF);
+
+  // Soft ambient shadow.
   static List<BoxShadow> softShadow = [
     BoxShadow(
-      color: const Color(0xFFF06292).withOpacity(0.08),
-      blurRadius: 20.0,
-      spreadRadius: 2.0,
-      offset: const Offset(0, 8),
+      color: primary.withOpacity(0.06),
+      blurRadius: 20,
+      spreadRadius: 1,
+      offset: const Offset(0, 7),
     ),
   ];
 
-  // Soft Glassmorphic Highlight Border
+  // Frosted-glass border.
   static Border glassBorder = Border.all(
-    color: Colors.white.withOpacity(0.4),
-    width: 1.0,
+    color: Colors.white.withOpacity(0.9),
+    width: 1.2,
   );
 
-  // Gradients
+  // Main action gradient: the same rose-to-lavender treatment as Edit Profile.
   static const LinearGradient primaryGradient = LinearGradient(
     colors: [
-      Color(0xFFAB2C5D),
-      Color(0xFFF06292),
+      Color(0xFFD95791),
+      Color(0xFFAA91D8),
+    ],
+    begin: Alignment.centerLeft,
+    end: Alignment.centerRight,
+  );
+
+  // Shared soft background gradient.
+  static const LinearGradient backgroundGradient = LinearGradient(
+    colors: [
+      Color(0xFFFFE5EF),
+      Color(0xFFFFF5F6),
+      Color(0xFFF0EAFF),
+      Color(0xFFFFF9F3),
     ],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
-  static const LinearGradient backgroundGradient = LinearGradient(
-    colors: [
-      Color(0xFFFBF9F8),
-      Color(0xFFFFF0F3), // Ultra-soft light pink glow
-    ],
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
-  );
-
+  // Emergency gradient remains red — never blend it into the normal app theme.
   static const LinearGradient sosGradient = LinearGradient(
     colors: [
       Color(0xFFBA1A1A),
@@ -71,14 +76,13 @@ class AppTheme {
     end: Alignment.bottomRight,
   );
 
-  // Shapes & Radius
-  static BorderRadius radiusSm = BorderRadius.circular(8.0);
-  static BorderRadius radiusDefault = BorderRadius.circular(16.0);
-  static BorderRadius radiusMd = BorderRadius.circular(24.0);
-  static BorderRadius radiusLg = BorderRadius.circular(32.0);
-  static BorderRadius radiusXl = BorderRadius.circular(48.0);
+  // Shared shapes and radii.
+  static BorderRadius radiusSm = BorderRadius.circular(8);
+  static BorderRadius radiusDefault = BorderRadius.circular(18);
+  static BorderRadius radiusMd = BorderRadius.circular(23);
+  static BorderRadius radiusLg = BorderRadius.circular(26);
+  static BorderRadius radiusXl = BorderRadius.circular(32);
 
-  // Light Theme Definition
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
@@ -88,15 +92,13 @@ class AppTheme {
         onPrimary: onPrimary,
         primaryContainer: primaryContainer,
         onPrimaryContainer: onPrimaryContainer,
-        background: background,
-        onBackground: textPrimary,
         surface: surface,
         onSurface: textPrimary,
         error: error,
       ),
       scaffoldBackgroundColor: background,
-      
-      // Typography Mappings using Montserrat & Be Vietnam Pro
+
+      // Typography: Montserrat for headings, Be Vietnam Pro for body text.
       textTheme: TextTheme(
         displayLarge: GoogleFonts.montserrat(
           fontSize: 48,
@@ -113,13 +115,13 @@ class AppTheme {
         ),
         headlineMedium: GoogleFonts.montserrat(
           fontSize: 24,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w700,
           height: 1.33,
           color: textPrimary,
         ),
         titleLarge: GoogleFonts.montserrat(
           fontSize: 20,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w700,
           color: textPrimary,
         ),
         bodyLarge: GoogleFonts.beVietnamPro(
@@ -136,7 +138,7 @@ class AppTheme {
         ),
         labelLarge: GoogleFonts.beVietnamPro(
           fontSize: 14,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w700,
           letterSpacing: 0.05,
           color: textPrimary,
         ),
@@ -146,49 +148,88 @@ class AppTheme {
           color: textSecondary,
         ),
       ),
-      
+
       cardTheme: CardThemeData(
-        color: cardSurface,
+        color: cardSurface.withOpacity(0.67),
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: radiusMd,
+          side: BorderSide(
+            color: Colors.white.withOpacity(0.9),
+            width: 1.2,
+          ),
         ),
       ),
-      
+
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: primary,
           foregroundColor: onPrimary,
+          disabledBackgroundColor: primary.withOpacity(0.45),
+          disabledForegroundColor: onPrimary.withOpacity(0.8),
           elevation: 0,
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-          shape: const StadiumBorder(),
-          textStyle: GoogleFonts.beVietnamPro(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 0.05,
+          padding: const EdgeInsets.symmetric(
+            horizontal: 24,
+            vertical: 16,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+          ),
+          textStyle: GoogleFonts.montserrat(
+            fontSize: 14,
+            fontWeight: FontWeight.w800,
           ),
         ),
       ),
-      
+
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: Colors.white,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
+        fillColor: const Color(0xFFF8EFF5),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 20,
+          vertical: 16,
+        ),
         border: OutlineInputBorder(
           borderRadius: radiusDefault,
-          borderSide: BorderSide(color: outlineVariant, width: 1.0),
+          borderSide: BorderSide(
+            color: outlineVariant,
+            width: 1,
+          ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: radiusDefault,
-          borderSide: BorderSide(color: outlineVariant.withOpacity(0.5), width: 1.0),
+          borderSide: BorderSide(
+            color: outlineVariant.withOpacity(0.9),
+            width: 1,
+          ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: radiusDefault,
-          borderSide: const BorderSide(color: primary, width: 2.0),
+          borderSide: const BorderSide(
+            color: primary,
+            width: 1.5,
+          ),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: radiusDefault,
+          borderSide: const BorderSide(
+            color: error,
+            width: 1.2,
+          ),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: radiusDefault,
+          borderSide: const BorderSide(
+            color: error,
+            width: 1.5,
+          ),
         ),
         labelStyle: GoogleFonts.beVietnamPro(color: textSecondary),
-        hintStyle: GoogleFonts.beVietnamPro(color: textSecondary.withOpacity(0.6)),
+        hintStyle: GoogleFonts.beVietnamPro(
+          color: textSecondary.withOpacity(0.7),
+        ),
       ),
     );
   }
 }
+
