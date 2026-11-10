@@ -165,29 +165,29 @@ class _SosActiveScreenState extends State<SosActiveScreen> with SingleTickerProv
                               letterSpacing: 20,
                             ),
                           ),
-                            onChanged: (val) async {
+                          onChanged: (val) async {
 
-                              if (val.length != 4) return;
+                            if (val.length != 4) return;
 
-                              if (val == "1234") {
+                            if (val == "1234") {
 
-                                Navigator.pop(context);
+                              Navigator.pop(context);
 
-                                await context.read<SosCubit>().stopSos();
+                              await context.read<SosCubit>().stopSos();
 
-                                return;
+                              return;
 
-                              }
+                            }
 
-                              setModalState(() {
+                            setModalState(() {
 
-                                _pinError = "Incorrect PIN code. Try again.";
+                              _pinError = "Incorrect PIN code. Try again.";
 
-                                _pinController.clear();
+                              _pinController.clear();
 
-                              });
+                            });
 
-                            },
+                          },
                         ),
                         if (_pinError.isNotEmpty) ...[
                           const SizedBox(height: 12),
@@ -229,362 +229,370 @@ class _SosActiveScreenState extends State<SosActiveScreen> with SingleTickerProv
 
     return BlocListener<SosCubit, SosState>(
 
-        listener: (context, state) {
+      listener: (context, state) {
 
-          if (state is SosInitial) {
+        if (state is SosInitial) {
 
-            context.go(AppRoutes.home);
+          context.go(AppRoutes.home);
 
-          }
+        }
 
-          if (state is SosError) {
+        if (state is SosError) {
 
-            ScaffoldMessenger.of(context).showSnackBar(
+          ScaffoldMessenger.of(context).showSnackBar(
 
-              SnackBar(
-                content: Text(state.message),
-              ),
-
-            );
-
-          }
-
-        },
-
-        child: Scaffold(
-      backgroundColor: const Color(0xFFFFDAD6), // bg-error-container (#ffdad6)
-      body: Stack(
-        children: [
-          // Pulsing Background Elements
-          Positioned.fill(
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                // Outer ring 1
-                AnimatedBuilder(
-                  animation: _bgPulseController,
-                  builder: (context, child) {
-                    double scale = 0.8 + (_bgPulseController.value * 1.7); // 0.8 to 2.5
-                    double opacity = (1.0 - _bgPulseController.value) * 0.2;
-                    return Opacity(
-                      opacity: opacity.clamp(0.0, 1.0),
-                      child: Transform.scale(
-                        scale: scale,
-                        child: Container(
-                          width: 256,
-                          height: 256,
-                          decoration: const BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: AppTheme.error,
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-                // Delayed outer ring 2
-                AnimatedBuilder(
-                  animation: _bgPulseController,
-                  builder: (context, child) {
-                    double val = (_bgPulseController.value + 0.25) % 1.0;
-                    double scale = 0.8 + (val * 1.7);
-                    double opacity = (1.0 - val) * 0.2;
-                    return Opacity(
-                      opacity: opacity.clamp(0.0, 1.0),
-                      child: Transform.scale(
-                        scale: scale,
-                        child: Container(
-                          width: 256,
-                          height: 256,
-                          decoration: const BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: AppTheme.error,
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ],
+            SnackBar(
+              content: Text(state.message),
             ),
-          ),
 
-          // Main Screen layout scrollable canvas to prevent overflow
-          SafeArea(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                return SingleChildScrollView(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: constraints.maxHeight,
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24.0,
-                        vertical: 32.0,
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          // Header Section
-                          Column(
-                            children: [
-                              // Active Badge
-                              Container(
-                                decoration: BoxDecoration(
-                                  color: AppTheme.error,
-                                  borderRadius: BorderRadius.circular(9999),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: AppTheme.error.withOpacity(0.3),
-                                      blurRadius: 12,
-                                      offset: const Offset(0, 4),
-                                    )
-                                  ],
-                                ),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16.0,
-                                  vertical: 8.0,
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Icon(
-                                      Icons.emergency,
-                                      color: Colors.white,
-                                      size: 18,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      "SOS ACTIVE",
-                                      style: GoogleFonts.beVietnamPro(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w600,
-                                        letterSpacing: 1.5,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(height: 20),
-                              Text(
-                                "Alerting your 5 Guardians & Police",
-                                textAlign: TextAlign.center,
-                                style: GoogleFonts.montserrat(
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.bold,
-                                  color: const Color(0xFF93000A), // on-error-container
-                                  height: 1.25,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                "Broadcasting exact location",
-                                textAlign: TextAlign.center,
-                                style: GoogleFonts.beVietnamPro(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.normal,
-                                  color: AppTheme.error,
-                                ),
-                              ),
-                            ],
-                          ),
+          );
 
-                          const SizedBox(height: 32),
+        }
 
-                          // Live Map Window (Glass Panel)
-                          Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.7),
-                              borderRadius: BorderRadius.circular(16.0),
-                              border: Border.all(
-                                color: Colors.white.withOpacity(0.5),
-                                width: 1.0,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: const Color(0xFFBA1A1A).withOpacity(0.15),
-                                  blurRadius: 32,
-                                  offset: const Offset(0, 8),
-                                )
-                              ],
+      },
+
+      child: Scaffold(
+        backgroundColor: AppTheme.background,
+        body: Stack(
+          children: [
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: const BoxDecoration(
+                  gradient: AppTheme.backgroundGradient,
+                ),
+              ),
+            ),
+            // Pulsing Background Elements
+            Positioned.fill(
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  // Outer ring 1
+                  AnimatedBuilder(
+                    animation: _bgPulseController,
+                    builder: (context, child) {
+                      double scale = 0.8 + (_bgPulseController.value * 1.7); // 0.8 to 2.5
+                      double opacity = (1.0 - _bgPulseController.value) * 0.10;
+                      return Opacity(
+                        opacity: opacity.clamp(0.0, 1.0),
+                        child: Transform.scale(
+                          scale: scale,
+                          child: Container(
+                            width: 256,
+                            height: 256,
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: AppTheme.error,
                             ),
-                            clipBehavior: Clip.antiAlias,
-                            child: Column(
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  // Delayed outer ring 2
+                  AnimatedBuilder(
+                    animation: _bgPulseController,
+                    builder: (context, child) {
+                      double val = (_bgPulseController.value + 0.25) % 1.0;
+                      double scale = 0.8 + (val * 1.7);
+                      double opacity = (1.0 - val) * 0.08;
+                      return Opacity(
+                        opacity: opacity.clamp(0.0, 1.0),
+                        child: Transform.scale(
+                          scale: scale,
+                          child: Container(
+                            width: 256,
+                            height: 256,
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: AppTheme.error,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+
+            // Main Screen layout scrollable canvas to prevent overflow
+            SafeArea(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return SingleChildScrollView(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight,
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24.0,
+                          vertical: 32.0,
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            // Header Section
+                            Column(
                               children: [
-                                // Map viewport
-                                SizedBox(
-                                  height: 192,
-                                  width: double.infinity,
-                                  child: Stack(
+                                // Active Badge
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.error,
+                                    borderRadius: BorderRadius.circular(9999),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: AppTheme.error.withOpacity(0.3),
+                                        blurRadius: 12,
+                                        offset: const Offset(0, 4),
+                                      )
+                                    ],
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16.0,
+                                    vertical: 8.0,
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      Positioned.fill(
-                                        child: ColorFiltered(
-                                          colorFilter: const ColorFilter.matrix([
-                                            0.2126, 0.7152, 0.0722, 0, 0,
-                                            0.2126, 0.7152, 0.0722, 0, 0,
-                                            0.2126, 0.7152, 0.0722, 0, 0,
-                                            0,      0,      0,      1, 0,
-                                          ]),
-                                          child: Image.asset(
-                                            "assets/images/map_placeholder.png",
-                                            fit: BoxFit.cover,
-                                            opacity: const AlwaysStoppedAnimation(0.8),
-                                          ),
+                                      const Icon(
+                                        Icons.emergency,
+                                        color: Colors.white,
+                                        size: 18,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        "SOS ACTIVE",
+                                        style: GoogleFonts.beVietnamPro(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
+                                          letterSpacing: 1.5,
+                                          color: Colors.white,
                                         ),
                                       ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 20),
+                                Text(
+                                  "Your SOS alert is active",
+                                  textAlign: TextAlign.center,
+                                  style: GoogleFonts.montserrat(
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppTheme.error,
+                                    height: 1.25,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  "Sharing your live location with your safety network",
+                                  textAlign: TextAlign.center,
+                                  style: GoogleFonts.beVietnamPro(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.normal,
+                                    color: AppTheme.error,
+                                  ),
+                                ),
+                              ],
+                            ),
 
-                                      // Center Marker
-                                      Center(
-                                        child: Stack(
-                                          alignment: Alignment.center,
-                                          children: [
-                                            AnimatedBuilder(
-                                              animation: _bgPulseController,
-                                              builder: (context, child) {
-                                                return Transform.scale(
-                                                  scale: 1.0 + (_bgPulseController.value * 1.5),
-                                                  child: Opacity(
-                                                    opacity: 1.0 - _bgPulseController.value,
-                                                    child: Container(
-                                                      width: 48,
-                                                      height: 48,
-                                                      decoration: BoxDecoration(
-                                                        shape: BoxShape.circle,
-                                                        color: AppTheme.primary.withOpacity(0.3),
+                            const SizedBox(height: 32),
+
+                            // Live Map Window (Glass Panel)
+                            Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.7),
+                                borderRadius: BorderRadius.circular(16.0),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.5),
+                                  width: 1.0,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(0xFFBA1A1A).withOpacity(0.15),
+                                    blurRadius: 32,
+                                    offset: const Offset(0, 8),
+                                  )
+                                ],
+                              ),
+                              clipBehavior: Clip.antiAlias,
+                              child: Column(
+                                children: [
+                                  // Map viewport
+                                  SizedBox(
+                                    height: 192,
+                                    width: double.infinity,
+                                    child: Stack(
+                                      children: [
+                                        Positioned.fill(
+                                          child: ColorFiltered(
+                                            colorFilter: const ColorFilter.matrix([
+                                              0.2126, 0.7152, 0.0722, 0, 0,
+                                              0.2126, 0.7152, 0.0722, 0, 0,
+                                              0.2126, 0.7152, 0.0722, 0, 0,
+                                              0,      0,      0,      1, 0,
+                                            ]),
+                                            child: Image.asset(
+                                              "assets/images/map_placeholder.png",
+                                              fit: BoxFit.cover,
+                                              opacity: const AlwaysStoppedAnimation(0.8),
+                                            ),
+                                          ),
+                                        ),
+
+                                        // Center Marker
+                                        Center(
+                                          child: Stack(
+                                            alignment: Alignment.center,
+                                            children: [
+                                              AnimatedBuilder(
+                                                animation: _bgPulseController,
+                                                builder: (context, child) {
+                                                  return Transform.scale(
+                                                    scale: 1.0 + (_bgPulseController.value * 1.5),
+                                                    child: Opacity(
+                                                      opacity: 1.0 - _bgPulseController.value,
+                                                      child: Container(
+                                                        width: 48,
+                                                        height: 48,
+                                                        decoration: BoxDecoration(
+                                                          shape: BoxShape.circle,
+                                                          color: AppTheme.error.withOpacity(0.22),
+                                                        ),
                                                       ),
                                                     ),
-                                                  ),
-                                                );
-                                              },
-                                            ),
-                                            Container(
-                                              width: 24,
-                                              height: 24,
-                                              decoration: BoxDecoration(
-                                                shape: BoxShape.circle,
-                                                color: AppTheme.primary,
-                                                border: Border.all(
-                                                  color: Colors.white,
-                                                  width: 2.0,
-                                                ),
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                    color: Colors.black.withOpacity(0.2),
-                                                    blurRadius: 4,
-                                                    offset: const Offset(0, 2),
-                                                  )
-                                                ],
+                                                  );
+                                                },
                                               ),
-                                              child: Center(
-                                                child: Container(
-                                                  width: 8,
-                                                  height: 8,
-                                                  decoration: const BoxDecoration(
-                                                    shape: BoxShape.circle,
+                                              Container(
+                                                width: 24,
+                                                height: 24,
+                                                decoration: BoxDecoration(
+                                                  shape: BoxShape.circle,
+                                                  color: AppTheme.primary,
+                                                  border: Border.all(
                                                     color: Colors.white,
+                                                    width: 2.0,
+                                                  ),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: Colors.black.withOpacity(0.2),
+                                                      blurRadius: 4,
+                                                      offset: const Offset(0, 2),
+                                                    )
+                                                  ],
+                                                ),
+                                                child: Center(
+                                                  child: Container(
+                                                    width: 8,
+                                                    height: 8,
+                                                    decoration: const BoxDecoration(
+                                                      shape: BoxShape.circle,
+                                                      color: Colors.white,
+                                                    ),
                                                   ),
                                                 ),
                                               ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+
+                                  // Map address footer bar
+                                  Container(
+                                    padding: const EdgeInsets.all(16.0),
+                                    color: Colors.white.withOpacity(0.8),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              "Live Location",
+                                              style: GoogleFonts.beVietnamPro(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w500,
+                                                color: AppTheme.textSecondary,
+                                              ),
                                             ),
+                                            const SizedBox(height: 2),
+                                            Text(
+                                              _currentLocation,
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                            )
                                           ],
                                         ),
+                                        const Icon(
+                                          Icons.my_location,
+                                          color: AppTheme.primary,
+                                          size: 24,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            const SizedBox(height: 48),
+
+                            // Footer Cancel / Action Area
+                            Column(
+                              children: [
+
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: ElevatedButton.icon(
+                                    onPressed: _showDisarmDialog,
+                                    icon: const Icon(Icons.lock_open),
+                                    label: const Text("STOP SOS"),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppTheme.error,
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 18,
                                       ),
-                                    ],
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                    ),
                                   ),
                                 ),
 
-                                // Map address footer bar
-                                Container(
-                                  padding: const EdgeInsets.all(16.0),
-                                  color: Colors.white.withOpacity(0.8),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            "Live Location",
-                                            style: GoogleFonts.beVietnamPro(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w500,
-                                              color: AppTheme.textSecondary,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 2),
-                                          Text(
-                                            _currentLocation,
-                                            maxLines: 2,
-                                            overflow: TextOverflow.ellipsis,
-                                          )
-                                        ],
-                                      ),
-                                      const Icon(
-                                        Icons.my_location,
-                                        color: AppTheme.primary,
-                                        size: 24,
-                                      ),
-                                    ],
+                                const SizedBox(height: 16),
+
+                                Text(
+                                  "Only stop the alert if you are safe. Your safety PIN is required.",
+                                  textAlign: TextAlign.center,
+                                  style: GoogleFonts.beVietnamPro(
+                                    fontSize: 13,
+                                    color: AppTheme.textSecondary,
                                   ),
                                 ),
+
+                                const SizedBox(height: 32),
+
                               ],
                             ),
-                          ),
-
-                          const SizedBox(height: 48),
-
-                          // Footer Cancel / Action Area
-                          Column(
-                            children: [
-
-                              SizedBox(
-                                width: double.infinity,
-                                child: ElevatedButton.icon(
-                                  onPressed: _showDisarmDialog,
-                                  icon: const Icon(Icons.lock_open),
-                                  label: const Text("Stop SOS"),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppTheme.error,
-                                    foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 18,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(16),
-                                    ),
-                                  ),
-                                ),
-                              ),
-
-                              const SizedBox(height: 16),
-
-                              Text(
-                                "Enter your safety PIN to stop emergency tracking.",
-                                textAlign: TextAlign.center,
-                                style: GoogleFonts.beVietnamPro(
-                                  fontSize: 13,
-                                  color: AppTheme.textSecondary,
-                                ),
-                              ),
-
-                              const SizedBox(height: 32),
-
-                            ],
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-     ),
     );
   }
 }
+

@@ -823,143 +823,144 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen>
                     ),
                     const SizedBox(height: 24),
 
+               // wearable integration start's in V2
                     // Bento Grid: Wearable Connected Card
-                    Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(16),
-                        onTap: () {
-                          context.push(AppRoutes.wearableSync);
-                        },
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.76),
-                            borderRadius: BorderRadius.circular(26.0),
-                            border: Border.all(
-                              color: Colors.white.withOpacity(0.9),
-                              width: 1.0,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppTheme.primary.withOpacity(0.06),
-                                blurRadius: 24,
-                                spreadRadius: -4,
-                                offset: const Offset(0, 7),
-                              ),
-                            ],
-                          ),
-                          padding: const EdgeInsets.all(24.0),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 56,
-                                height: 56,
-                                decoration: BoxDecoration(
-                                  color: AppTheme.primary.withOpacity(.08),
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                child: const Icon(
-                                  Icons.watch_outlined,
-                                  color: AppTheme.primary,
-                                  size: 28,
-                                ),
-                              ),
-
-                              const SizedBox(width: 18),
-
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      "Wearable",
-                                      style: GoogleFonts.montserrat(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
-
-                                    const SizedBox(height: 4),
-
-                                    Text(
-                                      "Lumina Smart Band",
-                                      style: GoogleFonts.beVietnamPro(
-                                        color: AppTheme.textSecondary,
-                                      ),
-                                    ),
-
-                                    const SizedBox(height: 12),
-
-                                    Row(
-                                      children: [
-                                        AnimatedBuilder(
-                                          animation: _connectionAnimation,
-                                          builder: (context, child) {
-                                            return Transform.scale(
-                                              scale: _connectionAnimation.value,
-                                              child: Container(
-                                                width: 10,
-                                                height: 10,
-                                                decoration: BoxDecoration(
-                                                  shape: BoxShape.circle,
-                                                  color: const Color(
-                                                    0xFF22C55E,
-                                                  ),
-                                                  boxShadow: [
-                                                    BoxShadow(
-                                                      color: const Color(
-                                                        0xFF22C55E,
-                                                      ).withOpacity(0.45),
-                                                      blurRadius: 8,
-                                                      spreadRadius: 1,
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            );
-                                          },
-                                        ),
-
-                                        const SizedBox(width: 8),
-
-                                        Text(
-                                          "Connected",
-                                          style: GoogleFonts.beVietnamPro(
-                                            color: AppTheme.success,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-
-                              Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    "Manage",
-                                    style: GoogleFonts.beVietnamPro(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppTheme.primary,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 2),
-                                  const Icon(
-                                    Icons.arrow_forward_ios_rounded,
-                                    size: 10,
-                                    color: AppTheme.primary,
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
+                    // Material(
+                    //   color: Colors.transparent,
+                    //   child: InkWell(
+                    //     borderRadius: BorderRadius.circular(16),
+                    //     onTap: () {
+                    //       context.push(AppRoutes.wearableSync);
+                    //     },
+                    //     child: Container(
+                    //       decoration: BoxDecoration(
+                    //         color: Colors.white.withOpacity(0.76),
+                    //         borderRadius: BorderRadius.circular(26.0),
+                    //         border: Border.all(
+                    //           color: Colors.white.withOpacity(0.9),
+                    //           width: 1.0,
+                    //         ),
+                    //         boxShadow: [
+                    //           BoxShadow(
+                    //             color: AppTheme.primary.withOpacity(0.06),
+                    //             blurRadius: 24,
+                    //             spreadRadius: -4,
+                    //             offset: const Offset(0, 7),
+                    //           ),
+                    //         ],
+                    //       ),
+                    //       padding: const EdgeInsets.all(24.0),
+                    //       child: Row(
+                    //         children: [
+                    //           Container(
+                    //             width: 56,
+                    //             height: 56,
+                    //             decoration: BoxDecoration(
+                    //               color: AppTheme.primary.withOpacity(.08),
+                    //               borderRadius: BorderRadius.circular(16),
+                    //             ),
+                    //             child: const Icon(
+                    //               Icons.watch_outlined,
+                    //               color: AppTheme.primary,
+                    //               size: 28,
+                    //             ),
+                    //           ),
+                    //
+                    //           const SizedBox(width: 18),
+                    //
+                    //           Expanded(
+                    //             child: Column(
+                    //               crossAxisAlignment: CrossAxisAlignment.start,
+                    //               mainAxisSize: MainAxisSize.min,
+                    //               children: [
+                    //                 Text(
+                    //                   "Wearable",
+                    //                   style: GoogleFonts.montserrat(
+                    //                     fontSize: 18,
+                    //                     fontWeight: FontWeight.w700,
+                    //                   ),
+                    //                 ),
+                    //
+                    //                 const SizedBox(height: 4),
+                    //
+                    //                 Text(
+                    //                   "Lumina Smart Band",
+                    //                   style: GoogleFonts.beVietnamPro(
+                    //                     color: AppTheme.textSecondary,
+                    //                   ),
+                    //                 ),
+                    //
+                    //                 const SizedBox(height: 12),
+                    //
+                    //                 Row(
+                    //                   children: [
+                    //                     AnimatedBuilder(
+                    //                       animation: _connectionAnimation,
+                    //                       builder: (context, child) {
+                    //                         return Transform.scale(
+                    //                           scale: _connectionAnimation.value,
+                    //                           child: Container(
+                    //                             width: 10,
+                    //                             height: 10,
+                    //                             decoration: BoxDecoration(
+                    //                               shape: BoxShape.circle,
+                    //                               color: const Color(
+                    //                                 0xFF22C55E,
+                    //                               ),
+                    //                               boxShadow: [
+                    //                                 BoxShadow(
+                    //                                   color: const Color(
+                    //                                     0xFF22C55E,
+                    //                                   ).withOpacity(0.45),
+                    //                                   blurRadius: 8,
+                    //                                   spreadRadius: 1,
+                    //                                 ),
+                    //                               ],
+                    //                             ),
+                    //                           ),
+                    //                         );
+                    //                       },
+                    //                     ),
+                    //
+                    //                     const SizedBox(width: 8),
+                    //
+                    //                     Text(
+                    //                       "Connected",
+                    //                       style: GoogleFonts.beVietnamPro(
+                    //                         color: AppTheme.success,
+                    //                         fontWeight: FontWeight.w600,
+                    //                       ),
+                    //                     ),
+                    //                   ],
+                    //                 ),
+                    //               ],
+                    //             ),
+                    //           ),
+                    //
+                    //           Row(
+                    //             mainAxisSize: MainAxisSize.min,
+                    //             children: [
+                    //               Text(
+                    //                 "Manage",
+                    //                 style: GoogleFonts.beVietnamPro(
+                    //                   fontSize: 12,
+                    //                   fontWeight: FontWeight.w600,
+                    //                   color: AppTheme.primary,
+                    //                 ),
+                    //               ),
+                    //               const SizedBox(width: 2),
+                    //               const Icon(
+                    //                 Icons.arrow_forward_ios_rounded,
+                    //                 size: 10,
+                    //                 color: AppTheme.primary,
+                    //               ),
+                    //             ],
+                    //           ),
+                    //         ],
+                    //       ),
+                    //     ),
+                    //   ),
+                    // ),
                   ],
                 ),
               ),
