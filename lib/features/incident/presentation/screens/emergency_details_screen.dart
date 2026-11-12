@@ -1,727 +1,5 @@
-// import 'package:flutter/material.dart';
-// import 'package:flutter_bloc/flutter_bloc.dart';
-// import 'package:go_router/go_router.dart';
-// import 'package:google_fonts/google_fonts.dart';
-//
-// import '../../../../core/routes/app_routes.dart';
-// import '../../../../core/theme/app_theme.dart';
-// import '../../data/models/incident_model.dart';
-// import '../../data/models/timeline_event_model.dart';
-// import '../cubit/incident_cubit.dart';
-// import '../cubit/incident_state.dart';
-//
-// class EmergencyDetailsScreen extends StatefulWidget {
-//
-//   final String incidentId;
-//
-//   const EmergencyDetailsScreen({
-//     super.key,
-//     required this.incidentId,
-//   });
-//
-//   @override
-//   State<EmergencyDetailsScreen> createState() =>
-//       _EmergencyDetailsScreenState();
-// }
-//
-// class _EmergencyDetailsScreenState
-//     extends State<EmergencyDetailsScreen> {
-//
-//   @override
-//   void initState() {
-//     super.initState();
-//
-//     WidgetsBinding.instance.addPostFrameCallback((_) {
-//       if (!mounted) return;
-//
-//       context.read<IncidentCubit>().loadIncidentDetails(
-//         widget.incidentId,
-//       );
-//
-//       context.read<IncidentCubit>().loadTimeline(
-//         widget.incidentId,
-//       );
-//     });
-//   }
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       backgroundColor: AppTheme.background,
-//       body: SafeArea(
-//         child: BlocBuilder<IncidentCubit, IncidentState>(
-//           builder: (context, state) {
-//
-//             if (state.isLoading) {
-//               return const Center(
-//                 child: CircularProgressIndicator(
-//                   color: AppTheme.primary,
-//                 ),
-//               );
-//             }
-//
-//             if (state.error != null) {
-//               return Center(
-//                 child: Text(
-//                   state.error!,
-//                   style: const TextStyle(
-//                     color: Colors.red,
-//                   ),
-//                 ),
-//               );
-//             }
-//
-//             if (state.selectedIncident == null) {
-//               return const Center(
-//                 child: Text(
-//                   "Incident not found",
-//                 ),
-//               );
-//             }
-//
-//             final incident = state.selectedIncident!;
-//
-//             return SingleChildScrollView(
-//               padding: const EdgeInsets.fromLTRB(
-//                 20,
-//                 28,
-//                 20,
-//                 40,
-//               ),
-//               child: Column(
-//                 crossAxisAlignment:
-//                 CrossAxisAlignment.stretch,
-//                 children: [
-//
-//                   /// Header
-//                   _buildEmergencyHeader(incident),
-//                   const SizedBox(height: 24),
-//
-//                   /// Incident Information
-//                   _buildIncidentSummary(incident),
-//                   const SizedBox(height: 24),
-//
-//                   /// Timeline
-//                   _buildTimelineSection(state.timeline),
-//                   const SizedBox(height: 24),
-//
-//                   _buildTimelineSection(state.timeline),
-//
-//                   const SizedBox(height: 24),
-//
-// // -----------------------------------------------------------------
-// // TODO (Phase 5.8)
-// // Emergency Notifications
-// //
-// // Backend integration pending.
-// //
-// // Future backend response should expose:
-// //
-// // - Family notification delivered
-// // - Family acknowledgement
-// // - Police notification delivered
-// // - Police acknowledgement
-// //
-// // Once the backend provides these fields,
-// // replace this placeholder with:
-// //
-// // _buildEmergencyNotifications(...)
-// // -----------------------------------------------------------------
-//
-// // _buildEmergencyNotifications(),
-//
-//                   const SizedBox(height: 24),
-//
-// // -----------------------------------------------------------------
-// // TODO (Phase 5.8)
-// // Evidence Section
-// //
-// // Backend already supports Evidence APIs.
-// //
-// // Waiting for Flutter integration.
-// //
-// // Future:
-// //
-// // - Audio recordings
-// // - Photos
-// // - Videos
-// // - Attachments
-// //
-// // _buildEvidenceSection(...)
-// // -----------------------------------------------------------------
-//
-// // _buildEvidenceSection(),
-//
-//                 ],
-//               ),
-//             );
-//           },
-//         ),
-//       ),
-//     );
-//   }
-//
-//   Widget _buildEmergencyHeader(IncidentModel incident) {
-//     return Container(
-//       padding: const EdgeInsets.all(24),
-//       decoration: BoxDecoration(
-//         color: Colors.white.withOpacity(.9),
-//         borderRadius: BorderRadius.circular(24),
-//         border: Border.all(
-//           color: Colors.white.withOpacity(.5),
-//         ),
-//         boxShadow: [
-//           BoxShadow(
-//             color: Colors.black.withOpacity(.04),
-//             blurRadius: 12,
-//             offset: const Offset(0, 4),
-//           ),
-//         ],
-//       ),
-//       child: Column(
-//         crossAxisAlignment: CrossAxisAlignment.start,
-//         children: [
-//
-//           Row(
-//             children: [
-//
-//               GestureDetector(
-//                 onTap: () {
-//                   context.push(
-//                     AppRoutes.emergencyDetails,
-//                     extra: incident.incidentId,
-//                   );
-//                 },
-//                 child: Container(
-//                   width: 42,
-//                   height: 42,
-//                   decoration: BoxDecoration(
-//                     color: AppTheme.primary.withOpacity(.08),
-//                     shape: BoxShape.circle,
-//                   ),
-//                   child: const Icon(
-//                     Icons.arrow_back,
-//                     color: AppTheme.primary,
-//                   ),
-//                 ),
-//               ),
-//
-//               const SizedBox(width: 16),
-//
-//               Expanded(
-//                 child: Text(
-//                   "Emergency Details",
-//                   style: GoogleFonts.montserrat(
-//                     fontSize: 24,
-//                     fontWeight: FontWeight.w700,
-//                   ),
-//                 ),
-//               ),
-//             ],
-//           ),
-//
-//           const SizedBox(height: 28),
-//
-//           Row(
-//             children: [
-//
-//               _buildStatusIcon(incident.status),
-//
-//               const SizedBox(width: 18),
-//
-//               Expanded(
-//                 child: Column(
-//                   crossAxisAlignment:
-//                   CrossAxisAlignment.start,
-//                   children: [
-//
-//                     Text(
-//                       _triggerTitle(
-//                         incident.triggerType,
-//                       ),
-//                       style: GoogleFonts.montserrat(
-//                         fontSize: 20,
-//                         fontWeight: FontWeight.bold,
-//                       ),
-//                     ),
-//
-//                     const SizedBox(height: 6),
-//
-//                     Text(
-//                       _formatDate(
-//                         incident.createdAt,
-//                       ),
-//                       style: GoogleFonts.beVietnamPro(
-//                         color: AppTheme.textSecondary,
-//                       ),
-//                     ),
-//                   ],
-//                 ),
-//               ),
-//             ],
-//           ),
-//
-//           const SizedBox(height: 24),
-//
-//           Row(
-//             children: [
-//
-//               _buildStatusBadge(
-//                 incident.status,
-//               ),
-//
-//               const SizedBox(width: 10),
-//
-//               _buildRiskBadge(
-//                 incident.riskScore,
-//               ),
-//             ],
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-//
-//   Widget _buildIncidentSummary(IncidentModel incident) {
-//     return Container(
-//       padding: const EdgeInsets.all(20),
-//       decoration: BoxDecoration(
-//         color: Colors.white.withOpacity(.9),
-//         borderRadius: BorderRadius.circular(24),
-//         border: Border.all(
-//           color: Colors.white.withOpacity(.5),
-//         ),
-//         boxShadow: [
-//           BoxShadow(
-//             color: Colors.black.withOpacity(.04),
-//             blurRadius: 12,
-//             offset: const Offset(0, 4),
-//           ),
-//         ],
-//       ),
-//       child: Column(
-//         crossAxisAlignment: CrossAxisAlignment.start,
-//         children: [
-//
-//           Text(
-//             "Incident Summary",
-//             style: GoogleFonts.montserrat(
-//               fontSize: 18,
-//               fontWeight: FontWeight.w700,
-//             ),
-//           ),
-//
-//           const SizedBox(height: 20),
-//
-//           _buildInfoRow(
-//             "Tracking ID",
-//             incident.trackingId.length > 8
-//                 ? "${incident.trackingId.substring(0, 8)}..."
-//                 : incident.trackingId,
-//           ),
-//
-//           const Divider(height: 28),
-//
-//           _buildInfoRow(
-//             "Incident Status",
-//             incident.status,
-//           ),
-//
-//           const Divider(height: 28),
-//
-//           _buildInfoRow(
-//             "Trigger",
-//             _triggerTitle(
-//               incident.triggerType,
-//             ),
-//           ),
-//
-//           const Divider(height: 28),
-//
-//           _buildInfoRow(
-//             "Risk Score",
-//             incident.riskScore.toString(),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-//
-//   Widget _buildInfoRow(
-//       String title,
-//       String value,
-//       ) {
-//     return Row(
-//       crossAxisAlignment:
-//       CrossAxisAlignment.start,
-//       children: [
-//
-//         Expanded(
-//           flex: 3,
-//           child: Text(
-//             title,
-//             style: GoogleFonts.beVietnamPro(
-//               fontSize: 15,
-//               color: AppTheme.textSecondary,
-//             ),
-//           ),
-//         ),
-//
-//         Expanded(
-//           flex: 5,
-//           child: Text(
-//             value,
-//             textAlign: TextAlign.right,
-//             style: GoogleFonts.montserrat(
-//               fontSize: 15,
-//               fontWeight: FontWeight.w600,
-//             ),
-//           ),
-//         ),
-//       ],
-//     );
-//   }
-//
-//   Widget _buildStatusIcon(String status) {
-//
-//     Color color;
-//
-//     IconData icon;
-//
-//     switch (status.toUpperCase()) {
-//
-//       case "ACTIVE":
-//         color = AppTheme.error;
-//         icon = Icons.warning_rounded;
-//         break;
-//
-//       case "RESOLVED":
-//         color = AppTheme.success;
-//         icon = Icons.check_circle;
-//         break;
-//
-//       default:
-//         color = Colors.grey;
-//         icon = Icons.history;
-//     }
-//
-//     return Container(
-//       width: 52,
-//       height: 52,
-//       decoration: BoxDecoration(
-//         color: color.withOpacity(.10),
-//         shape: BoxShape.circle,
-//       ),
-//       child: Icon(
-//         icon,
-//         color: color,
-//         size: 26,
-//       ),
-//     );
-//   }
-//
-//
-//   Widget _buildStatusBadge(String status) {
-//
-//     Color color;
-//
-//     switch (status.toUpperCase()) {
-//
-//       case "ACTIVE":
-//         color = AppTheme.error;
-//         break;
-//
-//       case "RESOLVED":
-//         color = AppTheme.success;
-//         break;
-//
-//       default:
-//         color = Colors.grey;
-//     }
-//
-//     return Container(
-//       padding: const EdgeInsets.symmetric(
-//         horizontal: 10,
-//         vertical: 4,
-//       ),
-//       decoration: BoxDecoration(
-//         color: color.withOpacity(.12),
-//         borderRadius: BorderRadius.circular(30),
-//       ),
-//       child: Text(
-//         status,
-//         style: GoogleFonts.beVietnamPro(
-//           color: color,
-//           fontWeight: FontWeight.w600,
-//           fontSize: 12,
-//         ),
-//       ),
-//     );
-//   }
-//
-//   Widget _buildRiskBadge(int riskScore) {
-//
-//     String text;
-//     Color color;
-//
-//     if (riskScore >= 61) {
-//       text = "HIGH";
-//       color = AppTheme.error;
-//     } else if (riskScore >= 31) {
-//       text = "MEDIUM";
-//       color = AppTheme.warning;
-//     } else {
-//       text = "LOW";
-//       color = AppTheme.success;
-//     }
-//
-//     return Container(
-//       padding: const EdgeInsets.symmetric(
-//         horizontal: 10,
-//         vertical: 4,
-//       ),
-//       decoration: BoxDecoration(
-//         color: color.withOpacity(.12),
-//         borderRadius: BorderRadius.circular(30),
-//       ),
-//       child: Text(
-//         text,
-//         style: GoogleFonts.beVietnamPro(
-//           color: color,
-//           fontWeight: FontWeight.w600,
-//           fontSize: 12,
-//         ),
-//       ),
-//     );
-//   }
-//
-//   String _triggerTitle(String trigger) {
-//
-//     switch (trigger.toUpperCase()) {
-//
-//       case "MANUAL":
-//         return "Manual SOS";
-//
-//       case "HEART_RATE":
-//         return "Heart Rate Detection";
-//
-//       case "OFF_BODY":
-//         return "Device Removed";
-//
-//       case "BLUETOOTH":
-//         return "Bluetooth Disconnected";
-//
-//       default:
-//         return trigger;
-//     }
-//   }
-// }
-//   Widget _buildTimelineSection(
-//       List<TimelineEventModel> timeline,
-//       ) {
-//     return Container(
-//       padding: const EdgeInsets.all(20),
-//       decoration: BoxDecoration(
-//         color: Colors.white.withOpacity(.9),
-//         borderRadius: BorderRadius.circular(24),
-//         border: Border.all(
-//           color: Colors.white.withOpacity(.5),
-//         ),
-//         boxShadow: [
-//           BoxShadow(
-//             color: Colors.black.withOpacity(.04),
-//             blurRadius: 12,
-//             offset: const Offset(0, 4),
-//           ),
-//         ],
-//       ),
-//       child: Column(
-//         crossAxisAlignment:
-//         CrossAxisAlignment.start,
-//         children: [
-//
-//           Text(
-//             "Timeline",
-//             style: GoogleFonts.montserrat(
-//               fontSize: 18,
-//               fontWeight: FontWeight.w700,
-//             ),
-//           ),
-//
-//           const SizedBox(height: 20),
-//
-//           if (timeline.isEmpty)
-//
-//             Center(
-//               child: Padding(
-//                 padding: const EdgeInsets.all(24),
-//                 child: Text(
-//                   "No timeline events available.",
-//                   style: GoogleFonts.beVietnamPro(
-//                     color: AppTheme.textSecondary,
-//                   ),
-//                 ),
-//               ),
-//             )
-//
-//           else
-//
-//             ListView.separated(
-//               shrinkWrap: true,
-//               physics:
-//               const NeverScrollableScrollPhysics(),
-//               itemCount: timeline.length,
-//               separatorBuilder: (_, __) =>
-//               const SizedBox(height: 20),
-//               itemBuilder: (context, index) {
-//                 return _buildTimelineItem(
-//                   timeline[index],
-//                   index ==
-//                       timeline.length - 1,
-//                 );
-//               },
-//             ),
-//         ],
-//       ),
-//     );
-//   }
-//
-//   Widget _buildTimelineItem(
-//       TimelineEventModel event,
-//       bool isLast,
-//       ) {
-//     return Row(
-//       crossAxisAlignment:
-//       CrossAxisAlignment.start,
-//       children: [
-//
-//         Column(
-//           children: [
-//
-//             Container(
-//               width: 18,
-//               height: 18,
-//               decoration: BoxDecoration(
-//                 color: _timelineColor(
-//                   event.eventType,
-//                 ),
-//                 shape: BoxShape.circle,
-//               ),
-//             ),
-//
-//             if (!isLast)
-//               Container(
-//                 width: 2,
-//                 height: 55,
-//                 color: Colors.grey.shade300,
-//               ),
-//           ],
-//         ),
-//
-//         const SizedBox(width: 16),
-//
-//         Expanded(
-//           child: Column(
-//             crossAxisAlignment:
-//             CrossAxisAlignment.start,
-//             children: [
-//
-//               Text(
-//                 event.eventType,
-//                 style: GoogleFonts.montserrat(
-//                   fontWeight: FontWeight.w600,
-//                   fontSize: 15,
-//                 ),
-//               ),
-//
-//               const SizedBox(height: 4),
-//
-//               Text(
-//                 event.eventData,
-//                 style: GoogleFonts.beVietnamPro(
-//                   color:
-//                   AppTheme.textSecondary,
-//                 ),
-//               ),
-//
-//               const SizedBox(height: 6),
-//
-//               Text(
-//                 _formatDate(
-//                   event.createdAt,
-//                 ),
-//                 style: GoogleFonts.beVietnamPro(
-//                   fontSize: 12,
-//                   color: Colors.grey,
-//                 ),
-//               ),
-//             ],
-//           ),
-//         ),
-//       ],
-//     );
-//   }
-//
-//   Color _timelineColor(String type) {
-//
-//     switch (type.toUpperCase()) {
-//
-//       case "PROTECTION_STARTED":
-//         return Colors.green;
-//
-//       case "WARNING":
-//         return Colors.orange;
-//
-//       case "SOS_TRIGGERED":
-//         return Colors.red;
-//
-//       case "FAMILY_SMS_SENT":
-//         return Colors.blue;
-//
-//       case "POLICE_NOTIFIED":
-//         return Colors.indigo;
-//
-//       case "INCIDENT_CLOSED":
-//         return Colors.green;
-//
-//       default:
-//         return AppTheme.primary;
-//     }
-//   }
-//
-// String _formatDate(DateTime dateTime) {
-//
-//   final now = DateTime.now();
-//
-//   final difference =
-//   now.difference(dateTime);
-//
-//   if (difference.inMinutes < 1) {
-//     return "Just now";
-//   }
-//
-//   if (difference.inHours < 1) {
-//     return "${difference.inMinutes} min ago";
-//   }
-//
-//   if (difference.inDays < 1) {
-//     return "${difference.inHours} hrs ago";
-//   }
-//
-//   if (difference.inDays == 1) {
-//     return "Yesterday";
-//   }
-//
-//   return "${dateTime.day}/${dateTime.month}/${dateTime.year}";
-// }
 
-
-
-
-
-
-
-
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -773,116 +51,160 @@ class _EmergencyDetailsScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.background,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFFFFE5EF),
+              Color(0xFFFFF5F6),
+              Color(0xFFF0EAFF),
+              Color(0xFFFFF9F3),
+            ],
+          ),
+        ),
+        child: Stack(
+          children: [
+            Positioned(
+              top: 145,
+              right: -105,
+              child: _softGlow(220, const Color(0xFFFFC6DD)),
+            ),
+            Positioned(
+              top: 650,
+              left: -110,
+              child: _softGlow(230, const Color(0xFFDCCFFF)),
+            ),
+            SafeArea(
+              child: BlocBuilder<IncidentCubit, IncidentState>(
+                builder: (context, state) {
 
-      body: SafeArea(
-        child: BlocBuilder<IncidentCubit, IncidentState>(
-          builder: (context, state) {
+                  if (state.isLoading) {
+                    return const Center(
+                      child: CircularProgressIndicator(
+                        color: AppTheme.primary,
+                      ),
+                    );
+                  }
 
-            if (state.isLoading) {
-              return const Center(
-                child: CircularProgressIndicator(
-                  color: AppTheme.primary,
-                ),
-              );
-            }
+                  if (state.error != null) {
+                    return _ErrorView(
+                      message: state.error!,
+                      onRetry: () {
+                        final cubit =
+                        context.read<IncidentCubit>();
 
-            if (state.error != null) {
-              return _ErrorView(
-                message: state.error!,
-                onRetry: () {
-                  final cubit =
-                  context.read<IncidentCubit>();
+                        cubit.loadIncidentDetails(
+                          widget.incidentId,
+                        );
 
-                  cubit.loadIncidentDetails(
-                    widget.incidentId,
-                  );
+                        cubit.loadTimeline(
+                          widget.incidentId,
+                        );
+                      },
+                    );
+                  }
 
-                  cubit.loadTimeline(
-                    widget.incidentId,
+                  if (state.selectedIncident == null) {
+                    return const _NotFoundView();
+                  }
+
+                  final incident =
+                  state.selectedIncident!;
+
+                  return RefreshIndicator(
+                    color: AppTheme.primary,
+
+                    onRefresh: () async {
+                      final cubit =
+                      context.read<IncidentCubit>();
+
+                      await cubit.loadIncidentDetails(
+                        widget.incidentId,
+                      );
+
+                      await cubit.loadTimeline(
+                        widget.incidentId,
+                      );
+                    },
+
+                    child: SingleChildScrollView(
+                      physics:
+                      const AlwaysScrollableScrollPhysics(),
+
+                      padding: const EdgeInsets.fromLTRB(
+                        20,
+                        18,
+                        20,
+                        40,
+                      ),
+
+                      child: Column(
+                        crossAxisAlignment:
+                        CrossAxisAlignment.stretch,
+                        children: [
+
+                          // =================================================
+                          // TOP BAR
+                          // =================================================
+
+                          _buildTopBar(),
+
+                          const SizedBox(height: 25),
+
+                          _buildPageIntro(),
+
+                          const SizedBox(height: 22),
+
+                          // =================================================
+                          // EMERGENCY HEADER
+                          // =================================================
+
+                          _buildEmergencyHeader(
+                            incident,
+                          ),
+
+                          const SizedBox(height: 20),
+
+                          // =================================================
+                          // INCIDENT INFORMATION
+                          // =================================================
+
+                          _buildIncidentSummary(
+                            incident,
+                          ),
+
+                          const SizedBox(height: 20),
+
+                          // =================================================
+                          // TIMELINE
+                          // =================================================
+
+                          _buildTimelineSection(
+                            state.timeline,
+                          ),
+                        ],
+                      ),
+                    ),
                   );
                 },
-              );
-            }
-
-            if (state.selectedIncident == null) {
-              return const _NotFoundView();
-            }
-
-            final incident =
-            state.selectedIncident!;
-
-            return RefreshIndicator(
-              color: AppTheme.primary,
-
-              onRefresh: () async {
-                final cubit =
-                context.read<IncidentCubit>();
-
-                await cubit.loadIncidentDetails(
-                  widget.incidentId,
-                );
-
-                await cubit.loadTimeline(
-                  widget.incidentId,
-                );
-              },
-
-              child: SingleChildScrollView(
-                physics:
-                const AlwaysScrollableScrollPhysics(),
-
-                padding: const EdgeInsets.fromLTRB(
-                  20,
-                  18,
-                  20,
-                  40,
-                ),
-
-                child: Column(
-                  crossAxisAlignment:
-                  CrossAxisAlignment.stretch,
-                  children: [
-
-                    // =================================================
-                    // TOP BAR
-                    // =================================================
-
-                    _buildTopBar(),
-
-                    const SizedBox(height: 18),
-
-                    // =================================================
-                    // EMERGENCY HEADER
-                    // =================================================
-
-                    _buildEmergencyHeader(
-                      incident,
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    // =================================================
-                    // INCIDENT INFORMATION
-                    // =================================================
-
-                    _buildIncidentSummary(
-                      incident,
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    // =================================================
-                    // TIMELINE
-                    // =================================================
-
-                    _buildTimelineSection(
-                      state.timeline,
-                    ),
-                  ],
-                ),
               ),
-            );
-          },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _softGlow(double size, Color color) {
+    return IgnorePointer(
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: color.withOpacity(.30),
         ),
       ),
     );
@@ -893,44 +215,79 @@ class _EmergencyDetailsScreenState
   // ================================================================
 
   Widget _buildTopBar() {
-    return Row(
-      children: [
-
-        GestureDetector(
-          onTap: () {
-            context.pop();
-          },
-          child: Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(.92),
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(.04),
-                  blurRadius: 10,
-                  offset: const Offset(0, 3),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+        child: Container(
+          height: 54,
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(.48),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.white.withOpacity(.8)),
+          ),
+          child: Row(
+            children: [
+              IconButton(
+                onPressed: () {
+                  if (context.canPop()) context.pop();
+                },
+                icon: const Icon(
+                  Icons.arrow_back_rounded,
+                  color: Color(0xFF393044),
                 ),
-              ],
-            ),
-            child: const Icon(
-              Icons.arrow_back_rounded,
-              color: AppTheme.primary,
-            ),
+              ),
+              Expanded(
+                child: Text(
+                  'Lumina Guardian',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.montserrat(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: const Color(0xFFD95791),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 48),
+            ],
           ),
         ),
+      ),
+    );
+  }
 
-        const SizedBox(width: 14),
-
-        Expanded(
-          child: Text(
-            "Emergency Details",
-            style: GoogleFonts.montserrat(
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
-              color: AppTheme.textPrimary,
-            ),
+  Widget _buildPageIntro() {
+    return Column(
+      children: [
+        Text(
+          'SAFETY RECORD',
+          textAlign: TextAlign.center,
+          style: GoogleFonts.montserrat(
+            fontSize: 11,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 1.8,
+            color: const Color(0xFFD95791),
+          ),
+        ),
+        const SizedBox(height: 9),
+        Text(
+          'Emergency Details',
+          textAlign: TextAlign.center,
+          style: GoogleFonts.montserrat(
+            fontSize: 27,
+            fontWeight: FontWeight.w800,
+            color: const Color(0xFF393044),
+          ),
+        ),
+        const SizedBox(height: 7),
+        Text(
+          'A complete view of this emergency and its activity.',
+          textAlign: TextAlign.center,
+          style: GoogleFonts.beVietnamPro(
+            fontSize: 13,
+            height: 1.5,
+            color: const Color(0xFF898193),
           ),
         ),
       ],
@@ -950,20 +307,27 @@ class _EmergencyDetailsScreenState
     final riskColor =
     _riskColor(incident.riskScore);
 
-    return Container(
-      padding: const EdgeInsets.all(24),
+    return _settingsGlass(child: Container(
+      padding: const EdgeInsets.all(20),
 
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(.94),
-        borderRadius: BorderRadius.circular(28),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.white.withOpacity(.82),
+            Colors.white.withOpacity(.62),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(24),
 
         border: Border.all(
-          color: Colors.white.withOpacity(.65),
+          color: Colors.white.withOpacity(.92),
         ),
 
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(.045),
+            color: const Color(0xFFD95791).withOpacity(.08),
             blurRadius: 18,
             offset: const Offset(0, 6),
           ),
@@ -987,12 +351,19 @@ class _EmergencyDetailsScreenState
             children: [
 
               Container(
-                width: 62,
-                height: 62,
-
+                width: 54,
+                height: 54,
                 decoration: BoxDecoration(
-                  color: statusColor.withOpacity(.10),
-                  shape: BoxShape.circle,
+                  borderRadius: BorderRadius.circular(16),
+                  gradient: LinearGradient(
+                    colors: [
+                      statusColor.withOpacity(.15),
+                      statusColor.withOpacity(.07),
+                    ],
+                  ),
+                  border: Border.all(
+                    color: statusColor.withOpacity(.10),
+                  ),
                 ),
 
                 child: Icon(
@@ -1021,8 +392,9 @@ class _EmergencyDetailsScreenState
                       TextOverflow.ellipsis,
 
                       style: GoogleFonts.montserrat(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: const Color(0xFF393044),
                       ),
                     ),
 
@@ -1072,8 +444,7 @@ class _EmergencyDetailsScreenState
           ),
         ],
       ),
-    );
-  }
+    ));  }
 
   // ================================================================
   // INCIDENT SUMMARY
@@ -1082,20 +453,20 @@ class _EmergencyDetailsScreenState
   Widget _buildIncidentSummary(
       IncidentModel incident,
       ) {
-    return Container(
-      padding: const EdgeInsets.all(22),
+    return _settingsGlass(child: Container(
+      padding: const EdgeInsets.all(20),
 
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(.94),
-        borderRadius: BorderRadius.circular(26),
+        color: Colors.white.withOpacity(.72),
+        borderRadius: BorderRadius.circular(24),
 
         border: Border.all(
-          color: Colors.white.withOpacity(.65),
+          color: Colors.white.withOpacity(.92),
         ),
 
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(.035),
+            color: const Color(0xFFAA91D8).withOpacity(.07),
             blurRadius: 16,
             offset: const Offset(0, 5),
           ),
@@ -1111,8 +482,9 @@ class _EmergencyDetailsScreenState
           Text(
             "Incident Information",
             style: GoogleFonts.montserrat(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+              color: const Color(0xFF393044),
             ),
           ),
 
@@ -1158,8 +530,7 @@ class _EmergencyDetailsScreenState
           ],
         ],
       ),
-    );
-  }
+    ));  }
 
   // ================================================================
   // INFO ROW
@@ -1180,8 +551,8 @@ class _EmergencyDetailsScreenState
           child: Text(
             title,
             style: GoogleFonts.beVietnamPro(
-              fontSize: 14,
-              color: AppTheme.textSecondary,
+              fontSize: 12,
+              color: const Color(0xFF898193),
             ),
           ),
         ),
@@ -1195,8 +566,9 @@ class _EmergencyDetailsScreenState
             textAlign: TextAlign.right,
 
             style: GoogleFonts.montserrat(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: const Color(0xFF393044),
             ),
           ),
         ),
@@ -1211,20 +583,20 @@ class _EmergencyDetailsScreenState
   Widget _buildTimelineSection(
       List<TimelineEventModel> timeline,
       ) {
-    return Container(
-      padding: const EdgeInsets.all(22),
+    return _settingsGlass(child: Container(
+      padding: const EdgeInsets.all(20),
 
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(.94),
-        borderRadius: BorderRadius.circular(26),
+        color: Colors.white.withOpacity(.72),
+        borderRadius: BorderRadius.circular(24),
 
         border: Border.all(
-          color: Colors.white.withOpacity(.65),
+          color: Colors.white.withOpacity(.92),
         ),
 
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(.035),
+            color: const Color(0xFFAA91D8).withOpacity(.07),
             blurRadius: 16,
             offset: const Offset(0, 5),
           ),
@@ -1262,8 +634,9 @@ class _EmergencyDetailsScreenState
               Text(
                 "Emergency Timeline",
                 style: GoogleFonts.montserrat(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: const Color(0xFF393044),
                 ),
               ),
             ],
@@ -1297,8 +670,7 @@ class _EmergencyDetailsScreenState
             ),
         ],
       ),
-    );
-  }
+    ));  }
 
   // ================================================================
   // EMPTY TIMELINE
@@ -1328,7 +700,7 @@ class _EmergencyDetailsScreenState
               textAlign: TextAlign.center,
               style: GoogleFonts.beVietnamPro(
                 fontSize: 14,
-                color: AppTheme.textSecondary,
+                color: const Color(0xFF898193),
               ),
             ),
           ],
@@ -1399,7 +771,7 @@ class _EmergencyDetailsScreenState
                   const EdgeInsets.only(
                     top: 4,
                   ),
-                  color: Colors.grey.shade200,
+                  color: AppTheme.outlineVariant.withOpacity(.65),
                 ),
             ],
           ),
@@ -1429,8 +801,9 @@ class _EmergencyDetailsScreenState
                   ),
 
                   style: GoogleFonts.montserrat(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    color: const Color(0xFF393044),
                   ),
                 ),
 
@@ -1439,10 +812,9 @@ class _EmergencyDetailsScreenState
                 Text(
                   event.eventData,
                   style: GoogleFonts.beVietnamPro(
-                    fontSize: 13,
-                    height: 1.4,
-                    color:
-                    AppTheme.textSecondary,
+                    fontSize: 11.5,
+                    height: 1.5,
+                    color: const Color(0xFF898193),
                   ),
                 ),
 
@@ -1454,8 +826,8 @@ class _EmergencyDetailsScreenState
                   ),
 
                   style: GoogleFonts.beVietnamPro(
-                    fontSize: 11,
-                    color: Colors.grey,
+                    fontSize: 10.5,
+                    color: const Color(0xFF898193),
                   ),
                 ),
               ],
@@ -1601,6 +973,18 @@ class _EmergencyDetailsScreenState
       case "INCIDENT_CLOSED":
         return "Incident Closed";
 
+      case "STATUS_CHANGED":
+        return "Status Updated";
+
+      case "INCIDENT_CREATED":
+        return "Emergency Recorded";
+
+      case "HEARTBEAT_MISSED":
+        return "Device Check Missed";
+
+      case "LOCATION_UPDATED":
+        return "Location Updated";
+
       default:
         return type;
     }
@@ -1684,7 +1068,7 @@ class _NotFoundView extends StatelessWidget {
               textAlign: TextAlign.center,
               style: GoogleFonts.beVietnamPro(
                 fontSize: 14,
-                color: AppTheme.textSecondary,
+                color: const Color(0xFF898193),
               ),
             ),
 
@@ -1730,7 +1114,7 @@ class _ErrorView extends StatelessWidget {
           padding: const EdgeInsets.all(26),
 
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(.94),
+            color: Colors.white.withOpacity(.67),
             borderRadius: BorderRadius.circular(26),
           ),
 
@@ -1771,7 +1155,7 @@ class _ErrorView extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: GoogleFonts.beVietnamPro(
                   fontSize: 14,
-                  color: AppTheme.textSecondary,
+                  color: const Color(0xFF898193),
                 ),
               ),
 
@@ -1843,3 +1227,19 @@ String _formatDate(DateTime dateTime) {
 
   return "${dateTime.day}/${dateTime.month}/${dateTime.year}";
 }
+
+
+/// Reuses the Settings screen's frosted-glass surface treatment.
+Widget _settingsGlass({
+  required Widget child,
+  double radius = 23,
+}) {
+  return ClipRRect(
+    borderRadius: BorderRadius.circular(radius),
+    child: BackdropFilter(
+      filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+      child: child,
+    ),
+  );
+}
+

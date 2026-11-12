@@ -1,530 +1,10 @@
-// import 'package:flutter/material.dart';
-// import 'package:flutter_bloc/flutter_bloc.dart';
-// import 'package:go_router/go_router.dart';
-// import 'package:google_fonts/google_fonts.dart';
-//
-// import '../../../../core/routes/app_routes.dart';
-// import '../../../../core/theme/app_theme.dart';
-// import '../../../../core/widgets/lumina_bottom_navigation.dart';
-// import '../../data/models/incident_model.dart';
-// import '../cubit/incident_cubit.dart';
-// import '../cubit/incident_state.dart';
-//
-// class IncidentHistoryScreen extends StatefulWidget {
-//   const IncidentHistoryScreen({super.key});
-//
-//   @override
-//   State<IncidentHistoryScreen> createState() =>
-//       _IncidentHistoryScreenState();
-// }
-//
-// class _IncidentHistoryScreenState
-//     extends State<IncidentHistoryScreen> {
-//
-//   @override
-//   void initState() {
-//     super.initState();
-//
-//     WidgetsBinding.instance.addPostFrameCallback((_) {
-//       if (!mounted) return;
-//
-//       context.read<IncidentCubit>().loadIncidentHistory();
-//     });
-//   }
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       body: Stack(
-//         children: [
-//
-//           // Background
-//           Container(
-//             color: AppTheme.background,
-//           ),
-//
-//           // Content
-//           SafeArea(
-//             child: BlocBuilder<IncidentCubit, IncidentState>(
-//               builder: (context, state) {
-//
-//                 if (state.isLoading) {
-//                   return const Center(
-//                     child: CircularProgressIndicator(
-//                       color: AppTheme.primary,
-//                     ),
-//                   );
-//                 }
-//
-//                 if (state.error != null) {
-//                   return _ErrorView(
-//                     message: state.error!,
-//                     onRetry: () {
-//                       context.read<IncidentCubit>().loadIncidentHistory();
-//                     },
-//                   );
-//                 }
-//
-//                 if (state.incidents.isEmpty) {
-//                   return const _EmptyIncidentView();
-//                 }
-//
-//                 return SingleChildScrollView(
-//                   padding: const EdgeInsets.fromLTRB(
-//                     20,
-//                     28,
-//                     20,
-//                     120,
-//                   ),
-//                   child: Column(
-//                     crossAxisAlignment:
-//                     CrossAxisAlignment.stretch,
-//                     children: [
-//
-//                       /// Header
-//                       _buildHeader(state.incidents.length),
-//
-//                       const SizedBox(height: 32),
-//
-//                       /// Cards
-//                       ListView.separated(
-//                         shrinkWrap: true,
-//                         physics: const NeverScrollableScrollPhysics(),
-//                         itemCount: state.incidents.length,
-//                         separatorBuilder: (_, __) =>
-//                         const SizedBox(height: 16),
-//                         itemBuilder: (context, index) {
-//                           return _buildIncidentCard(
-//                             state.incidents[index],
-//                           );
-//                         },
-//                       ),
-//
-//                     ],
-//                   ),
-//                 );
-//               },
-//             ),
-//           ),
-//         ],
-//       ),
-//
-//       bottomNavigationBar:
-//       const LuminaBottomNavigation(
-//         currentIndex: 3, // We'll verify the index later
-//       ),
-//     );
-//   }
-//
-//   Widget _buildHeader(int totalIncidents) {
-//     return Center(
-//       child: Column(
-//         children: [
-//
-//           Container(
-//             width: 88,
-//             height: 88,
-//             decoration: BoxDecoration(
-//               shape: BoxShape.circle,
-//               color: AppTheme.primary.withOpacity(.08),
-//             ),
-//             child: const Icon(
-//               Icons.history_rounded,
-//               size: 42,
-//               color: AppTheme.primary,
-//             ),
-//           ),
-//
-//           const SizedBox(height: 24),
-//
-//           Text(
-//             "Incident History",
-//             textAlign: TextAlign.center,
-//             style: GoogleFonts.montserrat(
-//               fontSize: 32,
-//               fontWeight: FontWeight.w600,
-//               color: AppTheme.textSecondary,
-//             ),
-//           ),
-//
-//           const SizedBox(height: 8),
-//
-//           Text(
-//             "$totalIncidents Emergency Incident${totalIncidents == 1 ? "" : "s"}",
-//             textAlign: TextAlign.center,
-//             style: GoogleFonts.beVietnamPro(
-//               fontSize: 15,
-//               fontWeight: FontWeight.w500,
-//               color: AppTheme.textSecondary,
-//             ),
-//           ),
-//
-//         ],
-//       ),
-//     );
-//   }
-//
-//   Widget _buildIncidentCard(IncidentModel incident) {
-//     return Container(
-//       decoration: BoxDecoration(
-//         color: Colors.white.withOpacity(.9),
-//         borderRadius: BorderRadius.circular(24),
-//         border: Border.all(
-//           color: Colors.white.withOpacity(.5),
-//           width: 1,
-//         ),
-//         boxShadow: [
-//           BoxShadow(
-//             color: Colors.black.withOpacity(.04),
-//             blurRadius: 12,
-//             offset: const Offset(0, 4),
-//           ),
-//         ],
-//       ),
-//       clipBehavior: Clip.antiAlias,
-//       child: Material(
-//         color: Colors.transparent,
-//         child: InkWell(
-//           onTap: () {
-//             context.push(
-//               AppRoutes.emergencyDetails,
-//               extra: incident.incidentId,
-//             );
-//           },
-//           child: Padding(
-//             padding: const EdgeInsets.symmetric(
-//               horizontal: 18,
-//               vertical: 16,
-//             ),
-//             child: Row(
-//               children: [
-//
-//                 _buildStatusIcon(incident.status),
-//
-//                 const SizedBox(width: 16),
-//
-//                 Expanded(
-//                   child: Column(
-//                     crossAxisAlignment:
-//                     CrossAxisAlignment.start,
-//                     children: [
-//
-//                       Text(
-//                         _triggerTitle(
-//                           incident.triggerType,
-//                         ),
-//                         style: GoogleFonts.montserrat(
-//                           fontSize: 18,
-//                           fontWeight: FontWeight.w600,
-//                         ),
-//                       ),
-//
-//                       const SizedBox(height: 6),
-//
-//                       Text(
-//                         _formatDate(
-//                           incident.createdAt,
-//                         ),
-//                         style: GoogleFonts.beVietnamPro(
-//                           color: AppTheme.textSecondary,
-//                           fontSize: 15,
-//                         ),
-//                       ),
-//
-//                       const SizedBox(height: 12),
-//
-//                       Row(
-//                         children: [
-//
-//                           _buildStatusBadge(
-//                             incident.status,
-//                           ),
-//
-//                           const SizedBox(width: 10),
-//
-//                           _buildRiskBadge(
-//                             incident.riskScore,
-//                           ),
-//                         ],
-//                       ),
-//                     ],
-//                   ),
-//                 ),
-//
-//                 const Icon(
-//                   Icons.chevron_right_rounded,
-//                   color: AppTheme.primary,
-//                 ),
-//               ],
-//             ),
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-//
-//   Widget _buildStatusIcon(String status) {
-//
-//     Color color;
-//
-//     IconData icon;
-//
-//     switch (status.toUpperCase()) {
-//
-//       case "ACTIVE":
-//         color = AppTheme.error;
-//         icon = Icons.warning_rounded;
-//         break;
-//
-//       case "RESOLVED":
-//         color = AppTheme.success;
-//         icon = Icons.check_circle;
-//         break;
-//
-//       default:
-//         color = Colors.grey;
-//         icon = Icons.history;
-//     }
-//
-//     return Container(
-//       width: 52,
-//       height: 52,
-//       decoration: BoxDecoration(
-//         color: color.withOpacity(.10),
-//         shape: BoxShape.circle,
-//       ),
-//       child: Icon(
-//         icon,
-//         color: color,
-//         size: 26,
-//       ),
-//     );
-//   }
-//
-//   Widget _buildStatusBadge(String status) {
-//
-//     Color color;
-//
-//     switch (status.toUpperCase()) {
-//
-//       case "ACTIVE":
-//         color = AppTheme.error;
-//         break;
-//
-//       case "RESOLVED":
-//         color = AppTheme.success;
-//         break;
-//
-//       default:
-//         color = Colors.grey;
-//     }
-//
-//     return Container(
-//       padding: const EdgeInsets.symmetric(
-//         horizontal: 10,
-//         vertical: 4,
-//       ),
-//       decoration: BoxDecoration(
-//         color: color.withOpacity(.12),
-//         borderRadius: BorderRadius.circular(30),
-//       ),
-//       child: Text(
-//         status,
-//         style: GoogleFonts.beVietnamPro(
-//           color: color,
-//           fontWeight: FontWeight.w600,
-//           fontSize: 12,
-//         ),
-//       ),
-//     );
-//   }
-//
-//   Widget _buildRiskBadge(int riskScore) {
-//
-//     String text;
-//     Color color;
-//
-//     if (riskScore >= 61) {
-//       text = "HIGH";
-//       color = AppTheme.error;
-//     } else if (riskScore >= 31) {
-//       text = "MEDIUM";
-//       color = AppTheme.warning;
-//     } else {
-//       text = "LOW";
-//       color = AppTheme.success;
-//     }
-//
-//     return Container(
-//       padding: const EdgeInsets.symmetric(
-//         horizontal: 10,
-//         vertical: 4,
-//       ),
-//       decoration: BoxDecoration(
-//         color: color.withOpacity(.12),
-//         borderRadius: BorderRadius.circular(30),
-//       ),
-//       child: Text(
-//         text,
-//         style: GoogleFonts.beVietnamPro(
-//           color: color,
-//           fontWeight: FontWeight.w600,
-//           fontSize: 12,
-//         ),
-//       ),
-//     );
-//   }
-//
-//   String _triggerTitle(String trigger) {
-//
-//     switch (trigger.toUpperCase()) {
-//
-//       case "MANUAL":
-//         return "Manual SOS";
-//
-//       case "HEART_RATE":
-//         return "Heart Rate Detection";
-//
-//       case "OFF_BODY":
-//         return "Device Removed";
-//
-//       case "BLUETOOTH":
-//         return "Bluetooth Disconnected";
-//
-//       default:
-//         return trigger;
-//     }
-//   }
-// }
-//
-// class _EmptyIncidentView extends StatelessWidget {
-//   const _EmptyIncidentView();
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return Center(
-//       child: Padding(
-//         padding: const EdgeInsets.all(24),
-//         child: Column(
-//           mainAxisAlignment: MainAxisAlignment.center,
-//           children: [
-//
-//             Icon(
-//               Icons.shield_outlined,
-//               size: 80,
-//               color: AppTheme.primary,
-//             ),
-//
-//             const SizedBox(height: 24),
-//
-//             Text(
-//               "No Incidents",
-//               style: Theme.of(context)
-//                   .textTheme
-//                   .headlineSmall,
-//             ),
-//
-//             const SizedBox(height: 8),
-//
-//             Text(
-//               "Great! You haven't experienced any emergency incidents.",
-//               textAlign: TextAlign.center,
-//               style: Theme.of(context)
-//                   .textTheme
-//                   .bodyMedium,
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-// }
-//
-// class _ErrorView extends StatelessWidget {
-//   final String message;
-//   final VoidCallback onRetry;
-//
-//   const _ErrorView({
-//     required this.message,
-//     required this.onRetry,
-//   });
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return Center(
-//       child: Padding(
-//         padding: const EdgeInsets.all(24),
-//         child: Column(
-//           mainAxisAlignment: MainAxisAlignment.center,
-//           children: [
-//
-//             const Icon(
-//               Icons.error_outline,
-//               size: 72,
-//               color: Colors.red,
-//             ),
-//
-//             const SizedBox(height: 20),
-//
-//             Text(
-//               message,
-//               textAlign: TextAlign.center,
-//             ),
-//
-//             const SizedBox(height: 20),
-//
-//             ElevatedButton(
-//               onPressed: onRetry,
-//               child: const Text("Retry"),
-//             )
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-// }
-//
-// String _formatDate(DateTime dateTime) {
-//
-//   final now = DateTime.now();
-//
-//   final difference =
-//   now.difference(dateTime);
-//
-//   if (difference.inMinutes < 1) {
-//     return "Just now";
-//   }
-//
-//   if (difference.inHours < 1) {
-//     return "${difference.inMinutes} min ago";
-//   }
-//
-//   if (difference.inDays < 1) {
-//     return "${difference.inHours} hrs ago";
-//   }
-//
-//   if (difference.inDays == 1) {
-//     return "Yesterday";
-//   }
-//
-//   return "${dateTime.day}/${dateTime.month}/${dateTime.year}";
-// }
 
-
-
-
-
-
-
-
-
-
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-
 import '../../../../core/routes/app_routes.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/lumina_bottom_navigation.dart';
@@ -558,129 +38,160 @@ class _IncidentHistoryScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.background,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFFFFE5EF),
+              Color(0xFFFFF5F6),
+              Color(0xFFF0EAFF),
+              Color(0xFFFFF9F3),
+            ],
+          ),
+        ),
+        child: Stack(
+          children: [
+            Positioned(
+              top: 145,
+              right: -105,
+              child: _softGlow(220, const Color(0xFFFFC6DD)),
+            ),
+            Positioned(
+              top: 620,
+              left: -110,
+              child: _softGlow(230, const Color(0xFFDCCFFF)),
+            ),
+            SafeArea(
+              child: BlocBuilder<IncidentCubit, IncidentState>(
+                builder: (context, state) {
 
-      body: SafeArea(
-        child: BlocBuilder<IncidentCubit, IncidentState>(
-          builder: (context, state) {
-
-            if (state.isLoading) {
-              return const Center(
-                child: CircularProgressIndicator(
-                  color: AppTheme.primary,
-                ),
-              );
-            }
-
-            if (state.error != null) {
-              return _ErrorView(
-                message: state.error!,
-                onRetry: () {
-                  context
-                      .read<IncidentCubit>()
-                      .loadIncidentHistory();
-                },
-              );
-            }
-
-            return RefreshIndicator(
-              color: AppTheme.primary,
-              onRefresh: () async {
-                await context
-                    .read<IncidentCubit>()
-                    .loadIncidentHistory();
-              },
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(
-                  20,
-                  24,
-                  20,
-                  120,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-
-                    // -------------------------------------------------
-                    // Header
-                    // -------------------------------------------------
-
-                    _buildHeader(),
-
-                    const SizedBox(height: 28),
-
-                    // -------------------------------------------------
-                    // Overview
-                    // -------------------------------------------------
-
-                    _buildOverviewCard(
-                      state.incidents,
-                    ),
-
-                    const SizedBox(height: 30),
-
-                    // -------------------------------------------------
-                    // Section title
-                    // -------------------------------------------------
-
-                    Row(
-                      children: [
-
-                        Expanded(
-                          child: Text(
-                            "Recent Emergencies",
-                            style: GoogleFonts.montserrat(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w700,
-                              color: AppTheme.textPrimary,
-                            ),
-                          ),
-                        ),
-
-                        if (state.incidents.isNotEmpty)
-                          Text(
-                            "${state.incidents.length}",
-                            style: GoogleFonts.beVietnamPro(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: AppTheme.primary,
-                            ),
-                          ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 14),
-
-                    // -------------------------------------------------
-                    // Empty state
-                    // -------------------------------------------------
-
-                    if (state.incidents.isEmpty)
-                      const _EmptyIncidentView()
-
-                    // -------------------------------------------------
-                    // Incident list
-                    // -------------------------------------------------
-
-                    else
-                      ListView.separated(
-                        shrinkWrap: true,
-                        physics:
-                        const NeverScrollableScrollPhysics(),
-                        itemCount: state.incidents.length,
-                        separatorBuilder: (_, __) =>
-                        const SizedBox(height: 14),
-                        itemBuilder: (context, index) {
-                          return _buildIncidentCard(
-                            state.incidents[index],
-                          );
-                        },
+                  if (state.isLoading) {
+                    return const Center(
+                      child: CircularProgressIndicator(
+                        color: AppTheme.primary,
                       ),
-                  ],
-                ),
+                    );
+                  }
+
+                  if (state.error != null) {
+                    return _ErrorView(
+                      message: state.error!,
+                      onRetry: () {
+                        context
+                            .read<IncidentCubit>()
+                            .loadIncidentHistory();
+                      },
+                    );
+                  }
+
+                  return RefreshIndicator(
+                    color: AppTheme.primary,
+                    onRefresh: () async {
+                      await context
+                          .read<IncidentCubit>()
+                          .loadIncidentHistory();
+                    },
+                    child: SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.fromLTRB(
+                        20,
+                        24,
+                        20,
+                        120,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+
+                          // -------------------------------------------------
+                          // Header
+                          // -------------------------------------------------
+
+                          _buildTopBar(),
+
+                          const SizedBox(height: 27),
+
+                          _buildPageIntro(),
+
+                          const SizedBox(height: 23),
+
+                          // -------------------------------------------------
+                          // Overview
+                          // -------------------------------------------------
+
+                          _buildOverviewCard(
+                            state.incidents,
+                          ),
+
+                          const SizedBox(height: 30),
+
+                          // -------------------------------------------------
+                          // Section title
+                          // -------------------------------------------------
+
+                          Row(
+                            children: [
+
+                              Expanded(
+                                child: Text(
+                                  "Recent Emergencies",
+                                  style: GoogleFonts.montserrat(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w700,
+                                    color: const Color(0xFF393044),
+                                  ),
+                                ),
+                              ),
+
+                              if (state.incidents.isNotEmpty)
+                                Text(
+                                  "${state.incidents.length}",
+                                  style: GoogleFonts.beVietnamPro(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppTheme.primary,
+                                  ),
+                                ),
+                            ],
+                          ),
+
+                          const SizedBox(height: 14),
+
+                          // -------------------------------------------------
+                          // Empty state
+                          // -------------------------------------------------
+
+                          if (state.incidents.isEmpty)
+                            const _EmptyIncidentView()
+
+                          // -------------------------------------------------
+                          // Incident list
+                          // -------------------------------------------------
+
+                          else
+                            ListView.separated(
+                              shrinkWrap: true,
+                              physics:
+                              const NeverScrollableScrollPhysics(),
+                              itemCount: state.incidents.length,
+                              separatorBuilder: (_, __) =>
+                              const SizedBox(height: 14),
+                              itemBuilder: (context, index) {
+                                return _buildIncidentCard(
+                                  state.incidents[index],
+                                );
+                              },
+                            ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
               ),
-            );
-          },
+            ),
+          ],
         ),
       ),
 
@@ -691,49 +202,97 @@ class _IncidentHistoryScreenState
     );
   }
 
+  Widget _softGlow(double size, Color color) {
+    return IgnorePointer(
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: color.withOpacity(.30),
+        ),
+      ),
+    );
+  }
+
   // ================================================================
   // HEADER
   // ================================================================
 
-  Widget _buildHeader() {
+  Widget _buildTopBar() {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+        child: Container(
+          height: 54,
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(.48),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.white.withOpacity(.8)),
+          ),
+          child: Row(
+            children: [
+              IconButton(
+                onPressed: () {
+                  if (context.canPop()) context.pop();
+                },
+                icon: const Icon(
+                  Icons.arrow_back_rounded,
+                  color: Color(0xFF393044),
+                ),
+              ),
+              Expanded(
+                child: Text(
+                  'Lumina Guardian',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.montserrat(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: const Color(0xFFD95791),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 48),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPageIntro() {
     return Column(
       children: [
-
-        Container(
-          width: 82,
-          height: 82,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: AppTheme.primary.withOpacity(.08),
-          ),
-          child: const Icon(
-            Icons.shield_rounded,
-            size: 40,
-            color: AppTheme.primary,
-          ),
-        ),
-
-        const SizedBox(height: 20),
-
         Text(
-          "Family Safety",
+          'SAFETY & PROTECTION',
           textAlign: TextAlign.center,
           style: GoogleFonts.montserrat(
-            fontSize: 30,
-            fontWeight: FontWeight.w700,
-            color: AppTheme.primary,
+            fontSize: 11,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 1.8,
+            color: const Color(0xFFD95791),
           ),
         ),
-
-        const SizedBox(height: 6),
-
+        const SizedBox(height: 9),
         Text(
-          "Incident History",
+          'Incident History',
+          textAlign: TextAlign.center,
+          style: GoogleFonts.montserrat(
+            fontSize: 27,
+            fontWeight: FontWeight.w800,
+            color: const Color(0xFF393044),
+          ),
+        ),
+        const SizedBox(height: 7),
+        Text(
+          'Review your recent safety activity and emergency records.',
           textAlign: TextAlign.center,
           style: GoogleFonts.beVietnamPro(
-            fontSize: 15,
-            fontWeight: FontWeight.w500,
-            color: AppTheme.textSecondary,
+            fontSize: 13,
+            height: 1.5,
+            color: const Color(0xFF898193),
           ),
         ),
       ],
@@ -761,17 +320,24 @@ class _IncidentHistoryScreenState
     )
         .length;
 
-    return Container(
-      padding: const EdgeInsets.all(22),
+    return _settingsGlass(child: Container(
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(.92),
-        borderRadius: BorderRadius.circular(26),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.white.withOpacity(.82),
+            Colors.white.withOpacity(.66),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: Colors.white.withOpacity(.6),
+          color: Colors.white.withOpacity(.90),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(.04),
+            color: const Color(0xFFAA91D8).withOpacity(.07),
             blurRadius: 18,
             offset: const Offset(0, 6),
           ),
@@ -784,8 +350,9 @@ class _IncidentHistoryScreenState
           Text(
             "Safety Overview",
             style: GoogleFonts.montserrat(
-              fontSize: 17,
-              fontWeight: FontWeight.w700,
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+              color: const Color(0xFF393044),
             ),
           ),
 
@@ -806,7 +373,7 @@ class _IncidentHistoryScreenState
               Container(
                 width: 1,
                 height: 52,
-                color: Colors.grey.shade200,
+                color: AppTheme.outlineVariant.withOpacity(.65),
               ),
 
               Expanded(
@@ -821,7 +388,7 @@ class _IncidentHistoryScreenState
               Container(
                 width: 1,
                 height: 52,
-                color: Colors.grey.shade200,
+                color: AppTheme.outlineVariant.withOpacity(.65),
               ),
 
               Expanded(
@@ -836,8 +403,7 @@ class _IncidentHistoryScreenState
           ),
         ],
       ),
-    );
-  }
+    ));  }
 
   Widget _buildOverviewItem({
     required String value,
@@ -871,7 +437,7 @@ class _IncidentHistoryScreenState
           style: GoogleFonts.beVietnamPro(
             fontSize: 12,
             fontWeight: FontWeight.w500,
-            color: AppTheme.textSecondary,
+            color: const Color(0xFF898193),
           ),
         ),
       ],
@@ -893,16 +459,23 @@ class _IncidentHistoryScreenState
       incident.riskScore,
     );
 
-    return Container(
+    return _settingsGlass(child: Container(
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(.94),
-        borderRadius: BorderRadius.circular(24),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.white.withOpacity(.78),
+            Colors.white.withOpacity(.62),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(22),
         border: Border.all(
-          color: Colors.white.withOpacity(.65),
+          color: Colors.white.withOpacity(.92),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(.035),
+            color: const Color(0xFFAA91D8).withOpacity(.07),
             blurRadius: 16,
             offset: const Offset(0, 5),
           ),
@@ -930,11 +503,19 @@ class _IncidentHistoryScreenState
                 // -------------------------------------------------
 
                 Container(
-                  width: 52,
-                  height: 52,
+                  width: 46,
+                  height: 46,
                   decoration: BoxDecoration(
-                    color: statusColor.withOpacity(.10),
-                    shape: BoxShape.circle,
+                    borderRadius: BorderRadius.circular(14),
+                    gradient: LinearGradient(
+                      colors: [
+                        statusColor.withOpacity(.14),
+                        statusColor.withOpacity(.07),
+                      ],
+                    ),
+                    border: Border.all(
+                      color: statusColor.withOpacity(.10),
+                    ),
                   ),
                   child: Icon(
                     _statusIcon(incident.status),
@@ -962,8 +543,9 @@ class _IncidentHistoryScreenState
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.montserrat(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                          color: const Color(0xFF393044),
                         ),
                       ),
 
@@ -974,9 +556,8 @@ class _IncidentHistoryScreenState
                           incident.createdAt,
                         ),
                         style: GoogleFonts.beVietnamPro(
-                          fontSize: 13,
-                          color:
-                          AppTheme.textSecondary,
+                          fontSize: 11.5,
+                          color: const Color(0xFF898193),
                         ),
                       ),
 
@@ -1026,8 +607,7 @@ class _IncidentHistoryScreenState
           ),
         ),
       ),
-    );
-  }
+    ));  }
 
   // ================================================================
   // BADGE
@@ -1054,8 +634,7 @@ class _IncidentHistoryScreenState
           fontWeight: FontWeight.w700,
         ),
       ),
-    );
-  }
+    );  }
 
   // ================================================================
   // STATUS
@@ -1154,10 +733,10 @@ class _EmptyIncidentView extends StatelessWidget {
         vertical: 42,
       ),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(.90),
+        color: Colors.white.withOpacity(.67),
         borderRadius: BorderRadius.circular(26),
         border: Border.all(
-          color: Colors.white.withOpacity(.6),
+          color: Colors.white.withOpacity(.90),
         ),
       ),
       child: Column(
@@ -1195,7 +774,7 @@ class _EmptyIncidentView extends StatelessWidget {
             style: GoogleFonts.beVietnamPro(
               fontSize: 14,
               height: 1.5,
-              color: AppTheme.textSecondary,
+              color: const Color(0xFF898193),
             ),
           ),
         ],
@@ -1225,7 +804,7 @@ class _ErrorView extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(26),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(.92),
+            color: Colors.white.withOpacity(.67),
             borderRadius: BorderRadius.circular(26),
           ),
           child: Column(
@@ -1264,7 +843,7 @@ class _ErrorView extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: GoogleFonts.beVietnamPro(
                   fontSize: 14,
-                  color: AppTheme.textSecondary,
+                  color: const Color(0xFF898193),
                 ),
               ),
 
@@ -1333,3 +912,19 @@ String _formatDate(DateTime dateTime) {
 
   return "${dateTime.day}/${dateTime.month}/${dateTime.year}";
 }
+
+
+/// Reuses the Settings screen's frosted-glass surface treatment.
+Widget _settingsGlass({
+  required Widget child,
+  double radius = 23,
+}) {
+  return ClipRRect(
+    borderRadius: BorderRadius.circular(radius),
+    child: BackdropFilter(
+      filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+      child: child,
+    ),
+  );
+}
+
